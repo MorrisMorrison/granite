@@ -1,0 +1,591 @@
+components:
+  schemas:
+    AuthOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/AuthOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        access:
+          type: string
+        refresh:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserResponse"
+      required:
+        - user
+        - access
+        - refresh
+      type: object
+    ErrorDetail:
+      additionalProperties: false
+      properties:
+        location:
+          description: Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
+          type: string
+        message:
+          description: Error message text
+          type: string
+        value:
+          description: The value at the given location
+      type: object
+    ErrorModel:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ErrorModel.json
+          format: uri
+          readOnly: true
+          type: string
+        detail:
+          description: A human-readable explanation specific to this occurrence of the problem.
+          examples:
+            - Property foo is required but is missing.
+          type: string
+        errors:
+          description: Optional list of individual error details
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+          type:
+            - array
+            - "null"
+        instance:
+          description: A URI reference that identifies the specific occurrence of the problem.
+          examples:
+            - https://example.com/error-log/abc123
+          format: uri
+          type: string
+        status:
+          description: HTTP status code
+          examples:
+            - 400
+          format: int64
+          type: integer
+        title:
+          description: A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
+          examples:
+            - Bad Request
+          type: string
+        type:
+          default: about:blank
+          description: A URI reference to human-readable documentation for the error.
+          examples:
+            - https://example.com/errors/example
+          format: uri
+          type: string
+      type: object
+    ExerciseBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ExerciseBody.json
+          format: uri
+          readOnly: true
+          type: string
+        equipment:
+          type: string
+        exercise_type:
+          enum:
+            - weight_reps
+            - reps_only
+            - duration
+          type: string
+        instructions:
+          type: string
+        is_archived:
+          type: boolean
+        name:
+          maxLength: 200
+          minLength: 1
+          type: string
+        primary_muscle:
+          type: string
+        secondary_muscles:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+      required:
+        - name
+        - exercise_type
+      type: object
+    ExerciseResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ExerciseResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        created_at:
+          format: int64
+          type: integer
+        equipment:
+          type: string
+        exercise_type:
+          type: string
+        id:
+          type: string
+        instructions:
+          type: string
+        is_archived:
+          type: boolean
+        is_builtin:
+          type: boolean
+        name:
+          type: string
+        primary_muscle:
+          type: string
+        secondary_muscles:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        updated_at:
+          format: int64
+          type: integer
+      required:
+        - id
+        - name
+        - exercise_type
+        - primary_muscle
+        - secondary_muscles
+        - equipment
+        - instructions
+        - is_archived
+        - is_builtin
+        - created_at
+        - updated_at
+      type: object
+    ListExercisesOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ListExercisesOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        exercises:
+          items:
+            $ref: "#/components/schemas/ExerciseResponse"
+          type:
+            - array
+            - "null"
+      required:
+        - exercises
+      type: object
+    LoginInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/LoginInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        email:
+          format: email
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    RefreshInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/RefreshInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        refresh:
+          type: string
+      required:
+        - refresh
+      type: object
+    RegisterInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/RegisterInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        display_name:
+          type: string
+        email:
+          format: email
+          type: string
+        password:
+          maxLength: 128
+          minLength: 8
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    TokenOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/TokenOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+        - access
+        - refresh
+      type: object
+    UpdateMeInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateMeInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        display_name:
+          type: string
+        settings: {}
+      type: object
+    UserResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UserResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        created_at:
+          format: int64
+          type: integer
+        display_name:
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+        settings: {}
+        updated_at:
+          format: int64
+          type: integer
+      required:
+        - id
+        - email
+        - display_name
+        - settings
+        - created_at
+        - updated_at
+      type: object
+  securitySchemes:
+    bearer:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+info:
+  title: Granite API
+  version: 0.1.0
+openapi: 3.1.0
+paths:
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Log in
+      tags:
+        - Auth
+  /api/v1/auth/logout:
+    post:
+      operationId: logout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Log out
+      tags:
+        - Auth
+  /api/v1/auth/refresh:
+    post:
+      operationId: refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Rotate tokens
+      tags:
+        - Auth
+  /api/v1/auth/register:
+    post:
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthOutputBody"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Register a new account
+      tags:
+        - Auth
+  /api/v1/exercises:
+    get:
+      operationId: listExercises
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListExercisesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: List exercises (yours + built-in)
+      tags:
+        - Exercises
+    post:
+      operationId: createExercise
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExerciseBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseResponse"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Create a custom exercise
+      tags:
+        - Exercises
+  /api/v1/exercises/{id}:
+    delete:
+      operationId: deleteExercise
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Delete a custom exercise
+      tags:
+        - Exercises
+    get:
+      operationId: getExercise
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Get an exercise
+      tags:
+        - Exercises
+    patch:
+      operationId: updateExercise
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExerciseBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExerciseResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Update a custom exercise
+      tags:
+        - Exercises
+  /api/v1/me:
+    get:
+      operationId: getMe
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Get the current user
+      tags:
+        - User
+    patch:
+      operationId: updateMe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMeInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Update the current user
+      tags:
+        - User

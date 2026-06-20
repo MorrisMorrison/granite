@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
+	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 )
 
 type ctxKey string
@@ -43,27 +44,32 @@ func requestLogger(next http.Handler) http.Handler {
 	})
 }
 
-// requireAuth validates the Bearer access token and puts the user id in context.
-func (s *Server) requireAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// newAuthMiddleware is a huma middleware that enforces a Bearer access token for
+// operations declaring Security, and injects the user id into the context.
+func newAuthMiddleware(api huma.API, tokens *auth.TokenManager) func(huma.Context, func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
+		if len(ctx.Operation().Security) == 0 {
+			next(ctx)
+			return
+		}
 		const prefix = "Bearer "
-		h := r.Header.Get("Authorization")
+		h := ctx.Header("Authorization")
 		if !strings.HasPrefix(h, prefix) {
-			apperr.HandleError(w, r, apperr.Unauthorized("missing or malformed Authorization header"))
+			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "missing or malformed Authorization header")
 			return
 		}
 		token := strings.TrimPrefix(h, prefix)
 		if token == "" {
-			apperr.HandleError(w, r, apperr.Unauthorized("missing access token"))
+			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "missing access token")
 			return
 		}
-		userID, err := s.tokens.ParseAccessToken(token)
+		userID, err := tokens.ParseAccessToken(token)
 		if err != nil {
-			apperr.HandleError(w, r, apperr.Unauthorized("invalid or expired access token"))
+			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "invalid or expired access token")
 			return
 		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userIDKey, userID)))
-	})
+		next(huma.WithValue(ctx, userIDKey, userID))
+	}
 }
 
 func userIDFromCtx(ctx context.Context) string {

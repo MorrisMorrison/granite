@@ -1,7 +1,8 @@
 # Granite — project commands.
 # Go API (apps/api) + SvelteKit client (apps/mobile) + shared TS (packages/shared, via pnpm).
 .PHONY: help install build build-api build-web test test-api test-web run-api run-web \
-	fmt fmt-api fmt-web lint lint-api lint-web check verify clean docker-build
+	fmt fmt-api fmt-web lint lint-api lint-web check verify clean docker-build \
+	gen-openapi gen-client
 
 # Local Go is portable 1.23 but go.mod targets 1.25 → let the toolchain self-fetch.
 export GOTOOLCHAIN ?= auto
@@ -62,6 +63,14 @@ lint-web:
 
 check:
 	$(PNPM) -r --if-present check
+
+# Regenerate the OpenAPI spec from the Go code (source of truth).
+gen-openapi:
+	cd $(API_DIR) && go run ./cmd/gen-openapi > openapi.yaml
+
+# Regenerate the OpenAPI spec + the typed TS client. Run after API changes.
+gen-client: gen-openapi
+	$(PNPM) --filter @granite/shared exec openapi-typescript ../../apps/api/openapi.yaml -o src/api/schema.d.ts
 
 verify: fmt lint test
 

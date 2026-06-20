@@ -2,5 +2,8 @@
 // The generated API client (from the server's OpenAPI spec), shared domain types,
 // and the offline-first sync engine will live here — see docs/05-sync-and-offline.md.
 
-/** Package marker (placeholder until real exports land). */
+// The generated, fully-typed API client (from the server's OpenAPI spec).
+export * from './api/client';
+
+/** Package marker. */
 export const SHARED_PACKAGE = '@granite/shared';
