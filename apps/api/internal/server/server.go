@@ -1,66 +1,61 @@
-// Package server wires up the Granite HTTP API routes.
-//
-// At this scaffold stage it only exposes liveness/readiness probes and a
-// placeholder landing page. Real routes (auth, sync, CRUD, MCP) arrive in
-// Phase 1 — see docs/04-api-design.md.
+// Package server wires the Granite HTTP API: router, middleware, and handlers.
 package server
 
-import "net/http"
+import (
+	"database/sql"
+	"net/http"
 
-// Server holds the HTTP routing for the Granite API.
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+
+	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
+)
+
+// Server holds the router and its dependencies.
 type Server struct {
-	mux *http.ServeMux
+	router *chi.Mux
+	auth   *auth.Service
+	tokens *auth.TokenManager
+	db     *sql.DB
 }
 
-// New constructs a Server with all routes registered.
-func New() *Server {
-	s := &Server{mux: http.NewServeMux()}
+// New constructs a Server with all routes and middleware registered.
+func New(authSvc *auth.Service, tokens *auth.TokenManager, db *sql.DB) *Server {
+	s := &Server{router: chi.NewRouter(), auth: authSvc, tokens: tokens, db: db}
 	s.routes()
 	return s
 }
 
-// Handler returns the root http.Handler for the server.
-func (s *Server) Handler() http.Handler {
-	return s.mux
-}
+// Handler returns the root http.Handler.
+func (s *Server) Handler() http.Handler { return s.router }
 
 func (s *Server) routes() {
-	s.mux.HandleFunc("GET /healthz", handleHealthz)
-	s.mux.HandleFunc("GET /readyz", handleReadyz)
-	s.mux.HandleFunc("GET /{$}", handleRoot)
-}
+	r := s.router
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
+	r.Use(requestLogger)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders: []string{"Authorization", "Content-Type"},
+		MaxAge:         300,
+	}))
 
-func writeJSON(w http.ResponseWriter, status int, body string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(body))
-}
+	r.Get("/healthz", s.handleHealthz)
+	r.Get("/readyz", s.handleReadyz)
+	r.Get("/", s.handleRoot)
 
-// handleHealthz is a liveness probe — the process is up.
-func handleHealthz(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, `{"status":"ok"}`)
-}
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Post("/auth/register", s.handleRegister)
+		r.Post("/auth/login", s.handleLogin)
+		r.Post("/auth/refresh", s.handleRefresh)
+		r.Post("/auth/logout", s.handleLogout)
 
-// handleReadyz is a readiness probe — the service can serve traffic.
-// Once a datastore is wired in (Phase 1) this will check it.
-func handleReadyz(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, `{"status":"ready"}`)
+		r.Group(func(r chi.Router) {
+			r.Use(s.requireAuth)
+			r.Get("/me", s.handleGetMe)
+			r.Patch("/me", s.handleUpdateMe)
+		})
+	})
 }
-
-// handleRoot serves a placeholder landing page until the web app is embedded.
-func handleRoot(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(placeholderHTML))
-}
-
-const placeholderHTML = `<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Granite</title></head>
-<body style="font-family:system-ui;max-width:40rem;margin:4rem auto;padding:0 1rem;line-height:1.6">
-<h1>🪨 Granite</h1>
-<p>Open-source, self-hostable, offline-first workout tracker — under construction.</p>
-<p><a href="https://github.com/MorrisMorrison/granite">github.com/MorrisMorrison/granite</a></p>
-</body></html>
-`
