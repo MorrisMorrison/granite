@@ -15,16 +15,34 @@ type Querier interface {
 	CreateBuiltinExercise(ctx context.Context, arg CreateBuiltinExerciseParams) error
 	CreateExercise(ctx context.Context, arg CreateExerciseParams) (Exercise, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
+	CreateRoutine(ctx context.Context, arg CreateRoutineParams) (Routine, error)
+	CreateRoutineExercise(ctx context.Context, arg CreateRoutineExerciseParams) (RoutineExercise, error)
+	CreateRoutineFolder(ctx context.Context, arg CreateRoutineFolderParams) (RoutineFolder, error)
+	CreateRoutineSet(ctx context.Context, arg CreateRoutineSetParams) (RoutineSet, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteRoutineExercisesByRoutine(ctx context.Context, routineID string) error
 	GetExercise(ctx context.Context, id string) (Exercise, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
+	GetRoutine(ctx context.Context, id string) (Routine, error)
+	GetRoutineFolder(ctx context.Context, id string) (RoutineFolder, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id string) (User, error)
 	ListExercises(ctx context.Context, userID sql.NullString) ([]Exercise, error)
+	// Routine exercises + sets (children, replaced wholesale on update) ------------
+	ListRoutineExercises(ctx context.Context, routineID string) ([]RoutineExercise, error)
+	// Folders ---------------------------------------------------------------------
+	ListRoutineFolders(ctx context.Context, userID string) ([]RoutineFolder, error)
+	ListRoutineSetsForRoutine(ctx context.Context, routineID string) ([]RoutineSet, error)
+	// Routines --------------------------------------------------------------------
+	ListRoutines(ctx context.Context, userID string) ([]Routine, error)
 	RevokeAllUserRefreshTokens(ctx context.Context, arg RevokeAllUserRefreshTokensParams) (int64, error)
 	RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) (int64, error)
 	SoftDeleteExercise(ctx context.Context, arg SoftDeleteExerciseParams) (int64, error)
+	SoftDeleteRoutine(ctx context.Context, arg SoftDeleteRoutineParams) (int64, error)
+	SoftDeleteRoutineFolder(ctx context.Context, arg SoftDeleteRoutineFolderParams) (int64, error)
 	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (Exercise, error)
+	UpdateRoutineFolder(ctx context.Context, arg UpdateRoutineFolderParams) (RoutineFolder, error)
+	UpdateRoutineMeta(ctx context.Context, arg UpdateRoutineMetaParams) (Routine, error)
 	UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error)
 }
 

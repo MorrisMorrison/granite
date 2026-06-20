@@ -127,6 +127,79 @@ export interface paths {
         patch: operations["updateMe"];
         trace?: never;
     };
+    "/api/v1/routine-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List routine folders */
+        get: operations["listRoutineFolders"];
+        put?: never;
+        /** Create a routine folder */
+        post: operations["createRoutineFolder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routine-folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a routine folder */
+        delete: operations["deleteRoutineFolder"];
+        options?: never;
+        head?: never;
+        /** Update a routine folder */
+        patch: operations["updateRoutineFolder"];
+        trace?: never;
+    };
+    "/api/v1/routines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List routines (metadata) */
+        get: operations["listRoutines"];
+        put?: never;
+        /** Create a routine */
+        post: operations["createRoutine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a routine (full) */
+        get: operations["getRoutine"];
+        put?: never;
+        post?: never;
+        /** Delete a routine */
+        delete: operations["deleteRoutine"];
+        options?: never;
+        head?: never;
+        /** Update a routine */
+        patch: operations["updateRoutine"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -189,6 +262,18 @@ export interface components {
              */
             type: string;
         };
+        Exercise: {
+            exercise_id: string;
+            id: string;
+            notes: string;
+            /** Format: int64 */
+            order_index: number;
+            /** Format: int64 */
+            rest_seconds: number;
+            sets: components["schemas"]["Set"][] | null;
+            /** Format: int64 */
+            superset_group: number | null;
+        };
         ExerciseBody: {
             /**
              * Format: uri
@@ -204,6 +289,15 @@ export interface components {
             name: string;
             primary_muscle?: string;
             secondary_muscles?: string[] | null;
+        };
+        ExerciseInput: {
+            exercise_id: string;
+            notes?: string;
+            /** Format: int64 */
+            rest_seconds?: number;
+            sets?: components["schemas"]["SetInput"][] | null;
+            /** Format: int64 */
+            superset_group?: number;
         };
         ExerciseResponse: {
             /**
@@ -226,6 +320,33 @@ export interface components {
             /** Format: int64 */
             updated_at: number;
         };
+        Folder: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/Folder.json
+             */
+            readonly $schema?: string;
+            /** Format: int64 */
+            created_at: number;
+            id: string;
+            name: string;
+            /** Format: int64 */
+            order_index: number;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        FolderInput: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/FolderInput.json
+             */
+            readonly $schema?: string;
+            name: string;
+            /** Format: int64 */
+            order_index?: number;
+        };
         ListExercisesOutputBody: {
             /**
              * Format: uri
@@ -234,6 +355,24 @@ export interface components {
              */
             readonly $schema?: string;
             exercises: components["schemas"]["ExerciseResponse"][] | null;
+        };
+        ListFoldersOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ListFoldersOutputBody.json
+             */
+            readonly $schema?: string;
+            folders: components["schemas"]["Folder"][] | null;
+        };
+        ListRoutinesOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ListRoutinesOutputBody.json
+             */
+            readonly $schema?: string;
+            routines: components["schemas"]["Routine"][] | null;
         };
         LoginInputBody: {
             /**
@@ -266,6 +405,64 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+        };
+        Routine: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/Routine.json
+             */
+            readonly $schema?: string;
+            /** Format: int64 */
+            created_at: number;
+            exercises: components["schemas"]["Exercise"][] | null;
+            folder_id: string | null;
+            id: string;
+            notes: string;
+            /** Format: int64 */
+            order_index: number;
+            title: string;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        RoutineInput: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/RoutineInput.json
+             */
+            readonly $schema?: string;
+            exercises?: components["schemas"]["ExerciseInput"][] | null;
+            folder_id?: string;
+            notes?: string;
+            /** Format: int64 */
+            order_index?: number;
+            title: string;
+        };
+        Set: {
+            id: string;
+            /** Format: int64 */
+            order_index: number;
+            set_type: string;
+            /** Format: int64 */
+            target_duration: number | null;
+            /** Format: int64 */
+            target_reps: number | null;
+            /** Format: double */
+            target_rpe: number | null;
+            /** Format: double */
+            target_weight: number | null;
+        };
+        SetInput: {
+            set_type?: string;
+            /** Format: int64 */
+            target_duration?: number;
+            /** Format: int64 */
+            target_reps?: number;
+            /** Format: double */
+            target_rpe?: number;
+            /** Format: double */
+            target_weight?: number;
         };
         TokenOutputBody: {
             /**
@@ -648,6 +845,289 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    listRoutineFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListFoldersOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    createRoutineFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Folder"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    deleteRoutineFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    updateRoutineFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Folder"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    listRoutines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListRoutinesOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    createRoutine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutineInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Routine"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    getRoutine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Routine"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    deleteRoutine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    updateRoutine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoutineInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Routine"];
                 };
             };
             /** @description Error */
