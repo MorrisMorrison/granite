@@ -1,0 +1,41 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+*.local
+
+# --- Node / SvelteKit (apps/mobile, packages/*) ---
+node_modules/
+.svelte-kit/
+build/
+dist/
+.pnpm-store/
+*.tsbuildinfo
+
+# --- Capacitor native projects (generated; build artifacts) ---
+apps/mobile/android/
+apps/mobile/ios/
+!apps/mobile/android/.gitkeep
+!apps/mobile/ios/.gitkeep
+
+# --- Go (apps/api) ---
+apps/api/bin/
+apps/api/tmp/
+*.exe
+*.test
+*.out
+coverage.*
+
+# --- Local databases / dumps ---
+*.sqlite
+*.sqlite-*
+*.db
+*.dump
