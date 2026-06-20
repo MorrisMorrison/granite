@@ -32,6 +32,53 @@ type RefreshToken struct {
 	CreatedAt int64         `json:"created_at"`
 }
 
+type Routine struct {
+	ID         string         `json:"id"`
+	UserID     string         `json:"user_id"`
+	FolderID   sql.NullString `json:"folder_id"`
+	Title      string         `json:"title"`
+	Notes      string         `json:"notes"`
+	OrderIndex int64          `json:"order_index"`
+	CreatedAt  int64          `json:"created_at"`
+	UpdatedAt  int64          `json:"updated_at"`
+	DeletedAt  sql.NullInt64  `json:"deleted_at"`
+}
+
+type RoutineExercise struct {
+	ID            string        `json:"id"`
+	RoutineID     string        `json:"routine_id"`
+	ExerciseID    string        `json:"exercise_id"`
+	OrderIndex    int64         `json:"order_index"`
+	Notes         string        `json:"notes"`
+	RestSeconds   int64         `json:"rest_seconds"`
+	SupersetGroup sql.NullInt64 `json:"superset_group"`
+	CreatedAt     int64         `json:"created_at"`
+	UpdatedAt     int64         `json:"updated_at"`
+}
+
+type RoutineFolder struct {
+	ID         string        `json:"id"`
+	UserID     string        `json:"user_id"`
+	Name       string        `json:"name"`
+	OrderIndex int64         `json:"order_index"`
+	CreatedAt  int64         `json:"created_at"`
+	UpdatedAt  int64         `json:"updated_at"`
+	DeletedAt  sql.NullInt64 `json:"deleted_at"`
+}
+
+type RoutineSet struct {
+	ID                string          `json:"id"`
+	RoutineExerciseID string          `json:"routine_exercise_id"`
+	OrderIndex        int64           `json:"order_index"`
+	SetType           string          `json:"set_type"`
+	TargetWeight      sql.NullFloat64 `json:"target_weight"`
+	TargetReps        sql.NullInt64   `json:"target_reps"`
+	TargetRpe         sql.NullFloat64 `json:"target_rpe"`
+	TargetDuration    sql.NullInt64   `json:"target_duration"`
+	CreatedAt         int64           `json:"created_at"`
+	UpdatedAt         int64           `json:"updated_at"`
+}
+
 type User struct {
 	ID           string `json:"id"`
 	Email        string `json:"email"`

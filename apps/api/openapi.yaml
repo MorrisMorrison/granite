@@ -80,6 +80,41 @@ components:
           format: uri
           type: string
       type: object
+    Exercise:
+      additionalProperties: false
+      properties:
+        exercise_id:
+          type: string
+        id:
+          type: string
+        notes:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+        rest_seconds:
+          format: int64
+          type: integer
+        sets:
+          items:
+            $ref: "#/components/schemas/Set"
+          type:
+            - array
+            - "null"
+        superset_group:
+          format: int64
+          type:
+            - integer
+            - "null"
+      required:
+        - id
+        - exercise_id
+        - order_index
+        - notes
+        - rest_seconds
+        - superset_group
+        - sets
+      type: object
     ExerciseBody:
       additionalProperties: false
       properties:
@@ -117,6 +152,28 @@ components:
       required:
         - name
         - exercise_type
+      type: object
+    ExerciseInput:
+      additionalProperties: false
+      properties:
+        exercise_id:
+          type: string
+        notes:
+          type: string
+        rest_seconds:
+          format: int64
+          type: integer
+        sets:
+          items:
+            $ref: "#/components/schemas/SetInput"
+          type:
+            - array
+            - "null"
+        superset_group:
+          format: int64
+          type: integer
+      required:
+        - exercise_id
       type: object
     ExerciseResponse:
       additionalProperties: false
@@ -169,6 +226,54 @@ components:
         - created_at
         - updated_at
       type: object
+    Folder:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/Folder.json
+          format: uri
+          readOnly: true
+          type: string
+        created_at:
+          format: int64
+          type: integer
+        id:
+          type: string
+        name:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+        updated_at:
+          format: int64
+          type: integer
+      required:
+        - id
+        - name
+        - order_index
+        - created_at
+        - updated_at
+      type: object
+    FolderInput:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/FolderInput.json
+          format: uri
+          readOnly: true
+          type: string
+        name:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+      required:
+        - name
+      type: object
     ListExercisesOutputBody:
       additionalProperties: false
       properties:
@@ -187,6 +292,44 @@ components:
             - "null"
       required:
         - exercises
+      type: object
+    ListFoldersOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ListFoldersOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        folders:
+          items:
+            $ref: "#/components/schemas/Folder"
+          type:
+            - array
+            - "null"
+      required:
+        - folders
+      type: object
+    ListRoutinesOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ListRoutinesOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        routines:
+          items:
+            $ref: "#/components/schemas/Routine"
+          type:
+            - array
+            - "null"
+      required:
+        - routines
       type: object
     LoginInputBody:
       additionalProperties: false
@@ -244,6 +387,136 @@ components:
       required:
         - email
         - password
+      type: object
+    Routine:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/Routine.json
+          format: uri
+          readOnly: true
+          type: string
+        created_at:
+          format: int64
+          type: integer
+        exercises:
+          items:
+            $ref: "#/components/schemas/Exercise"
+          type:
+            - array
+            - "null"
+        folder_id:
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+        notes:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+        title:
+          type: string
+        updated_at:
+          format: int64
+          type: integer
+      required:
+        - id
+        - folder_id
+        - title
+        - notes
+        - order_index
+        - exercises
+        - created_at
+        - updated_at
+      type: object
+    RoutineInput:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/RoutineInput.json
+          format: uri
+          readOnly: true
+          type: string
+        exercises:
+          items:
+            $ref: "#/components/schemas/ExerciseInput"
+          type:
+            - array
+            - "null"
+        folder_id:
+          type: string
+        notes:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+        title:
+          type: string
+      required:
+        - title
+      type: object
+    Set:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+        set_type:
+          type: string
+        target_duration:
+          format: int64
+          type:
+            - integer
+            - "null"
+        target_reps:
+          format: int64
+          type:
+            - integer
+            - "null"
+        target_rpe:
+          format: double
+          type:
+            - number
+            - "null"
+        target_weight:
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - id
+        - order_index
+        - set_type
+        - target_weight
+        - target_reps
+        - target_rpe
+        - target_duration
+      type: object
+    SetInput:
+      additionalProperties: false
+      properties:
+        set_type:
+          type: string
+        target_duration:
+          format: int64
+          type: integer
+        target_reps:
+          format: int64
+          type: integer
+        target_rpe:
+          format: double
+          type: number
+        target_weight:
+          format: double
+          type: number
       type: object
     TokenOutputBody:
       additionalProperties: false
@@ -589,3 +862,233 @@ paths:
       summary: Update the current user
       tags:
         - User
+  /api/v1/routine-folders:
+    get:
+      operationId: listRoutineFolders
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListFoldersOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: List routine folders
+      tags:
+        - Routines
+    post:
+      operationId: createRoutineFolder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderInput"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Create a routine folder
+      tags:
+        - Routines
+  /api/v1/routine-folders/{id}:
+    delete:
+      operationId: deleteRoutineFolder
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Delete a routine folder
+      tags:
+        - Routines
+    patch:
+      operationId: updateRoutineFolder
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderInput"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Update a routine folder
+      tags:
+        - Routines
+  /api/v1/routines:
+    get:
+      operationId: listRoutines
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListRoutinesOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: List routines (metadata)
+      tags:
+        - Routines
+    post:
+      operationId: createRoutine
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoutineInput"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Routine"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Create a routine
+      tags:
+        - Routines
+  /api/v1/routines/{id}:
+    delete:
+      operationId: deleteRoutine
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Delete a routine
+      tags:
+        - Routines
+    get:
+      operationId: getRoutine
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Routine"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Get a routine (full)
+      tags:
+        - Routines
+    patch:
+      operationId: updateRoutine
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoutineInput"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Routine"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Update a routine
+      tags:
+        - Routines

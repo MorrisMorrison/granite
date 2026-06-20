@@ -17,6 +17,7 @@ import (
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
+	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 )
 
 // bearerSecurity marks an operation as requiring a Bearer access token.
@@ -28,13 +29,14 @@ type Server struct {
 	api      huma.API
 	auth     *auth.Service
 	exercise *exercise.Service
+	routine  *routine.Service
 	tokens   *auth.TokenManager
 	db       *sql.DB
 }
 
 // New constructs a Server. allowedOrigins is the CORS allow-list.
-func New(authSvc *auth.Service, exerciseSvc *exercise.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string) *Server {
-	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, tokens: tokens, db: db}
+func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string) *Server {
+	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, tokens: tokens, db: db}
 	s.setupRouter(allowedOrigins)
 	s.setupAPI()
 	s.registerRoutes()
@@ -95,17 +97,33 @@ func (s *Server) setupAPI() {
 func (s *Server) registerRoutes() {
 	a := s.api
 
+	// Auth
 	huma.Register(a, huma.Operation{OperationID: "register", Method: http.MethodPost, Path: "/api/v1/auth/register", Summary: "Register a new account", Tags: []string{"Auth"}, DefaultStatus: http.StatusCreated}, s.handleRegister)
 	huma.Register(a, huma.Operation{OperationID: "login", Method: http.MethodPost, Path: "/api/v1/auth/login", Summary: "Log in", Tags: []string{"Auth"}}, s.handleLogin)
 	huma.Register(a, huma.Operation{OperationID: "refresh", Method: http.MethodPost, Path: "/api/v1/auth/refresh", Summary: "Rotate tokens", Tags: []string{"Auth"}}, s.handleRefresh)
 	huma.Register(a, huma.Operation{OperationID: "logout", Method: http.MethodPost, Path: "/api/v1/auth/logout", Summary: "Log out", Tags: []string{"Auth"}, DefaultStatus: http.StatusNoContent}, s.handleLogout)
 
+	// User
 	huma.Register(a, huma.Operation{OperationID: "getMe", Method: http.MethodGet, Path: "/api/v1/me", Summary: "Get the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleGetMe)
 	huma.Register(a, huma.Operation{OperationID: "updateMe", Method: http.MethodPatch, Path: "/api/v1/me", Summary: "Update the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleUpdateMe)
 
+	// Exercises
 	huma.Register(a, huma.Operation{OperationID: "listExercises", Method: http.MethodGet, Path: "/api/v1/exercises", Summary: "List exercises (yours + built-in)", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleListExercises)
 	huma.Register(a, huma.Operation{OperationID: "createExercise", Method: http.MethodPost, Path: "/api/v1/exercises", Summary: "Create a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateExercise)
 	huma.Register(a, huma.Operation{OperationID: "getExercise", Method: http.MethodGet, Path: "/api/v1/exercises/{id}", Summary: "Get an exercise", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleGetExercise)
 	huma.Register(a, huma.Operation{OperationID: "updateExercise", Method: http.MethodPatch, Path: "/api/v1/exercises/{id}", Summary: "Update a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleUpdateExercise)
 	huma.Register(a, huma.Operation{OperationID: "deleteExercise", Method: http.MethodDelete, Path: "/api/v1/exercises/{id}", Summary: "Delete a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteExercise)
+
+	// Routine folders
+	huma.Register(a, huma.Operation{OperationID: "listRoutineFolders", Method: http.MethodGet, Path: "/api/v1/routine-folders", Summary: "List routine folders", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleListFolders)
+	huma.Register(a, huma.Operation{OperationID: "createRoutineFolder", Method: http.MethodPost, Path: "/api/v1/routine-folders", Summary: "Create a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateFolder)
+	huma.Register(a, huma.Operation{OperationID: "updateRoutineFolder", Method: http.MethodPatch, Path: "/api/v1/routine-folders/{id}", Summary: "Update a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleUpdateFolder)
+	huma.Register(a, huma.Operation{OperationID: "deleteRoutineFolder", Method: http.MethodDelete, Path: "/api/v1/routine-folders/{id}", Summary: "Delete a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteFolder)
+
+	// Routines
+	huma.Register(a, huma.Operation{OperationID: "listRoutines", Method: http.MethodGet, Path: "/api/v1/routines", Summary: "List routines (metadata)", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleListRoutines)
+	huma.Register(a, huma.Operation{OperationID: "createRoutine", Method: http.MethodPost, Path: "/api/v1/routines", Summary: "Create a routine", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateRoutine)
+	huma.Register(a, huma.Operation{OperationID: "getRoutine", Method: http.MethodGet, Path: "/api/v1/routines/{id}", Summary: "Get a routine (full)", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleGetRoutine)
+	huma.Register(a, huma.Operation{OperationID: "updateRoutine", Method: http.MethodPatch, Path: "/api/v1/routines/{id}", Summary: "Update a routine", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleUpdateRoutine)
+	huma.Register(a, huma.Operation{OperationID: "deleteRoutine", Method: http.MethodDelete, Path: "/api/v1/routines/{id}", Summary: "Delete a routine", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteRoutine)
 }

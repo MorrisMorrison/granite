@@ -14,6 +14,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
+	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 )
 
 // Response shapes (huma serializes an operation's Body field as the HTTP body).
@@ -44,7 +45,8 @@ func newTestServer(t *testing.T) (http.Handler, *sqlc.Queries) {
 	tokens := auth.NewTokenManager("test-secret")
 	authSvc := auth.NewService(q, tokens, true)
 	exerciseSvc := exercise.NewService(q)
-	return New(authSvc, exerciseSvc, tokens, database, []string{"*"}).Handler(), q
+	routineSvc := routine.NewService(database, q)
+	return New(authSvc, exerciseSvc, routineSvc, tokens, database, []string{"*"}).Handler(), q
 }
 
 func doReq(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {
@@ -199,6 +201,51 @@ func TestExerciseCRUD(t *testing.T) {
 	}
 	if rec := doReq(t, h, http.MethodGet, "/api/v1/exercises/"+created.ID, access, nil); rec.Code != http.StatusNotFound {
 		t.Fatalf("get after delete = %d, want 404", rec.Code)
+	}
+}
+
+func TestRoutineEndpoints(t *testing.T) {
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "rt@b.com")
+
+	rec := doReq(t, h, http.MethodPost, "/api/v1/exercises", access, map[string]any{
+		"name": "Bench", "exercise_type": "weight_reps",
+	})
+	var ex exerciseResponse
+	mustJSON(t, rec, &ex)
+
+	rec = doReq(t, h, http.MethodPost, "/api/v1/routines", access, map[string]any{
+		"title": "Push Day",
+		"exercises": []map[string]any{{
+			"exercise_id":  ex.ID,
+			"rest_seconds": 90,
+			"sets":         []map[string]any{{"set_type": "normal", "target_reps": 5}},
+		}},
+	})
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create routine = %d: %s", rec.Code, rec.Body)
+	}
+	var rt routine.Routine
+	mustJSON(t, rec, &rt)
+	if len(rt.Exercises) != 1 || len(rt.Exercises[0].Sets) != 1 {
+		t.Fatalf("nested routine wrong: %+v", rt)
+	}
+
+	if rec := doReq(t, h, http.MethodGet, "/api/v1/routines/"+rt.ID, access, nil); rec.Code != http.StatusOK {
+		t.Fatalf("get routine = %d", rec.Code)
+	}
+
+	rec = doReq(t, h, http.MethodGet, "/api/v1/routines", access, nil)
+	var list struct {
+		Routines []routine.Routine `json:"routines"`
+	}
+	mustJSON(t, rec, &list)
+	if len(list.Routines) != 1 {
+		t.Fatalf("list routines = %d, want 1", len(list.Routines))
+	}
+
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/routine-folders", access, map[string]any{"name": "Strength"}); rec.Code != http.StatusCreated {
+		t.Fatalf("create folder = %d: %s", rec.Code, rec.Body)
 	}
 }
 
