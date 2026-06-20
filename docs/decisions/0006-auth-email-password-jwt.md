@@ -1,16 +1,17 @@
 # ADR-0006 — Email + password + JWT auth
 
-**Status:** Proposed · 2026-06-20 _(default chosen for the plan; open to change before Phase 1)_
+**Status:** Accepted · 2026-06-20
 
 ## Context
 Offline-first + self-hosted + multi-device. Auth must: work when the app is offline (a logged-in
 session shouldn't need the network to keep logging), support multiple users per instance (household),
 and be simple to operate on a self-host.
 
-## Decision (proposed)
+## Decision
 **Email + password**, hashed with **argon2id**. Issue a short-lived **JWT access token** + a long-lived
-**rotating, revocable refresh token**. All data scoped by `user_id`. Registration gated by an env flag
-/ invite for personal instances.
+**rotating, revocable refresh token**. **Multi-user (household)**: multiple accounts per instance, all
+data scoped by `user_id`, with **registration gated** by `GRANITE_ALLOW_REGISTRATION` (open for first
+setup, then lock). No invite system yet.
 
 ## Alternatives considered
 - **Single-user / no auth (shared secret).** Simplest, but the model is already multi-user-shaped, and
@@ -27,7 +28,8 @@ and be simple to operate on a self-host.
   tokens, gate registration.
 - 🔭 Add **OIDC** and **passkeys** post-MVP without changing the data model.
 
-## Open question
-Is a personal instance effectively **single-user**, or should we invest early in **household/multi-user**
-UX (invites, registration)? The data model supports multi-user regardless; this only affects how much
-onboarding UX we build up front. Default assumption: multi-user-capable, registration gated.
+## Resolution (2026-06-20)
+**Multi-user, registration-gated** — chosen over single-user. Supports a household; data is scoped per
+user; `GRANITE_ALLOW_REGISTRATION` gates signups (open for first setup, then close). Minimal UX for now
+(no invites). Single-user would have been simpler, but the model is already user-scoped so multi-user is
+barely more work and avoids a later migration.
