@@ -6,17 +6,25 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
+	CountExercises(ctx context.Context) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateBuiltinExercise(ctx context.Context, arg CreateBuiltinExerciseParams) error
+	CreateExercise(ctx context.Context, arg CreateExerciseParams) (Exercise, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetExercise(ctx context.Context, id string) (Exercise, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id string) (User, error)
+	ListExercises(ctx context.Context, userID sql.NullString) ([]Exercise, error)
 	RevokeAllUserRefreshTokens(ctx context.Context, arg RevokeAllUserRefreshTokensParams) (int64, error)
 	RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) (int64, error)
+	SoftDeleteExercise(ctx context.Context, arg SoftDeleteExerciseParams) (int64, error)
+	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (Exercise, error)
 	UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error)
 }
 

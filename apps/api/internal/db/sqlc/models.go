@@ -8,6 +8,21 @@ import (
 	"database/sql"
 )
 
+type Exercise struct {
+	ID               string         `json:"id"`
+	UserID           sql.NullString `json:"user_id"`
+	Name             string         `json:"name"`
+	ExerciseType     string         `json:"exercise_type"`
+	PrimaryMuscle    string         `json:"primary_muscle"`
+	SecondaryMuscles string         `json:"secondary_muscles"`
+	Equipment        string         `json:"equipment"`
+	Instructions     string         `json:"instructions"`
+	IsArchived       int64          `json:"is_archived"`
+	CreatedAt        int64          `json:"created_at"`
+	UpdatedAt        int64          `json:"updated_at"`
+	DeletedAt        sql.NullInt64  `json:"deleted_at"`
+}
+
 type RefreshToken struct {
 	ID        string        `json:"id"`
 	UserID    string        `json:"user_id"`
