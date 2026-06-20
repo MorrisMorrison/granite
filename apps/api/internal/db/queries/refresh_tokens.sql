@@ -6,8 +6,8 @@ RETURNING *;
 -- name: GetRefreshTokenByHash :one
 SELECT * FROM refresh_tokens WHERE token_hash = ? LIMIT 1;
 
--- name: RevokeRefreshToken :exec
+-- name: RevokeRefreshToken :execrows
 UPDATE refresh_tokens SET revoked_at = ? WHERE id = ?;
 
--- name: RevokeAllUserRefreshTokens :exec
+-- name: RevokeAllUserRefreshTokens :execrows
 UPDATE refresh_tokens SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL;

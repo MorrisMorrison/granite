@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"path/filepath"
 	"testing"
@@ -56,11 +57,22 @@ func TestRegisterThenLogin(t *testing.T) {
 	}
 	_, _, err = s.Login(ctx, "test@example.com", "wrongpass")
 	assertCode(t, err, apperr.CodeUnauthorized)
+
+	// Unknown email also fails as unauthorized (no enumeration).
+	_, _, err = s.Login(ctx, "nobody@example.com", "supersecret")
+	assertCode(t, err, apperr.CodeUnauthorized)
 }
 
-func TestRegisterGatedWhenDisabled(t *testing.T) {
-	s := newTestService(t, false)
-	_, _, err := s.Register(context.Background(), "a@b.com", "supersecret", "")
+func TestFirstUserBootstrapsThenGated(t *testing.T) {
+	s := newTestService(t, false) // registration disabled
+	ctx := context.Background()
+
+	// The first account is always allowed, to bootstrap a fresh instance.
+	if _, _, err := s.Register(ctx, "first@example.com", "supersecret", ""); err != nil {
+		t.Fatalf("first user should bootstrap even when registration is disabled: %v", err)
+	}
+	// Subsequent registrations are gated.
+	_, _, err := s.Register(ctx, "second@example.com", "supersecret", "")
 	assertCode(t, err, apperr.CodeForbidden)
 }
 
@@ -74,9 +86,17 @@ func TestRegisterDuplicateEmail(t *testing.T) {
 	assertCode(t, err, apperr.CodeConflict)
 }
 
-func TestRegisterShortPassword(t *testing.T) {
+func TestRegisterValidation(t *testing.T) {
 	s := newTestService(t, true)
-	_, _, err := s.Register(context.Background(), "a@b.com", "short", "")
+	ctx := context.Background()
+
+	_, _, err := s.Register(ctx, "a@b.com", "short", "")
+	assertCode(t, err, apperr.CodeValidation)
+
+	_, _, err = s.Register(ctx, "not-an-email", "supersecret", "")
+	assertCode(t, err, apperr.CodeValidation)
+
+	_, _, err = s.Register(ctx, "long@b.com", string(make([]byte, 200)), "")
 	assertCode(t, err, apperr.CodeValidation)
 }
 
@@ -96,20 +116,22 @@ func TestRefreshRotationAndReuseDetection(t *testing.T) {
 		t.Fatal("refresh token should rotate")
 	}
 
-	// Reusing the old (now-revoked) refresh token must fail...
+	// Reusing the old (now-revoked) refresh token must fail as unauthorized...
 	_, err = s.Refresh(ctx, pair.Refresh)
 	assertCode(t, err, apperr.CodeUnauthorized)
 
-	// ...and it should have revoked the whole family, so the new one fails too.
-	if _, err := s.Refresh(ctx, newPair.Refresh); err == nil {
-		t.Fatal("expected reuse to revoke the rotated token as well")
-	}
+	// ...and it should have revoked the whole family, so the rotated one fails too.
+	_, err = s.Refresh(ctx, newPair.Refresh)
+	assertCode(t, err, apperr.CodeUnauthorized)
 }
 
-func TestRefreshExpired(t *testing.T) {
+func TestRefreshEmptyAndExpired(t *testing.T) {
 	s := newTestService(t, true)
 	ctx := context.Background()
-	// Issue tokens "in the past" so the refresh token is already expired.
+
+	_, err := s.Refresh(ctx, "")
+	assertCode(t, err, apperr.CodeUnauthorized)
+
 	s.now = func() time.Time { return time.Now().Add(-2 * RefreshTokenTTL) }
 	_, pair, err := s.Register(ctx, "exp@example.com", "supersecret", "")
 	if err != nil {
@@ -137,4 +159,15 @@ func TestLogoutRevokesRefresh(t *testing.T) {
 	if err := s.Logout(ctx, pair.Refresh); err != nil {
 		t.Fatalf("second logout should be a no-op: %v", err)
 	}
+}
+
+func TestUpdateProfileInvalidSettings(t *testing.T) {
+	s := newTestService(t, true)
+	ctx := context.Background()
+	u, _, err := s.Register(ctx, "up@example.com", "supersecret", "")
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	_, err = s.UpdateProfile(ctx, u.ID, nil, json.RawMessage("{not valid"))
+	assertCode(t, err, apperr.CodeValidation)
 }

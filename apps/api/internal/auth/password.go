@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -20,13 +21,31 @@ const (
 	saltLen      = 16
 )
 
+// argonSem caps the number of concurrent argon2 hashes. Each hash costs 64 MiB,
+// so without a cap a login flood is a memory-exhaustion DoS amplifier. Combined
+// with HTTP rate limiting this keeps memory bounded under load.
+var argonSem = make(chan struct{}, maxArgonConcurrency())
+
+func maxArgonConcurrency() int {
+	if n := runtime.NumCPU(); n > 1 {
+		return n
+	}
+	return 1
+}
+
+func argon2idKey(password, salt []byte, time, memory uint32, threads uint8, keyLen uint32) []byte {
+	argonSem <- struct{}{}
+	defer func() { <-argonSem }()
+	return argon2.IDKey(password, salt, time, memory, threads, keyLen)
+}
+
 // HashPassword returns a PHC-formatted argon2id hash with a random salt.
 func HashPassword(password string) (string, error) {
 	salt := make([]byte, saltLen)
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
-	key := argon2.IDKey([]byte(password), salt, argonTime, argonMemory, argonThreads, argonKeyLen)
+	key := argon2idKey([]byte(password), salt, argonTime, argonMemory, argonThreads, argonKeyLen)
 	return fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
 		argon2.Version, argonMemory, argonTime, argonThreads,
 		base64.RawStdEncoding.EncodeToString(salt),
@@ -57,6 +76,6 @@ func VerifyPassword(password, encoded string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	got := argon2.IDKey([]byte(password), salt, time, memory, threads, uint32(len(want)))
+	got := argon2idKey([]byte(password), salt, time, memory, threads, uint32(len(want)))
 	return subtle.ConstantTimeCompare(got, want) == 1, nil
 }

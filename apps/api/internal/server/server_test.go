@@ -25,7 +25,7 @@ func newTestServer(t *testing.T) http.Handler {
 	}
 	tokens := auth.NewTokenManager("test-secret")
 	svc := auth.NewService(sqlc.New(database), tokens, true)
-	return New(svc, tokens, database).Handler()
+	return New(svc, tokens, database, []string{"*"}).Handler()
 }
 
 func doReq(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {

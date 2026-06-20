@@ -62,7 +62,7 @@ func (q *Queries) GetRefreshTokenByHash(ctx context.Context, tokenHash string) (
 	return i, err
 }
 
-const revokeAllUserRefreshTokens = `-- name: RevokeAllUserRefreshTokens :exec
+const revokeAllUserRefreshTokens = `-- name: RevokeAllUserRefreshTokens :execrows
 UPDATE refresh_tokens SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL
 `
 
@@ -71,12 +71,15 @@ type RevokeAllUserRefreshTokensParams struct {
 	UserID    string        `json:"user_id"`
 }
 
-func (q *Queries) RevokeAllUserRefreshTokens(ctx context.Context, arg RevokeAllUserRefreshTokensParams) error {
-	_, err := q.db.ExecContext(ctx, revokeAllUserRefreshTokens, arg.RevokedAt, arg.UserID)
-	return err
+func (q *Queries) RevokeAllUserRefreshTokens(ctx context.Context, arg RevokeAllUserRefreshTokensParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, revokeAllUserRefreshTokens, arg.RevokedAt, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const revokeRefreshToken = `-- name: RevokeRefreshToken :exec
+const revokeRefreshToken = `-- name: RevokeRefreshToken :execrows
 UPDATE refresh_tokens SET revoked_at = ? WHERE id = ?
 `
 
@@ -85,7 +88,10 @@ type RevokeRefreshTokenParams struct {
 	ID        string        `json:"id"`
 }
 
-func (q *Queries) RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) error {
-	_, err := q.db.ExecContext(ctx, revokeRefreshToken, arg.RevokedAt, arg.ID)
-	return err
+func (q *Queries) RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, revokeRefreshToken, arg.RevokedAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
