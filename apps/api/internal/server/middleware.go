@@ -16,6 +16,17 @@ type ctxKey string
 
 const userIDKey ctxKey = "userID"
 
+// secureHeaders sets conservative security response headers.
+func secureHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("Referrer-Policy", "no-referrer")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // requestLogger logs each request via slog.
 func requestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +52,12 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 			apperr.HandleError(w, r, apperr.Unauthorized("missing or malformed Authorization header"))
 			return
 		}
-		userID, err := s.tokens.ParseAccessToken(strings.TrimPrefix(h, prefix))
+		token := strings.TrimPrefix(h, prefix)
+		if token == "" {
+			apperr.HandleError(w, r, apperr.Unauthorized("missing access token"))
+			return
+		}
+		userID, err := s.tokens.ParseAccessToken(token)
 		if err != nil {
 			apperr.HandleError(w, r, apperr.Unauthorized("invalid or expired access token"))
 			return

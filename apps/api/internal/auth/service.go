@@ -6,7 +6,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"net/mail"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +17,16 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 )
+
+const maxPasswordLen = 128
+
+// dummyHash is verified against when an email is unknown, so login takes a
+// similar amount of time whether or not the account exists (avoids user
+// enumeration via response timing). Computed once, lazily.
+var dummyHash = sync.OnceValue(func() string {
+	h, _ := HashPassword("granite-timing-equalizer")
+	return h
+})
 
 // Service implements the auth use-cases over the data store.
 type Service struct {
@@ -55,15 +68,23 @@ func toUser(u sqlc.User) User {
 	}
 }
 
-// Register creates a new account (if registration is enabled) and returns the
-// user plus a fresh token pair.
+// Register creates a new account and returns the user plus a fresh token pair.
+// The very first account on an instance is always allowed (bootstrap); after
+// that, registration must be enabled.
 func (s *Service) Register(ctx context.Context, email, password, displayName string) (User, TokenPair, error) {
-	if !s.allowRegistration {
-		return User{}, TokenPair{}, apperr.Forbidden("registration is disabled")
-	}
 	email = normalizeEmail(email)
 	if err := validateCredentials(email, password); err != nil {
 		return User{}, TokenPair{}, err
+	}
+
+	if !s.allowRegistration {
+		n, err := s.q.CountUsers(ctx)
+		if err != nil {
+			return User{}, TokenPair{}, err
+		}
+		if n > 0 {
+			return User{}, TokenPair{}, apperr.Forbidden("registration is disabled")
+		}
 	}
 
 	if _, err := s.q.GetUserByEmail(ctx, email); err == nil {
@@ -100,6 +121,8 @@ func (s *Service) Register(ctx context.Context, email, password, displayName str
 func (s *Service) Login(ctx context.Context, email, password string) (User, TokenPair, error) {
 	u, err := s.q.GetUserByEmail(ctx, normalizeEmail(email))
 	if errors.Is(err, sql.ErrNoRows) {
+		// Equalize timing for unknown emails to avoid enumeration.
+		_, _ = VerifyPassword(password, dummyHash())
 		return User{}, TokenPair{}, apperr.Unauthorized("invalid email or password")
 	} else if err != nil {
 		return User{}, TokenPair{}, err
@@ -119,6 +142,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (User, Toke
 // and issues a new pair. Reuse of an already-revoked token revokes the whole
 // session family (theft defense).
 func (s *Service) Refresh(ctx context.Context, refresh string) (TokenPair, error) {
+	if refresh == "" {
+		return TokenPair{}, apperr.Unauthorized("invalid refresh token")
+	}
 	rt, err := s.q.GetRefreshTokenByHash(ctx, HashRefreshToken(refresh))
 	if errors.Is(err, sql.ErrNoRows) {
 		return TokenPair{}, apperr.Unauthorized("invalid refresh token")
@@ -127,15 +153,19 @@ func (s *Service) Refresh(ctx context.Context, refresh string) (TokenPair, error
 	}
 	now := s.now()
 	if rt.RevokedAt.Valid {
-		_ = s.q.RevokeAllUserRefreshTokens(ctx, sqlc.RevokeAllUserRefreshTokensParams{
+		// Reuse of a revoked token: revoke the whole family. If this fails the
+		// theft defense is compromised, so it must be logged loudly.
+		if _, err := s.q.RevokeAllUserRefreshTokens(ctx, sqlc.RevokeAllUserRefreshTokensParams{
 			RevokedAt: nullMillis(now), UserID: rt.UserID,
-		})
+		}); err != nil {
+			slog.ErrorContext(ctx, "failed to revoke refresh-token family on reuse", "user_id", rt.UserID, "err", err)
+		}
 		return TokenPair{}, apperr.Unauthorized("refresh token has been revoked")
 	}
 	if now.UnixMilli() >= rt.ExpiresAt {
 		return TokenPair{}, apperr.Unauthorized("refresh token has expired")
 	}
-	if err := s.q.RevokeRefreshToken(ctx, sqlc.RevokeRefreshTokenParams{RevokedAt: nullMillis(now), ID: rt.ID}); err != nil {
+	if _, err := s.q.RevokeRefreshToken(ctx, sqlc.RevokeRefreshTokenParams{RevokedAt: nullMillis(now), ID: rt.ID}); err != nil {
 		return TokenPair{}, err
 	}
 	return s.issueTokens(ctx, rt.UserID)
@@ -143,13 +173,17 @@ func (s *Service) Refresh(ctx context.Context, refresh string) (TokenPair, error
 
 // Logout revokes the presented refresh token. It is idempotent.
 func (s *Service) Logout(ctx context.Context, refresh string) error {
+	if refresh == "" {
+		return nil
+	}
 	rt, err := s.q.GetRefreshTokenByHash(ctx, HashRefreshToken(refresh))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	} else if err != nil {
 		return err
 	}
-	return s.q.RevokeRefreshToken(ctx, sqlc.RevokeRefreshTokenParams{RevokedAt: nullMillis(s.now()), ID: rt.ID})
+	_, err = s.q.RevokeRefreshToken(ctx, sqlc.RevokeRefreshTokenParams{RevokedAt: nullMillis(s.now()), ID: rt.ID})
+	return err
 }
 
 // GetUser returns the user by id.
@@ -221,11 +255,14 @@ func nullMillis(t time.Time) sql.NullInt64 {
 func normalizeEmail(e string) string { return strings.ToLower(strings.TrimSpace(e)) }
 
 func validateCredentials(email, password string) error {
-	if email == "" || !strings.Contains(email, "@") {
+	if _, err := mail.ParseAddress(email); err != nil {
 		return apperr.Validation("a valid email is required")
 	}
 	if len(password) < 8 {
 		return apperr.Validation("password must be at least 8 characters")
+	}
+	if len(password) > maxPasswordLen {
+		return apperr.Validation("password must be at most 128 characters")
 	}
 	return nil
 }

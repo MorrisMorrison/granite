@@ -34,7 +34,7 @@ func main() {
 	queries := sqlc.New(database)
 	tokens := auth.NewTokenManager(cfg.JWTSecret)
 	authSvc := auth.NewService(queries, tokens, cfg.AllowRegistration)
-	srv := server.New(authSvc, tokens, database)
+	srv := server.New(authSvc, tokens, database, []string{cfg.BaseURL})
 
 	addr := ":" + cfg.Port
 	slog.Info("granite api listening", "addr", addr)
