@@ -34,3 +34,21 @@ jobs:
       - run: corepack pnpm install --frozen-lockfile
       - run: corepack pnpm -r build
       - run: corepack pnpm -r test
+
+  openapi:
+    name: OpenAPI client up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+      - run: make gen-client
+      - name: Verify the committed spec + client are up to date
+        run: git diff --exit-code apps/api/openapi.yaml packages/shared/src/api/schema.d.ts

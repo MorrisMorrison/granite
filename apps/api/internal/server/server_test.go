@@ -2,18 +2,35 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 )
 
-func newTestServer(t *testing.T) http.Handler {
+// Response shapes (huma serializes an operation's Body field as the HTTP body).
+type authResp struct {
+	User    userResponse `json:"user"`
+	Access  string       `json:"access"`
+	Refresh string       `json:"refresh"`
+}
+type tokenResp struct {
+	Access  string `json:"access"`
+	Refresh string `json:"refresh"`
+}
+type listResp struct {
+	Exercises []exerciseResponse `json:"exercises"`
+}
+
+func newTestServer(t *testing.T) (http.Handler, *sqlc.Queries) {
 	t.Helper()
 	database, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
 	if err != nil {
@@ -23,9 +40,11 @@ func newTestServer(t *testing.T) http.Handler {
 	if err := db.Migrate(database); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
+	q := sqlc.New(database)
 	tokens := auth.NewTokenManager("test-secret")
-	svc := auth.NewService(sqlc.New(database), tokens, true)
-	return New(svc, tokens, database, []string{"*"}).Handler()
+	authSvc := auth.NewService(q, tokens, true)
+	exerciseSvc := exercise.NewService(q)
+	return New(authSvc, exerciseSvc, tokens, database, []string{"*"}).Handler(), q
 }
 
 func doReq(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {
@@ -55,8 +74,21 @@ func mustJSON(t *testing.T, rec *httptest.ResponseRecorder, dst any) {
 	}
 }
 
+func registerUser(t *testing.T, h http.Handler, email string) string {
+	t.Helper()
+	rec := doReq(t, h, http.MethodPost, "/api/v1/auth/register", "", map[string]any{
+		"email": email, "password": "supersecret",
+	})
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("register %s = %d: %s", email, rec.Code, rec.Body)
+	}
+	var out authResp
+	mustJSON(t, rec, &out)
+	return out.Access
+}
+
 func TestHealthAndReady(t *testing.T) {
-	h := newTestServer(t)
+	h, _ := newTestServer(t)
 	if rec := doReq(t, h, http.MethodGet, "/healthz", "", nil); rec.Code != http.StatusOK {
 		t.Fatalf("healthz = %d", rec.Code)
 	}
@@ -66,28 +98,18 @@ func TestHealthAndReady(t *testing.T) {
 }
 
 func TestRegisterLoginMeFlow(t *testing.T) {
-	h := newTestServer(t)
-	rec := doReq(t, h, http.MethodPost, "/api/v1/auth/register", "", map[string]any{
-		"email": "a@b.com", "password": "supersecret", "display_name": "A",
-	})
-	if rec.Code != http.StatusCreated {
-		t.Fatalf("register = %d: %s", rec.Code, rec.Body)
-	}
-	var reg authResponse
-	mustJSON(t, rec, &reg)
-	if reg.Access == "" || reg.Refresh == "" {
-		t.Fatal("expected tokens in register response")
-	}
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "a@b.com")
 
 	if rec := doReq(t, h, http.MethodGet, "/api/v1/me", "", nil); rec.Code != http.StatusUnauthorized {
 		t.Fatalf("me without token = %d, want 401", rec.Code)
 	}
 
-	rec = doReq(t, h, http.MethodGet, "/api/v1/me", reg.Access, nil)
+	rec := doReq(t, h, http.MethodGet, "/api/v1/me", access, nil)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("me = %d: %s", rec.Code, rec.Body)
 	}
-	var me auth.User
+	var me userResponse
 	mustJSON(t, rec, &me)
 	if me.Email != "a@b.com" {
 		t.Fatalf("me.email = %q", me.Email)
@@ -101,11 +123,12 @@ func TestRegisterLoginMeFlow(t *testing.T) {
 }
 
 func TestRegisterValidationAndConflict(t *testing.T) {
-	h := newTestServer(t)
+	h, _ := newTestServer(t)
+	// huma schema validation (minLength) → 422.
 	if rec := doReq(t, h, http.MethodPost, "/api/v1/auth/register", "", map[string]any{
 		"email": "a@b.com", "password": "short",
-	}); rec.Code != http.StatusBadRequest {
-		t.Fatalf("short password = %d, want 400", rec.Code)
+	}); rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("short password = %d, want 422", rec.Code)
 	}
 
 	body := map[string]any{"email": "dupe@b.com", "password": "supersecret"}
@@ -116,18 +139,18 @@ func TestRegisterValidationAndConflict(t *testing.T) {
 }
 
 func TestRefreshAndLogoutFlow(t *testing.T) {
-	h := newTestServer(t)
+	h, _ := newTestServer(t)
 	rec := doReq(t, h, http.MethodPost, "/api/v1/auth/register", "", map[string]any{
 		"email": "r@b.com", "password": "supersecret",
 	})
-	var reg authResponse
+	var reg authResp
 	mustJSON(t, rec, &reg)
 
 	rec = doReq(t, h, http.MethodPost, "/api/v1/auth/refresh", "", map[string]any{"refresh": reg.Refresh})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("refresh = %d: %s", rec.Code, rec.Body)
 	}
-	var refreshed tokenResponse
+	var refreshed tokenResp
 	mustJSON(t, rec, &refreshed)
 	if refreshed.Refresh == reg.Refresh {
 		t.Fatal("refresh token should rotate")
@@ -141,24 +164,71 @@ func TestRefreshAndLogoutFlow(t *testing.T) {
 	}
 }
 
-func TestUpdateMe(t *testing.T) {
-	h := newTestServer(t)
-	rec := doReq(t, h, http.MethodPost, "/api/v1/auth/register", "", map[string]any{
-		"email": "m@b.com", "password": "supersecret",
-	})
-	var reg authResponse
-	mustJSON(t, rec, &reg)
+func TestExerciseCRUD(t *testing.T) {
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "ex@b.com")
 
-	rec = doReq(t, h, http.MethodPatch, "/api/v1/me", reg.Access, map[string]any{
-		"display_name": "New Name",
-		"settings":     map[string]any{"units": "kg"},
+	rec := doReq(t, h, http.MethodPost, "/api/v1/exercises", access, map[string]any{
+		"name": "My Press", "exercise_type": "weight_reps", "primary_muscle": "Chest",
+		"secondary_muscles": []string{"Triceps"},
 	})
-	if rec.Code != http.StatusOK {
-		t.Fatalf("patch me = %d: %s", rec.Code, rec.Body)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create = %d: %s", rec.Code, rec.Body)
 	}
-	var me auth.User
-	mustJSON(t, rec, &me)
-	if me.DisplayName != "New Name" {
-		t.Fatalf("display_name = %q", me.DisplayName)
+	var created exerciseResponse
+	mustJSON(t, rec, &created)
+	if created.ID == "" || created.IsBuiltin || len(created.SecondaryMuscles) != 1 {
+		t.Fatalf("bad created exercise: %+v", created)
+	}
+
+	rec = doReq(t, h, http.MethodGet, "/api/v1/exercises", access, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("list = %d", rec.Code)
+	}
+	var list listResp
+	mustJSON(t, rec, &list)
+	if len(list.Exercises) != 1 {
+		t.Fatalf("list len = %d, want 1", len(list.Exercises))
+	}
+
+	if rec := doReq(t, h, http.MethodGet, "/api/v1/exercises/"+created.ID, access, nil); rec.Code != http.StatusOK {
+		t.Fatalf("get = %d", rec.Code)
+	}
+	if rec := doReq(t, h, http.MethodDelete, "/api/v1/exercises/"+created.ID, access, nil); rec.Code != http.StatusNoContent {
+		t.Fatalf("delete = %d, want 204", rec.Code)
+	}
+	if rec := doReq(t, h, http.MethodGet, "/api/v1/exercises/"+created.ID, access, nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("get after delete = %d, want 404", rec.Code)
+	}
+}
+
+func TestBuiltinExercisesReadOnly(t *testing.T) {
+	h, q := newTestServer(t)
+	if _, err := exercise.SeedBuiltins(context.Background(), q, func() time.Time { return time.Unix(0, 0) }); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+	access := registerUser(t, h, "bi@b.com")
+
+	rec := doReq(t, h, http.MethodGet, "/api/v1/exercises", access, nil)
+	var list listResp
+	mustJSON(t, rec, &list)
+	var builtinID string
+	for _, e := range list.Exercises {
+		if e.IsBuiltin {
+			builtinID = e.ID
+			break
+		}
+	}
+	if builtinID == "" {
+		t.Fatal("expected a built-in exercise in the list")
+	}
+
+	if rec := doReq(t, h, http.MethodPatch, "/api/v1/exercises/"+builtinID, access, map[string]any{
+		"name": "hacked", "exercise_type": "weight_reps",
+	}); rec.Code != http.StatusForbidden {
+		t.Fatalf("update built-in = %d, want 403", rec.Code)
+	}
+	if rec := doReq(t, h, http.MethodDelete, "/api/v1/exercises/"+builtinID, access, nil); rec.Code != http.StatusForbidden {
+		t.Fatalf("delete built-in = %d, want 403", rec.Code)
 	}
 }

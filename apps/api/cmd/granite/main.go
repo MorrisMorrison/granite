@@ -2,14 +2,17 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 	"github.com/MorrisMorrison/granite/apps/api/internal/config"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/logging"
 	"github.com/MorrisMorrison/granite/apps/api/internal/server"
 )
@@ -32,9 +35,16 @@ func main() {
 	}
 
 	queries := sqlc.New(database)
+	if n, err := exercise.SeedBuiltins(context.Background(), queries, time.Now); err != nil {
+		log.Fatalf("seed built-in exercises: %v", err)
+	} else if n > 0 {
+		slog.Info("seeded built-in exercises", "count", n)
+	}
+
 	tokens := auth.NewTokenManager(cfg.JWTSecret)
 	authSvc := auth.NewService(queries, tokens, cfg.AllowRegistration)
-	srv := server.New(authSvc, tokens, database, []string{cfg.BaseURL})
+	exerciseSvc := exercise.NewService(queries)
+	srv := server.New(authSvc, exerciseSvc, tokens, database, []string{cfg.BaseURL})
 
 	addr := ":" + cfg.Port
 	slog.Info("granite api listening", "addr", addr)

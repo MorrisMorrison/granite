@@ -1,34 +1,41 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
-	"net/http"
-
-	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 )
 
-func (s *Server) handleGetMe(w http.ResponseWriter, r *http.Request) {
-	user, err := s.auth.GetUser(r.Context(), userIDFromCtx(r.Context()))
-	if err != nil {
-		apperr.HandleError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, user)
+type meOutput struct {
+	Body userResponse
 }
 
-func (s *Server) handleUpdateMe(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		DisplayName *string         `json:"display_name"`
-		Settings    json.RawMessage `json:"settings"`
-	}
-	if err := decodeJSON(r, &req); err != nil {
-		apperr.HandleError(w, r, err)
-		return
-	}
-	user, err := s.auth.UpdateProfile(r.Context(), userIDFromCtx(r.Context()), req.DisplayName, req.Settings)
+func (s *Server) handleGetMe(ctx context.Context, _ *struct{}) (*meOutput, error) {
+	user, err := s.auth.GetUser(ctx, userIDFromCtx(ctx))
 	if err != nil {
-		apperr.HandleError(w, r, err)
-		return
+		return nil, toHumaErr(ctx, err)
 	}
-	writeJSON(w, http.StatusOK, user)
+	return &meOutput{Body: toUserResponse(user)}, nil
+}
+
+type updateMeInput struct {
+	Body struct {
+		DisplayName *string `json:"display_name,omitempty"`
+		Settings    any     `json:"settings,omitempty"`
+	}
+}
+
+func (s *Server) handleUpdateMe(ctx context.Context, in *updateMeInput) (*meOutput, error) {
+	var settings json.RawMessage
+	if in.Body.Settings != nil {
+		b, err := json.Marshal(in.Body.Settings)
+		if err != nil {
+			return nil, toHumaErr(ctx, err)
+		}
+		settings = b
+	}
+	user, err := s.auth.UpdateProfile(ctx, userIDFromCtx(ctx), in.Body.DisplayName, settings)
+	if err != nil {
+		return nil, toHumaErr(ctx, err)
+	}
+	return &meOutput{Body: toUserResponse(user)}, nil
 }
