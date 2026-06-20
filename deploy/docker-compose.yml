@@ -1,0 +1,21 @@
+# Granite — self-hosting compose.
+# One container + a volume for the SQLite file. Pulls the published image; or set
+# `build: ..` to build from source instead.
+services:
+  granite:
+    image: ghcr.io/morrismorrison/granite:latest
+    # build: ..
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      GRANITE_DB_PATH: /data/granite.db
+      GRANITE_BASE_URL: ${GRANITE_BASE_URL:-http://localhost:8080}
+      GRANITE_ALLOW_REGISTRATION: ${GRANITE_ALLOW_REGISTRATION:-true}
+      GRANITE_JWT_SECRET: ${GRANITE_JWT_SECRET:?set GRANITE_JWT_SECRET in your .env}
+    volumes:
+      - granite-data:/data
+    restart: unless-stopped
+
+volumes:
+  granite-data:
