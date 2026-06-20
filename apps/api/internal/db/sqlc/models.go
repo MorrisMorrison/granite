@@ -88,3 +88,42 @@ type User struct {
 	CreatedAt    int64  `json:"created_at"`
 	UpdatedAt    int64  `json:"updated_at"`
 }
+
+type Workout struct {
+	ID        string         `json:"id"`
+	UserID    string         `json:"user_id"`
+	RoutineID sql.NullString `json:"routine_id"`
+	Title     string         `json:"title"`
+	Notes     string         `json:"notes"`
+	StartTime int64          `json:"start_time"`
+	EndTime   sql.NullInt64  `json:"end_time"`
+	CreatedAt int64          `json:"created_at"`
+	UpdatedAt int64          `json:"updated_at"`
+	DeletedAt sql.NullInt64  `json:"deleted_at"`
+}
+
+type WorkoutExercise struct {
+	ID            string        `json:"id"`
+	WorkoutID     string        `json:"workout_id"`
+	ExerciseID    string        `json:"exercise_id"`
+	OrderIndex    int64         `json:"order_index"`
+	Notes         string        `json:"notes"`
+	SupersetGroup sql.NullInt64 `json:"superset_group"`
+	CreatedAt     int64         `json:"created_at"`
+	UpdatedAt     int64         `json:"updated_at"`
+}
+
+type WorkoutSet struct {
+	ID                string          `json:"id"`
+	WorkoutExerciseID string          `json:"workout_exercise_id"`
+	OrderIndex        int64           `json:"order_index"`
+	SetType           string          `json:"set_type"`
+	Weight            sql.NullFloat64 `json:"weight"`
+	Reps              sql.NullInt64   `json:"reps"`
+	Rpe               sql.NullFloat64 `json:"rpe"`
+	Duration          sql.NullInt64   `json:"duration"`
+	Distance          sql.NullFloat64 `json:"distance"`
+	IsCompleted       int64           `json:"is_completed"`
+	CreatedAt         int64           `json:"created_at"`
+	UpdatedAt         int64           `json:"updated_at"`
+}

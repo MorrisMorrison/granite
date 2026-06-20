@@ -226,6 +226,57 @@ components:
         - created_at
         - updated_at
       type: object
+    ExportOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ExportOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        exercises:
+          items:
+            $ref: "#/components/schemas/ExerciseResponse"
+          type:
+            - array
+            - "null"
+        exported_at:
+          format: int64
+          type: integer
+        routine_folders:
+          items:
+            $ref: "#/components/schemas/Folder"
+          type:
+            - array
+            - "null"
+        routines:
+          items:
+            $ref: "#/components/schemas/Routine"
+          type:
+            - array
+            - "null"
+        user:
+          $ref: "#/components/schemas/UserResponse"
+        version:
+          format: int64
+          type: integer
+        workouts:
+          items:
+            $ref: "#/components/schemas/Workout"
+          type:
+            - array
+            - "null"
+      required:
+        - version
+        - exported_at
+        - user
+        - exercises
+        - routine_folders
+        - routines
+        - workouts
+      type: object
     Folder:
       additionalProperties: false
       properties:
@@ -330,6 +381,25 @@ components:
             - "null"
       required:
         - routines
+      type: object
+    ListWorkoutsOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ListWorkoutsOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        workouts:
+          items:
+            $ref: "#/components/schemas/Workout"
+          type:
+            - array
+            - "null"
+      required:
+        - workouts
       type: object
     LoginInputBody:
       additionalProperties: false
@@ -581,6 +651,207 @@ components:
         - created_at
         - updated_at
       type: object
+    Workout:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/Workout.json
+          format: uri
+          readOnly: true
+          type: string
+        created_at:
+          format: int64
+          type: integer
+        end_time:
+          format: int64
+          type:
+            - integer
+            - "null"
+        exercises:
+          items:
+            $ref: "#/components/schemas/WorkoutExercise"
+          type:
+            - array
+            - "null"
+        id:
+          type: string
+        notes:
+          type: string
+        routine_id:
+          type:
+            - string
+            - "null"
+        start_time:
+          format: int64
+          type: integer
+        title:
+          type: string
+        updated_at:
+          format: int64
+          type: integer
+      required:
+        - id
+        - routine_id
+        - title
+        - notes
+        - start_time
+        - end_time
+        - exercises
+        - created_at
+        - updated_at
+      type: object
+    WorkoutExercise:
+      additionalProperties: false
+      properties:
+        exercise_id:
+          type: string
+        id:
+          type: string
+        notes:
+          type: string
+        order_index:
+          format: int64
+          type: integer
+        sets:
+          items:
+            $ref: "#/components/schemas/WorkoutSet"
+          type:
+            - array
+            - "null"
+        superset_group:
+          format: int64
+          type:
+            - integer
+            - "null"
+      required:
+        - id
+        - exercise_id
+        - order_index
+        - notes
+        - superset_group
+        - sets
+      type: object
+    WorkoutExerciseInput:
+      additionalProperties: false
+      properties:
+        exercise_id:
+          type: string
+        notes:
+          type: string
+        sets:
+          items:
+            $ref: "#/components/schemas/WorkoutSetInput"
+          type:
+            - array
+            - "null"
+        superset_group:
+          format: int64
+          type: integer
+      required:
+        - exercise_id
+      type: object
+    WorkoutInput:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/WorkoutInput.json
+          format: uri
+          readOnly: true
+          type: string
+        end_time:
+          format: int64
+          type: integer
+        exercises:
+          items:
+            $ref: "#/components/schemas/WorkoutExerciseInput"
+          type:
+            - array
+            - "null"
+        notes:
+          type: string
+        routine_id:
+          type: string
+        start_time:
+          format: int64
+          type: integer
+        title:
+          type: string
+      type: object
+    WorkoutSet:
+      additionalProperties: false
+      properties:
+        distance:
+          format: double
+          type:
+            - number
+            - "null"
+        duration:
+          format: int64
+          type:
+            - integer
+            - "null"
+        id:
+          type: string
+        is_completed:
+          type: boolean
+        order_index:
+          format: int64
+          type: integer
+        reps:
+          format: int64
+          type:
+            - integer
+            - "null"
+        rpe:
+          format: double
+          type:
+            - number
+            - "null"
+        set_type:
+          type: string
+        weight:
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - id
+        - order_index
+        - set_type
+        - weight
+        - reps
+        - rpe
+        - duration
+        - distance
+        - is_completed
+      type: object
+    WorkoutSetInput:
+      additionalProperties: false
+      properties:
+        distance:
+          format: double
+          type: number
+        duration:
+          format: int64
+          type: integer
+        is_completed:
+          type: boolean
+        reps:
+          format: int64
+          type: integer
+        rpe:
+          format: double
+          type: number
+        set_type:
+          type: string
+        weight:
+          format: double
+          type: number
+      type: object
   securitySchemes:
     bearer:
       bearerFormat: JWT
@@ -815,6 +1086,27 @@ paths:
       summary: Update a custom exercise
       tags:
         - Exercises
+  /api/v1/export:
+    get:
+      operationId: exportData
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Export all of your data
+      tags:
+        - Export
   /api/v1/me:
     get:
       operationId: getMe
@@ -1092,3 +1384,131 @@ paths:
       summary: Update a routine
       tags:
         - Routines
+  /api/v1/workouts:
+    get:
+      operationId: listWorkouts
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListWorkoutsOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: List workouts (metadata)
+      tags:
+        - Workouts
+    post:
+      operationId: createWorkout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutInput"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workout"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Log a workout
+      tags:
+        - Workouts
+  /api/v1/workouts/{id}:
+    delete:
+      operationId: deleteWorkout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Delete a workout
+      tags:
+        - Workouts
+    get:
+      operationId: getWorkout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workout"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Get a workout (full)
+      tags:
+        - Workouts
+    patch:
+      operationId: updateWorkout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutInput"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workout"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Update a workout
+      tags:
+        - Workouts

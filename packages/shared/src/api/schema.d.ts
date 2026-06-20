@@ -109,6 +109,23 @@ export interface paths {
         patch: operations["updateExercise"];
         trace?: never;
     };
+    "/api/v1/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export all of your data */
+        get: operations["exportData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -198,6 +215,43 @@ export interface paths {
         head?: never;
         /** Update a routine */
         patch: operations["updateRoutine"];
+        trace?: never;
+    };
+    "/api/v1/workouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List workouts (metadata) */
+        get: operations["listWorkouts"];
+        put?: never;
+        /** Log a workout */
+        post: operations["createWorkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workouts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a workout (full) */
+        get: operations["getWorkout"];
+        put?: never;
+        post?: never;
+        /** Delete a workout */
+        delete: operations["deleteWorkout"];
+        options?: never;
+        head?: never;
+        /** Update a workout */
+        patch: operations["updateWorkout"];
         trace?: never;
     };
 }
@@ -320,6 +374,23 @@ export interface components {
             /** Format: int64 */
             updated_at: number;
         };
+        ExportOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ExportOutputBody.json
+             */
+            readonly $schema?: string;
+            exercises: components["schemas"]["ExerciseResponse"][] | null;
+            /** Format: int64 */
+            exported_at: number;
+            routine_folders: components["schemas"]["Folder"][] | null;
+            routines: components["schemas"]["Routine"][] | null;
+            user: components["schemas"]["UserResponse"];
+            /** Format: int64 */
+            version: number;
+            workouts: components["schemas"]["Workout"][] | null;
+        };
         Folder: {
             /**
              * Format: uri
@@ -373,6 +444,15 @@ export interface components {
              */
             readonly $schema?: string;
             routines: components["schemas"]["Routine"][] | null;
+        };
+        ListWorkoutsOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ListWorkoutsOutputBody.json
+             */
+            readonly $schema?: string;
+            workouts: components["schemas"]["Workout"][] | null;
         };
         LoginInputBody: {
             /**
@@ -499,6 +579,91 @@ export interface components {
             settings: unknown;
             /** Format: int64 */
             updated_at: number;
+        };
+        Workout: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/Workout.json
+             */
+            readonly $schema?: string;
+            /** Format: int64 */
+            created_at: number;
+            /** Format: int64 */
+            end_time: number | null;
+            exercises: components["schemas"]["WorkoutExercise"][] | null;
+            id: string;
+            notes: string;
+            routine_id: string | null;
+            /** Format: int64 */
+            start_time: number;
+            title: string;
+            /** Format: int64 */
+            updated_at: number;
+        };
+        WorkoutExercise: {
+            exercise_id: string;
+            id: string;
+            notes: string;
+            /** Format: int64 */
+            order_index: number;
+            sets: components["schemas"]["WorkoutSet"][] | null;
+            /** Format: int64 */
+            superset_group: number | null;
+        };
+        WorkoutExerciseInput: {
+            exercise_id: string;
+            notes?: string;
+            sets?: components["schemas"]["WorkoutSetInput"][] | null;
+            /** Format: int64 */
+            superset_group?: number;
+        };
+        WorkoutInput: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/WorkoutInput.json
+             */
+            readonly $schema?: string;
+            /** Format: int64 */
+            end_time?: number;
+            exercises?: components["schemas"]["WorkoutExerciseInput"][] | null;
+            notes?: string;
+            routine_id?: string;
+            /** Format: int64 */
+            start_time?: number;
+            title?: string;
+        };
+        WorkoutSet: {
+            /** Format: double */
+            distance: number | null;
+            /** Format: int64 */
+            duration: number | null;
+            id: string;
+            is_completed: boolean;
+            /** Format: int64 */
+            order_index: number;
+            /** Format: int64 */
+            reps: number | null;
+            /** Format: double */
+            rpe: number | null;
+            set_type: string;
+            /** Format: double */
+            weight: number | null;
+        };
+        WorkoutSetInput: {
+            /** Format: double */
+            distance?: number;
+            /** Format: int64 */
+            duration?: number;
+            is_completed?: boolean;
+            /** Format: int64 */
+            reps?: number;
+            /** Format: double */
+            rpe?: number;
+            set_type?: string;
+            /** Format: double */
+            weight?: number;
         };
     };
     responses: never;
@@ -783,6 +948,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExerciseResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    exportData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOutputBody"];
                 };
             };
             /** @description Error */
@@ -1128,6 +1322,163 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Routine"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    listWorkouts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListWorkoutsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    createWorkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkoutInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workout"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    getWorkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workout"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    deleteWorkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    updateWorkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkoutInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workout"];
                 };
             };
             /** @description Error */

@@ -20,13 +20,18 @@ type Querier interface {
 	CreateRoutineFolder(ctx context.Context, arg CreateRoutineFolderParams) (RoutineFolder, error)
 	CreateRoutineSet(ctx context.Context, arg CreateRoutineSetParams) (RoutineSet, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (Workout, error)
+	CreateWorkoutExercise(ctx context.Context, arg CreateWorkoutExerciseParams) (WorkoutExercise, error)
+	CreateWorkoutSet(ctx context.Context, arg CreateWorkoutSetParams) (WorkoutSet, error)
 	DeleteRoutineExercisesByRoutine(ctx context.Context, routineID string) error
+	DeleteWorkoutExercisesByWorkout(ctx context.Context, workoutID string) error
 	GetExercise(ctx context.Context, id string) (Exercise, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
 	GetRoutine(ctx context.Context, id string) (Routine, error)
 	GetRoutineFolder(ctx context.Context, id string) (RoutineFolder, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id string) (User, error)
+	GetWorkout(ctx context.Context, id string) (Workout, error)
 	ListExercises(ctx context.Context, userID sql.NullString) ([]Exercise, error)
 	// Routine exercises + sets (children, replaced wholesale on update) ------------
 	ListRoutineExercises(ctx context.Context, routineID string) ([]RoutineExercise, error)
@@ -35,15 +40,20 @@ type Querier interface {
 	ListRoutineSetsForRoutine(ctx context.Context, routineID string) ([]RoutineSet, error)
 	// Routines --------------------------------------------------------------------
 	ListRoutines(ctx context.Context, userID string) ([]Routine, error)
+	ListWorkoutExercises(ctx context.Context, workoutID string) ([]WorkoutExercise, error)
+	ListWorkoutSetsForWorkout(ctx context.Context, workoutID string) ([]WorkoutSet, error)
+	ListWorkouts(ctx context.Context, userID string) ([]Workout, error)
 	RevokeAllUserRefreshTokens(ctx context.Context, arg RevokeAllUserRefreshTokensParams) (int64, error)
 	RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) (int64, error)
 	SoftDeleteExercise(ctx context.Context, arg SoftDeleteExerciseParams) (int64, error)
 	SoftDeleteRoutine(ctx context.Context, arg SoftDeleteRoutineParams) (int64, error)
 	SoftDeleteRoutineFolder(ctx context.Context, arg SoftDeleteRoutineFolderParams) (int64, error)
+	SoftDeleteWorkout(ctx context.Context, arg SoftDeleteWorkoutParams) (int64, error)
 	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (Exercise, error)
 	UpdateRoutineFolder(ctx context.Context, arg UpdateRoutineFolderParams) (RoutineFolder, error)
 	UpdateRoutineMeta(ctx context.Context, arg UpdateRoutineMetaParams) (Routine, error)
 	UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error)
+	UpdateWorkoutMeta(ctx context.Context, arg UpdateWorkoutMetaParams) (Workout, error)
 }
 
 var _ Querier = (*Queries)(nil)

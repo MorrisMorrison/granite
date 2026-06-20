@@ -15,6 +15,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
+	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
 
 // Response shapes (huma serializes an operation's Body field as the HTTP body).
@@ -46,7 +47,8 @@ func newTestServer(t *testing.T) (http.Handler, *sqlc.Queries) {
 	authSvc := auth.NewService(q, tokens, true)
 	exerciseSvc := exercise.NewService(q)
 	routineSvc := routine.NewService(database, q)
-	return New(authSvc, exerciseSvc, routineSvc, tokens, database, []string{"*"}).Handler(), q
+	workoutSvc := workout.NewService(database, q)
+	return New(authSvc, exerciseSvc, routineSvc, workoutSvc, tokens, database, []string{"*"}).Handler(), q
 }
 
 func doReq(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {
@@ -246,6 +248,56 @@ func TestRoutineEndpoints(t *testing.T) {
 
 	if rec := doReq(t, h, http.MethodPost, "/api/v1/routine-folders", access, map[string]any{"name": "Strength"}); rec.Code != http.StatusCreated {
 		t.Fatalf("create folder = %d: %s", rec.Code, rec.Body)
+	}
+}
+
+func TestWorkoutAndExportEndpoints(t *testing.T) {
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "wo@b.com")
+
+	rec := doReq(t, h, http.MethodPost, "/api/v1/exercises", access, map[string]any{
+		"name": "Bench", "exercise_type": "weight_reps",
+	})
+	var ex exerciseResponse
+	mustJSON(t, rec, &ex)
+
+	rec = doReq(t, h, http.MethodPost, "/api/v1/workouts", access, map[string]any{
+		"title": "Session", "start_time": 1000,
+		"exercises": []map[string]any{{
+			"exercise_id": ex.ID,
+			"sets":        []map[string]any{{"set_type": "normal", "weight": 80, "reps": 5, "is_completed": true}},
+		}},
+	})
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create workout = %d: %s", rec.Code, rec.Body)
+	}
+	var w workout.Workout
+	mustJSON(t, rec, &w)
+	if len(w.Exercises) != 1 || len(w.Exercises[0].Sets) != 1 || !w.Exercises[0].Sets[0].IsCompleted {
+		t.Fatalf("nested workout wrong: %+v", w)
+	}
+
+	rec = doReq(t, h, http.MethodGet, "/api/v1/workouts", access, nil)
+	var list struct {
+		Workouts []workout.Workout `json:"workouts"`
+	}
+	mustJSON(t, rec, &list)
+	if len(list.Workouts) != 1 {
+		t.Fatalf("list workouts = %d, want 1", len(list.Workouts))
+	}
+
+	// Export should contain the custom exercise + the workout.
+	rec = doReq(t, h, http.MethodGet, "/api/v1/export", access, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("export = %d: %s", rec.Code, rec.Body)
+	}
+	var exp struct {
+		Exercises []exerciseResponse `json:"exercises"`
+		Workouts  []workout.Workout  `json:"workouts"`
+	}
+	mustJSON(t, rec, &exp)
+	if len(exp.Exercises) != 1 || len(exp.Workouts) != 1 {
+		t.Fatalf("export contents: exercises=%d workouts=%d", len(exp.Exercises), len(exp.Workouts))
 	}
 }
 

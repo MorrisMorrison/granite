@@ -180,6 +180,23 @@ func (s *Service) ListRoutines(ctx context.Context, userID string) ([]Routine, e
 	return out, nil
 }
 
+// ListFull returns the user's routines with all nested exercises and sets (used by export).
+func (s *Service) ListFull(ctx context.Context, userID string) ([]Routine, error) {
+	rows, err := s.q.ListRoutines(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Routine, 0, len(rows))
+	for _, r := range rows {
+		full, err := s.loadNested(ctx, r)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, full)
+	}
+	return out, nil
+}
+
 // Get returns a routine with its exercises and sets.
 func (s *Service) Get(ctx context.Context, userID, id string) (Routine, error) {
 	r, err := s.q.GetRoutine(ctx, id)
