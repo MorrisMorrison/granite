@@ -9,6 +9,10 @@ importers:
   .: {}
 
   apps/mobile:
+    dependencies:
+      '@granite/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: ^3.0.10
