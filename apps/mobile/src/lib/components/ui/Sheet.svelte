@@ -41,22 +41,35 @@
 	.backdrop {
 		position: absolute;
 		inset: 0;
-		background: rgba(0, 0, 0, 0.55);
+		background: rgba(0, 0, 0, 0.65);
 		border: none;
 		cursor: pointer;
 	}
 	.sheet {
 		position: relative;
+		z-index: 1;
 		background: var(--surface);
-		border: 1px solid var(--border);
+		border: 1px solid var(--border-strong);
 		border-bottom: none;
 		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 		width: 100%;
 		max-width: var(--content-max);
-		max-height: 80vh;
+		max-height: 85vh;
 		display: flex;
 		flex-direction: column;
+		box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
 		padding-bottom: env(safe-area-inset-bottom);
+	}
+	@media (min-width: 640px) {
+		.overlay {
+			align-items: center;
+			padding: 1rem;
+		}
+		.sheet {
+			border: 1px solid var(--border-strong);
+			border-radius: var(--radius-lg);
+			box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+		}
 	}
 	.sheet-head {
 		display: flex;
@@ -77,7 +90,8 @@
 		padding: 4px;
 	}
 	.sheet-body {
-		overflow: auto;
+		min-height: 0;
+		overflow-y: auto;
 		padding: 0.5rem 1.1rem 1rem;
 	}
 </style>

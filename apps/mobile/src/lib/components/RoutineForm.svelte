@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { listExercises } from '$lib/repo/exercises';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Sheet from '$lib/components/ui/Sheet.svelte';
 
 	interface DraftSet {
 		uid: string;
@@ -88,7 +90,12 @@
 		};
 	}
 	function addExercise(ex: { id: string }) {
-		exercises.push({ uid: crypto.randomUUID(), exercise_id: ex.id, rest_seconds: 90, sets: [blankSet()] });
+		exercises.push({
+			uid: crypto.randomUUID(),
+			exercise_id: ex.id,
+			rest_seconds: 90,
+			sets: [blankSet()]
+		});
 		pickerOpen = false;
 	}
 	function addSet(ex: DraftExercise) {
@@ -130,7 +137,7 @@
 	}
 </script>
 
-<input class="rf-title" placeholder="Routine title" bind:value={title} />
+<input class="rf-title" placeholder="Routine title" bind:value={title} data-testid="field-routine-title" />
 <textarea class="rf-notes" placeholder="Notes (optional)" rows="2" bind:value={notes}></textarea>
 
 {#each exercises as ex (ex.uid)}
@@ -139,44 +146,65 @@
 			<strong>{nameFor(ex.exercise_id)}</strong>
 			<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
 		</div>
-		<label class="rest">Rest (s) <input type="number" inputmode="numeric" bind:value={ex.rest_seconds} /></label>
-		<div class="set-head muted"><span>Set</span><span>Type</span><span>Target kg</span><span>Target reps</span><span></span></div>
+		<label class="rest">
+			Rest (s)
+			<input type="number" inputmode="numeric" bind:value={ex.rest_seconds} />
+		</label>
+		<div class="set-head muted">
+			<span>Set</span><span>Type</span><span>Target kg</span><span>Target reps</span><span></span>
+		</div>
 		{#each ex.sets as s, i (s.uid)}
 			<div class="set-row">
 				<span>{i + 1}</span>
-				<select bind:value={s.set_type}>{#each setTypes as t}<option value={t}>{t}</option>{/each}</select>
+				<select bind:value={s.set_type}>
+					{#each setTypes as t}<option value={t}>{t}</option>{/each}
+				</select>
 				<input type="number" inputmode="decimal" bind:value={s.target_weight} />
 				<input type="number" inputmode="numeric" bind:value={s.target_reps} />
 				<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
 			</div>
 		{/each}
-		<button class="btn btn-ghost add-set" onclick={() => addSet(ex)}>+ Add set</button>
+		<div class="add-set">
+			<Button variant="ghost" size="sm" icon="plus" onclick={() => addSet(ex)}>Add set</Button>
+		</div>
 	</section>
 {/each}
 
-{#if pickerOpen}
-	<section class="card">
-		<div class="ex-head"><strong>Add exercise</strong><button class="link" onclick={() => (pickerOpen = false)}>close</button></div>
-		<ul class="lib">
-			{#each library as l (l.id)}
-				<li><button class="lib-item" onclick={() => addExercise(l)}><span>{l.name}</span><span class="muted">{l.primary_muscle}</span></button></li>
-			{/each}
-		</ul>
-	</section>
-{:else}
-	<button class="btn btn-ghost" style="width:100%" onclick={() => (pickerOpen = true)}>+ Add exercise</button>
-{/if}
+<Button variant="outline" block icon="plus" onclick={() => (pickerOpen = true)} testid="btn-add-exercise">
+	Add exercise
+</Button>
+
+<Sheet open={pickerOpen} title="Add exercise" onclose={() => (pickerOpen = false)}>
+	<ul class="lib">
+		{#each library as l (l.id)}
+			<li>
+				<button class="lib-item" onclick={() => addExercise(l)} data-testid="picker-exercise">
+					<span>{l.name}</span><span class="muted">{l.primary_muscle}</span>
+				</button>
+			</li>
+		{/each}
+	</ul>
+</Sheet>
 
 {#if error}<p class="error">{error}</p>{/if}
-<button class="btn" style="width:100%; margin-top:1rem;" onclick={save} disabled={saving}>
-	{saving ? 'Saving…' : submitLabel}
-</button>
+
+<div class="save">
+	<Button block onclick={save} disabled={saving} testid="btn-save-routine">
+		{saving ? 'Saving…' : submitLabel}
+	</Button>
+</div>
 
 <style>
 	.rf-title {
+		width: 100%;
 		font-size: 1.2rem;
 		font-weight: 600;
 		margin-bottom: 0.5rem;
+		background: transparent;
+		border: none;
+		border-bottom: 1px solid var(--border);
+		border-radius: 0;
+		padding-left: 0;
 	}
 	.rf-notes {
 		width: 100%;
@@ -230,8 +258,6 @@
 	}
 	.add-set {
 		margin-top: 0.4rem;
-		padding: 0.35rem 0.7rem;
-		font-size: 0.85rem;
 	}
 	.link {
 		background: none;
@@ -244,8 +270,6 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		max-height: 18rem;
-		overflow: auto;
 	}
 	.lib-item {
 		width: 100%;
@@ -258,5 +282,8 @@
 		color: var(--text);
 		cursor: pointer;
 		text-align: left;
+	}
+	.save {
+		margin-top: 1rem;
 	}
 </style>
