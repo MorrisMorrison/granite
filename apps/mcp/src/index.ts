@@ -6,11 +6,12 @@ import { registerTools } from './tools.js';
 
 async function main(): Promise<void> {
 	const client = createGraniteMcpClient();
+	const allowWrite = /^(1|true|yes)$/i.test(process.env.GRANITE_ALLOW_WRITE ?? '');
 	const server = new McpServer({ name: 'granite', version: '0.1.0' });
-	registerTools(server, client);
+	registerTools(server, client, { allowWrite });
 	// stdio is the protocol channel — never write logs to stdout.
 	await server.connect(new StdioServerTransport());
-	console.error('granite-mcp ready (stdio)');
+	console.error(`granite-mcp ready (stdio)${allowWrite ? ' [write tools enabled]' : ''}`);
 }
 
 main().catch((err) => {

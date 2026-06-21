@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Model Context Protocol server for Granite (read-only tools over the REST API).",
+  "description": "Model Context Protocol server for Granite (read tools + opt-in write tools over the REST API).",
   "bin": {
     "granite-mcp": "./dist/index.js"
   },
