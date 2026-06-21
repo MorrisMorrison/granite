@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeExerciseProgress } from './stats';
+import { computeExerciseProgress, computeLastPerformance } from './stats';
 
 const rec = (
 	id: string,
@@ -47,5 +47,34 @@ describe('computeExerciseProgress', () => {
 			'squat'
 		);
 		expect(p.pr_weight).toBe(60);
+	});
+});
+
+describe('computeLastPerformance', () => {
+	it('returns the most recent prior session of completed sets', () => {
+		const last = computeLastPerformance(
+			[
+				rec('old', 1000, [{ weight: 60, reps: 5 }]),
+				rec('new', 3000, [
+					{ weight: 70, reps: 5 },
+					{ weight: 70, reps: 4 }
+				])
+			],
+			'squat'
+		);
+		expect(last?.date).toBe(3000);
+		expect(last?.sets).toEqual([
+			{ weight: 70, reps: 5 },
+			{ weight: 70, reps: 4 }
+		]);
+	});
+
+	it('skips uncompleted sets and returns null when never trained', () => {
+		expect(computeLastPerformance([rec('w', 1, [{ weight: 50, reps: 5 }])], 'bench')).toBeNull();
+		const last = computeLastPerformance(
+			[rec('w', 1, [{ weight: 99, reps: 1, is_completed: false }, { weight: 50, reps: 5, is_completed: true }])],
+			'squat'
+		);
+		expect(last?.sets).toEqual([{ weight: 50, reps: 5 }]);
 	});
 });
