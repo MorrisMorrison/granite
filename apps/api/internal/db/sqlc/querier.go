@@ -17,6 +17,7 @@ type Querier interface {
 	ChangedWorkouts(ctx context.Context, arg ChangedWorkoutsParams) ([]Workout, error)
 	CountExercises(ctx context.Context) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateApiToken(ctx context.Context, arg CreateApiTokenParams) (ApiToken, error)
 	CreateBuiltinExercise(ctx context.Context, arg CreateBuiltinExerciseParams) error
 	CreateExercise(ctx context.Context, arg CreateExerciseParams) (Exercise, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
@@ -28,8 +29,10 @@ type Querier interface {
 	CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (Workout, error)
 	CreateWorkoutExercise(ctx context.Context, arg CreateWorkoutExerciseParams) (WorkoutExercise, error)
 	CreateWorkoutSet(ctx context.Context, arg CreateWorkoutSetParams) (WorkoutSet, error)
+	DeleteApiToken(ctx context.Context, arg DeleteApiTokenParams) (int64, error)
 	DeleteRoutineExercisesByRoutine(ctx context.Context, routineID string) error
 	DeleteWorkoutExercisesByWorkout(ctx context.Context, workoutID string) error
+	GetApiTokenByHash(ctx context.Context, tokenHash string) (ApiToken, error)
 	GetExercise(ctx context.Context, id string) (Exercise, error)
 	GetExerciseForSync(ctx context.Context, id string) (Exercise, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
@@ -41,6 +44,7 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id string) (User, error)
 	GetWorkout(ctx context.Context, id string) (Workout, error)
 	GetWorkoutForSync(ctx context.Context, id string) (Workout, error)
+	ListApiTokensByUser(ctx context.Context, userID string) ([]ApiToken, error)
 	ListExercises(ctx context.Context, userID sql.NullString) ([]Exercise, error)
 	// Routine exercises + sets (children, replaced wholesale on update) ------------
 	ListRoutineExercises(ctx context.Context, routineID string) ([]RoutineExercise, error)
@@ -58,6 +62,7 @@ type Querier interface {
 	SoftDeleteRoutine(ctx context.Context, arg SoftDeleteRoutineParams) (int64, error)
 	SoftDeleteRoutineFolder(ctx context.Context, arg SoftDeleteRoutineFolderParams) (int64, error)
 	SoftDeleteWorkout(ctx context.Context, arg SoftDeleteWorkoutParams) (int64, error)
+	TouchApiToken(ctx context.Context, arg TouchApiTokenParams) error
 	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (Exercise, error)
 	UpdateRoutineFolder(ctx context.Context, arg UpdateRoutineFolderParams) (RoutineFolder, error)
 	UpdateRoutineMeta(ctx context.Context, arg UpdateRoutineMetaParams) (Routine, error)

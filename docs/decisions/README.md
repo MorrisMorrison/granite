@@ -15,3 +15,4 @@ Format: Context → Decision → Alternatives considered → Consequences. Statu
 | [0006](0006-auth-email-password-jwt.md) | Email + password + JWT auth | Accepted |
 | [0007](0007-huma-openapi.md) | huma for the API layer (code-first OpenAPI) | Accepted |
 | [0008](0008-sync-engine-v1.md) | Sync engine v1: aggregate granularity, `updated_at` cursor | Accepted |
+| [0009](0009-personal-api-tokens.md) | Personal API tokens for programmatic access | Accepted |

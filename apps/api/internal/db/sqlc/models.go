@@ -8,6 +8,17 @@ import (
 	"database/sql"
 )
 
+type ApiToken struct {
+	ID         string        `json:"id"`
+	UserID     string        `json:"user_id"`
+	Name       string        `json:"name"`
+	TokenHash  string        `json:"token_hash"`
+	Prefix     string        `json:"prefix"`
+	LastUsedAt sql.NullInt64 `json:"last_used_at"`
+	ExpiresAt  sql.NullInt64 `json:"expires_at"`
+	CreatedAt  int64         `json:"created_at"`
+}
+
 type Exercise struct {
 	ID               string         `json:"id"`
 	UserID           sql.NullString `json:"user_id"`

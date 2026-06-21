@@ -15,7 +15,16 @@ import (
 
 type ctxKey string
 
-const userIDKey ctxKey = "userID"
+const (
+	userIDKey     ctxKey = "userID"
+	authMethodKey ctxKey = "authMethod"
+)
+
+// Authentication methods recorded in the request context.
+const (
+	authMethodJWT      = "jwt"
+	authMethodAPIToken = "apitoken"
+)
 
 // secureHeaders sets conservative security response headers.
 func secureHeaders(next http.Handler) http.Handler {
@@ -46,7 +55,7 @@ func requestLogger(next http.Handler) http.Handler {
 
 // newAuthMiddleware is a huma middleware that enforces a Bearer access token for
 // operations declaring Security, and injects the user id into the context.
-func newAuthMiddleware(api huma.API, tokens *auth.TokenManager) func(huma.Context, func(huma.Context)) {
+func newAuthMiddleware(api huma.API, tokens *auth.TokenManager, svc *auth.Service) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
 		if len(ctx.Operation().Security) == 0 {
 			next(ctx)
@@ -63,16 +72,32 @@ func newAuthMiddleware(api huma.API, tokens *auth.TokenManager) func(huma.Contex
 			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "missing access token")
 			return
 		}
-		userID, err := tokens.ParseAccessToken(token)
-		if err != nil {
-			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "invalid or expired access token")
-			return
+		var userID, method string
+		if strings.HasPrefix(token, auth.APITokenPrefix) {
+			id, err := svc.AuthenticateAPIToken(ctx.Context(), token)
+			if err != nil {
+				_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "invalid or expired API token")
+				return
+			}
+			userID, method = id, authMethodAPIToken
+		} else {
+			id, err := tokens.ParseAccessToken(token)
+			if err != nil {
+				_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "invalid or expired access token")
+				return
+			}
+			userID, method = id, authMethodJWT
 		}
-		next(huma.WithValue(ctx, userIDKey, userID))
+		next(huma.WithValue(huma.WithValue(ctx, userIDKey, userID), authMethodKey, method))
 	}
 }
 
 func userIDFromCtx(ctx context.Context) string {
 	id, _ := ctx.Value(userIDKey).(string)
 	return id
+}
+
+func authMethodFromCtx(ctx context.Context) string {
+	m, _ := ctx.Value(authMethodKey).(string)
+	return m
 }

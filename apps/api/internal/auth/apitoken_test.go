@@ -1,0 +1,92 @@
+package auth
+
+import (
+	"context"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
+)
+
+func TestAPITokenLifecycle(t *testing.T) {
+	s := newTestService(t, true)
+	ctx := context.Background()
+	user, _, err := s.Register(ctx, "owner@example.com", "supersecret", "Owner")
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	tok, err := s.CreateAPIToken(ctx, user.ID, "CLI", nil)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if !strings.HasPrefix(tok.Token, APITokenPrefix) {
+		t.Fatalf("raw token %q missing prefix %q", tok.Token, APITokenPrefix)
+	}
+	if len(tok.Prefix) != 12 {
+		t.Fatalf("display prefix = %q, want 12 chars", tok.Prefix)
+	}
+
+	// Authenticates back to the owner.
+	uid, err := s.AuthenticateAPIToken(ctx, tok.Token)
+	if err != nil || uid != user.ID {
+		t.Fatalf("authenticate = %q, %v; want %q", uid, err, user.ID)
+	}
+
+	// Unknown token is rejected.
+	if _, err := s.AuthenticateAPIToken(ctx, "gra_nope"); err == nil {
+		t.Fatal("expected unknown token to be rejected")
+	}
+
+	// List returns metadata only (never the raw secret).
+	list, err := s.ListAPITokens(ctx, user.ID)
+	if err != nil || len(list) != 1 {
+		t.Fatalf("list = %d, %v; want 1", len(list), err)
+	}
+	if list[0].Token != "" {
+		t.Fatal("list must not expose the raw token")
+	}
+
+	// Revoke, then it no longer authenticates; revoking again is not-found.
+	if err := s.RevokeAPIToken(ctx, user.ID, tok.ID); err != nil {
+		t.Fatalf("revoke: %v", err)
+	}
+	if _, err := s.AuthenticateAPIToken(ctx, tok.Token); err == nil {
+		t.Fatal("revoked token should not authenticate")
+	}
+	assertCode(t, s.RevokeAPIToken(ctx, user.ID, tok.ID), apperr.CodeNotFound)
+}
+
+func TestAPITokenExpiry(t *testing.T) {
+	s := newTestService(t, true)
+	ctx := context.Background()
+	user, _, err := s.Register(ctx, "exp@example.com", "supersecret", "Exp")
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	s.now = func() time.Time { return t0 }
+	expires := t0.Add(time.Hour).UnixMilli()
+	tok, err := s.CreateAPIToken(ctx, user.ID, "temp", &expires)
+	if err != nil {
+		t.Fatalf("create with expiry: %v", err)
+	}
+	if _, err := s.AuthenticateAPIToken(ctx, tok.Token); err != nil {
+		t.Fatalf("token should be valid before expiry: %v", err)
+	}
+
+	// Past expiry: rejected.
+	s.now = func() time.Time { return t0.Add(2 * time.Hour) }
+	if _, err := s.AuthenticateAPIToken(ctx, tok.Token); err == nil {
+		t.Fatal("expired token should be rejected")
+	}
+
+	// Creating a token that's already expired is a validation error.
+	past := t0.Add(-time.Hour).UnixMilli()
+	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "stale", &past)), apperr.CodeValidation)
+	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "", nil)), apperr.CodeValidation)
+}
+
+func mustErr(_ APIToken, err error) error { return err }

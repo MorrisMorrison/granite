@@ -1,5 +1,44 @@
 components:
   schemas:
+    APIToken:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/APIToken.json
+          format: uri
+          readOnly: true
+          type: string
+        created_at:
+          format: int64
+          type: integer
+        expires_at:
+          format: int64
+          type:
+            - integer
+            - "null"
+        id:
+          type: string
+        last_used_at:
+          format: int64
+          type:
+            - integer
+            - "null"
+        name:
+          type: string
+        prefix:
+          type: string
+        token:
+          type: string
+      required:
+        - id
+        - name
+        - prefix
+        - last_used_at
+        - expires_at
+        - created_at
+      type: object
     ApiChange:
       additionalProperties: false
       properties:
@@ -41,6 +80,26 @@ components:
         - user
         - access
         - refresh
+      type: object
+    CreateTokenInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateTokenInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        expires_at:
+          description: Optional expiry (epoch ms); omit for no expiry.
+          format: int64
+          type: integer
+        name:
+          description: A label to identify the token.
+          type: string
+      required:
+        - name
       type: object
     ErrorDetail:
       additionalProperties: false
@@ -402,6 +461,25 @@ components:
             - "null"
       required:
         - routines
+      type: object
+    ListTokensOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ListTokensOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        tokens:
+          items:
+            $ref: "#/components/schemas/APIToken"
+          type:
+            - array
+            - "null"
+      required:
+        - tokens
       type: object
     ListWorkoutsOutputBody:
       additionalProperties: false
@@ -1542,6 +1620,76 @@ paths:
       summary: Push local changes
       tags:
         - Sync
+  /api/v1/tokens:
+    get:
+      operationId: listApiTokens
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListTokensOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: List your API tokens
+      tags:
+        - Tokens
+    post:
+      operationId: createApiToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTokenInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIToken"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Create an API token
+      tags:
+        - Tokens
+  /api/v1/tokens/{id}:
+    delete:
+      operationId: revokeApiToken
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Revoke an API token
+      tags:
+        - Tokens
   /api/v1/workouts:
     get:
       operationId: listWorkouts
