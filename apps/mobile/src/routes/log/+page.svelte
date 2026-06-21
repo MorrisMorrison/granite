@@ -115,6 +115,10 @@
 		exercises.reduce((n, e) => n + e.sets.filter((s) => s.is_completed).length, 0)
 	);
 
+	function cancel() {
+		if (exercises.length === 0 || confirm('Discard this workout?')) void goto('/');
+	}
+
 	async function finish() {
 		if (exercises.length === 0) {
 			error = 'Add at least one exercise.';
@@ -234,6 +238,7 @@
 
 <div class="footer">
 	<div class="container footer-inner">
+		<button class="btn btn-ghost" onclick={cancel} data-testid="btn-cancel-workout">Cancel</button>
 		{#if restActive}
 			<div class="rest">
 				<button class="link" onclick={() => bumpRest(-15)}>-15</button>
@@ -244,7 +249,9 @@
 		{:else}
 			<span class="muted">{completedCount} set{completedCount === 1 ? '' : 's'} done</span>
 		{/if}
-		<button class="btn" onclick={finish} disabled={saving}>{saving ? 'Saving…' : 'Finish'}</button>
+		<button class="btn" onclick={finish} disabled={saving} data-testid="btn-finish-workout"
+			>{saving ? 'Saving…' : 'Finish'}</button
+		>
 	</div>
 </div>
 

@@ -5,6 +5,8 @@
 	import { goto, preloadCode } from '$app/navigation';
 	import { page } from '$app/state';
 	import { auth } from '$lib/stores/auth.svelte';
+	import TabBar from '$lib/components/ui/TabBar.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 
 	let { children } = $props();
 
@@ -49,46 +51,64 @@
 {#if !auth.ready}
 	<div class="container"><p class="muted">Loading…</p></div>
 {:else}
-	{#if auth.isAuthenticated}
-		<nav class="nav">
-			<div class="container nav-inner">
-				<a class="brand" href="/">🪨 Granite</a>
-				<div class="links">
-					<a href="/">Today</a>
-					<a href="/routines">Routines</a>
-					<a href="/history">History</a>
-					<a href="/exercises">Exercises</a>
-					<button class="btn btn-ghost" onclick={logout}>Log out</button>
-				</div>
+	{#if auth.isAuthenticated && page.url.pathname !== '/log'}
+		<header class="appbar">
+			<div class="appbar-inner">
+				<a class="brand" href="/"><span class="logo"></span>Granite</a>
+				<button class="iconbtn" onclick={logout} aria-label="Log out" data-testid="btn-logout">
+					<Icon name="logout" size={20} />
+				</button>
 			</div>
-		</nav>
+		</header>
 	{/if}
 	{@render children()}
+	{#if auth.isAuthenticated && page.url.pathname !== '/log'}
+		<TabBar />
+	{/if}
 {/if}
 
 <style>
-	.nav {
+	.appbar {
+		position: sticky;
+		top: 0;
+		background: color-mix(in srgb, var(--bg) 85%, transparent);
+		backdrop-filter: blur(10px);
 		border-bottom: 1px solid var(--border);
-		background: var(--surface);
+		z-index: 40;
 	}
-	.nav-inner {
+	.appbar-inner {
+		max-width: var(--content-max);
+		margin: 0 auto;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding-top: 0.6rem;
-		padding-bottom: 0.6rem;
+		padding: 0.65rem 1rem;
 	}
 	.brand {
-		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 600;
 		text-decoration: none;
 		color: var(--text);
 	}
-	.links {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
+	.logo {
+		width: 18px;
+		height: 18px;
+		border-radius: 5px;
+		background: var(--accent);
 	}
-	.links :global(.btn) {
-		padding: 0.35rem 0.7rem;
+	.iconbtn {
+		display: inline-flex;
+		background: transparent;
+		border: none;
+		color: var(--muted);
+		padding: 6px;
+		border-radius: var(--radius-md);
+		cursor: pointer;
+	}
+	.iconbtn:hover {
+		background: var(--elevated);
+		color: var(--text);
 	}
 </style>
