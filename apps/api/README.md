@@ -9,6 +9,7 @@ self-hosted web app — so a self-hoster runs a **single binary**. (An MCP serve
 ```
 cmd/granite/         # main entrypoint (the server binary)
 cmd/gen-openapi/     # writes openapi.yaml from the Huma API definition
+cmd/seed-demo/       # creates a demo account with sample data (idempotent)
 internal/
   apperr/            # typed error taxonomy → HTTP status + {error, code, details} envelope
   auth/              # password hashing, JWTs, refresh tokens, personal API tokens
@@ -36,6 +37,20 @@ pwsh scripts/dev-api.ps1     # Windows PowerShell
 # Or directly (Go on PATH; go.mod targets 1.25, so let the toolchain self-fetch):
 GOTOOLCHAIN=auto go run ./cmd/granite     # or: make run-api
 ```
+
+## Demo / seed data
+
+Populate an account with realistic data — routines and a few weeks of workout history — for local
+development or a try-it-out demo:
+
+```sh
+make seed-demo          # from repo root; seeds the dev DB (override with GRANITE_DB_PATH)
+# or: cd apps/api && GRANITE_DB_PATH=dev.db go run ./cmd/seed-demo
+```
+
+Creates **`demo@granite.local` / `demodata`** with a Push/Pull/Legs folder, three routines, and nine
+logged sessions (progressing over ~6 weeks, so the per-exercise charts + PRs are populated). It's
+**idempotent** — if the demo account already exists it does nothing.
 
 ## Configuration (env vars)
 

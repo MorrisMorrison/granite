@@ -2,7 +2,7 @@
 # Go API (apps/api) + SvelteKit client (apps/mobile) + shared TS (packages/shared, via pnpm).
 .PHONY: help install build build-api build-web test test-api test-web run-api run-web \
 	fmt fmt-api fmt-web lint lint-api lint-web check verify clean docker-build \
-	gen-openapi gen-client
+	gen-openapi gen-client seed-demo
 
 # Local Go is portable 1.23 but go.mod targets 1.25 → let the toolchain self-fetch.
 export GOTOOLCHAIN ?= auto
@@ -17,6 +17,7 @@ help:
 	@echo "  test          test api + web + shared"
 	@echo "  run-api       run the Go API locally (PORT=8080)"
 	@echo "  run-web       run the SvelteKit dev server"
+	@echo "  seed-demo     create a demo account with sample data (idempotent)"
 	@echo "  verify        fmt + lint + test (pre-push gate)"
 	@echo "  docker-build  build the production image"
 
@@ -41,6 +42,11 @@ test-web:
 
 run-api:
 	cd $(API_DIR) && go run ./cmd/granite
+
+# Seed a demo account (demo@granite.local / demodata) with routines + workout history.
+# Idempotent. Override the DB with GRANITE_DB_PATH (defaults to the dev DB).
+seed-demo:
+	cd $(API_DIR) && GRANITE_DB_PATH=$${GRANITE_DB_PATH:-dev.db} go run ./cmd/seed-demo
 
 run-web:
 	$(PNPM) --filter mobile dev
