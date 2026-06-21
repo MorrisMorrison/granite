@@ -1,7 +1,7 @@
 # Granite
 
 > Open-source, self-hostable, **offline-first** workout tracker. Own your training data.
-> A clean gym logger you run yourself — **without** a social network.
+> A clean gym logger you run yourself.
 
 [![CI](https://github.com/MorrisMorrison/granite/actions/workflows/ci.yml/badge.svg)](https://github.com/MorrisMorrison/granite/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-2563eb.svg)](LICENSE)
