@@ -1,0 +1,10 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Granite">
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="#2563eb" />
+  <g stroke="#ffffff" stroke-width="15" stroke-linecap="round">
+    <line x1="86" y1="128" x2="170" y2="128" />
+    <line x1="86" y1="98" x2="86" y2="158" />
+    <line x1="170" y1="98" x2="170" y2="158" />
+    <line x1="64" y1="110" x2="64" y2="146" />
+    <line x1="192" y1="110" x2="192" y2="146" />
+  </g>
+</svg>

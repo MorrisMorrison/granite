@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, passthroughImageService } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 
@@ -10,6 +10,8 @@ const base = process.env.DOCS_BASE ?? '/granite';
 export default defineConfig({
 	site,
 	base,
+	// The site only uses an SVG hero — skip raster optimization (and the sharp dep).
+	image: { service: passthroughImageService() },
 	integrations: [
 		// Must precede Starlight: renders ```mermaid code blocks client-side and tells
 		// Expressive Code to leave them alone. autoTheme follows the site's light/dark mode.
@@ -31,7 +33,9 @@ export default defineConfig({
 			],
 			editLink: {
 				baseUrl: 'https://github.com/MorrisMorrison/granite/edit/main/docs/'
-			}
+			},
+			// Keep the right-hand "On this page" compact — top-level sections only.
+			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 2 }
 		})
 	]
 });

@@ -4,6 +4,9 @@ description: Open-source, self-hostable, offline-first workout tracker. Own your
 template: splash
 hero:
   tagline: A clean gym logger you run yourself — offline-first, no social network. Your training data stays yours.
+  image:
+    file: ../../assets/hero.svg
+    alt: Granite
   actions:
     - text: Self-host it
       link: /granite/guides/self-hosting/
@@ -16,7 +19,7 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-<CardGrid stagger>
+<CardGrid>
 	<Card title="Offline-first">
 		Every core action works with no signal; changes sync to your server when you're back online.
 	</Card>
