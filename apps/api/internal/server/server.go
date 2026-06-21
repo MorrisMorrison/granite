@@ -98,7 +98,7 @@ func (s *Server) setupAPI() {
 		"bearer": {Type: "http", Scheme: "bearer", BearerFormat: "JWT"},
 	}
 	s.api = humachi.New(s.router, cfg)
-	s.api.UseMiddleware(newAuthMiddleware(s.api, s.tokens))
+	s.api.UseMiddleware(newAuthMiddleware(s.api, s.tokens, s.auth))
 }
 
 func (s *Server) registerRoutes() {
@@ -113,6 +113,11 @@ func (s *Server) registerRoutes() {
 	// User
 	huma.Register(a, huma.Operation{OperationID: "getMe", Method: http.MethodGet, Path: "/api/v1/me", Summary: "Get the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleGetMe)
 	huma.Register(a, huma.Operation{OperationID: "updateMe", Method: http.MethodPatch, Path: "/api/v1/me", Summary: "Update the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleUpdateMe)
+
+	// Personal API tokens (managed from an interactive session; see token_handlers.go)
+	huma.Register(a, huma.Operation{OperationID: "listApiTokens", Method: http.MethodGet, Path: "/api/v1/tokens", Summary: "List your API tokens", Tags: []string{"Tokens"}, Security: bearerSecurity}, s.handleListTokens)
+	huma.Register(a, huma.Operation{OperationID: "createApiToken", Method: http.MethodPost, Path: "/api/v1/tokens", Summary: "Create an API token", Tags: []string{"Tokens"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateToken)
+	huma.Register(a, huma.Operation{OperationID: "revokeApiToken", Method: http.MethodDelete, Path: "/api/v1/tokens/{id}", Summary: "Revoke an API token", Tags: []string{"Tokens"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleRevokeToken)
 
 	// Exercises
 	huma.Register(a, huma.Operation{OperationID: "listExercises", Method: http.MethodGet, Path: "/api/v1/exercises", Summary: "List exercises (yours + built-in)", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleListExercises)

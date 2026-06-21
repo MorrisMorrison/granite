@@ -70,3 +70,22 @@ func HashRefreshToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
 }
+
+// APITokenPrefix identifies personal API tokens (vs JWT access tokens) on the wire.
+const APITokenPrefix = "gra_"
+
+// GenerateAPIToken returns a new opaque personal API token, prefixed for easy
+// identification (e.g. in the Authorization header and secret scanners).
+func GenerateAPIToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return APITokenPrefix + base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+// HashToken returns the sha-256 hex digest stored server-side for opaque tokens.
+func HashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
+}
