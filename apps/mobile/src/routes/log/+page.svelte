@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 
 	interface DraftSet {
@@ -21,6 +22,7 @@
 	let exercises = $state<DraftExercise[]>([]);
 	let saving = $state(false);
 	let error = $state('');
+	let fromRoutineId: string | undefined = $state(undefined);
 	const startTime = Date.now();
 
 	const setTypes = ['normal', 'warmup', 'drop', 'failure'];
@@ -122,6 +124,7 @@
 		try {
 			const { data, error: err } = await api().POST('/api/v1/workouts', {
 				body: {
+					routine_id: fromRoutineId,
 					title: title || undefined,
 					start_time: startTime,
 					end_time: Date.now(),
@@ -145,8 +148,38 @@
 		}
 	}
 
+	async function prefillFromRoutine(routineId: string) {
+		const [routineRes, libRes] = await Promise.all([
+			api().GET('/api/v1/routines/{id}', { params: { path: { id: routineId } } }),
+			api().GET('/api/v1/exercises')
+		]);
+		const r = routineRes.data;
+		const lib = libRes.data?.exercises ?? [];
+		if (!r) {
+			void openPicker();
+			return;
+		}
+		const nameOf = (id: string) => lib.find((e) => e.id === id)?.name ?? 'Exercise';
+		fromRoutineId = r.id;
+		if (r.title) title = r.title;
+		exercises = (r.exercises ?? []).map((ex) => ({
+			uid: crypto.randomUUID(),
+			exercise_id: ex.exercise_id,
+			name: nameOf(ex.exercise_id),
+			sets: (ex.sets ?? []).map((s) => ({
+				uid: crypto.randomUUID(),
+				set_type: s.set_type,
+				weight: s.target_weight ?? null,
+				reps: s.target_reps ?? null,
+				is_completed: false
+			}))
+		}));
+	}
+
 	onMount(() => {
-		void openPicker();
+		const routineId = page.url.searchParams.get('routine');
+		if (routineId) void prefillFromRoutine(routineId);
+		else void openPicker();
 	});
 </script>
 

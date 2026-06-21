@@ -40,6 +40,7 @@
 				<a class="brand" href="/">🪨 Granite</a>
 				<div class="links">
 					<a href="/">Today</a>
+					<a href="/routines">Routines</a>
 					<a href="/history">History</a>
 					<a href="/exercises">Exercises</a>
 					<button class="btn btn-ghost" onclick={logout}>Log out</button>

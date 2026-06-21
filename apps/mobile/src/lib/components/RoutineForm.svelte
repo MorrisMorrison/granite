@@ -1,0 +1,263 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { api } from '$lib/api/client';
+
+	interface DraftSet {
+		uid: string;
+		set_type: string;
+		target_weight: number | null;
+		target_reps: number | null;
+	}
+	interface DraftExercise {
+		uid: string;
+		exercise_id: string;
+		rest_seconds: number | null;
+		sets: DraftSet[];
+	}
+	interface InitialExercise {
+		exercise_id: string;
+		rest_seconds: number;
+		sets: { set_type: string; target_weight: number | null; target_reps: number | null }[];
+	}
+
+	interface Payload {
+		title: string;
+		notes: string;
+		exercises: {
+			exercise_id: string;
+			rest_seconds: number;
+			sets: { set_type: string; target_weight?: number; target_reps?: number }[];
+		}[];
+	}
+
+	let {
+		initialTitle = '',
+		initialNotes = '',
+		initialExercises = [],
+		submitLabel = 'Save',
+		onsubmit
+	}: {
+		initialTitle?: string;
+		initialNotes?: string;
+		initialExercises?: InitialExercise[];
+		submitLabel?: string;
+		onsubmit: (payload: Payload) => Promise<void>;
+	} = $props();
+
+	let title = $state(initialTitle);
+	let notes = $state(initialNotes);
+	let exercises = $state<DraftExercise[]>(
+		initialExercises.map((e) => ({
+			uid: crypto.randomUUID(),
+			exercise_id: e.exercise_id,
+			rest_seconds: e.rest_seconds,
+			sets: e.sets.map((s) => ({
+				uid: crypto.randomUUID(),
+				set_type: s.set_type,
+				target_weight: s.target_weight,
+				target_reps: s.target_reps
+			}))
+		}))
+	);
+	let saving = $state(false);
+	let error = $state('');
+
+	const setTypes = ['normal', 'warmup', 'drop', 'failure'];
+
+	let library = $state<{ id: string; name: string; primary_muscle: string }[]>([]);
+	let pickerOpen = $state(false);
+
+	onMount(async () => {
+		const { data } = await api().GET('/api/v1/exercises');
+		library = (data?.exercises ?? []).map((e) => ({
+			id: e.id,
+			name: e.name,
+			primary_muscle: e.primary_muscle
+		}));
+	});
+
+	function nameFor(id: string): string {
+		return library.find((l) => l.id === id)?.name ?? 'Exercise';
+	}
+
+	function blankSet(from?: DraftSet): DraftSet {
+		return {
+			uid: crypto.randomUUID(),
+			set_type: 'normal',
+			target_weight: from?.target_weight ?? null,
+			target_reps: from?.target_reps ?? null
+		};
+	}
+	function addExercise(ex: { id: string }) {
+		exercises.push({ uid: crypto.randomUUID(), exercise_id: ex.id, rest_seconds: 90, sets: [blankSet()] });
+		pickerOpen = false;
+	}
+	function addSet(ex: DraftExercise) {
+		ex.sets.push(blankSet(ex.sets[ex.sets.length - 1]));
+	}
+	function removeSet(ex: DraftExercise, uid: string) {
+		ex.sets = ex.sets.filter((s) => s.uid !== uid);
+	}
+	function removeExercise(uid: string) {
+		exercises = exercises.filter((e) => e.uid !== uid);
+	}
+
+	async function save() {
+		if (!title.trim()) {
+			error = 'A title is required.';
+			return;
+		}
+		saving = true;
+		error = '';
+		try {
+			await onsubmit({
+				title: title.trim(),
+				notes,
+				exercises: exercises.map((ex) => ({
+					exercise_id: ex.exercise_id,
+					rest_seconds: ex.rest_seconds ?? 0,
+					sets: ex.sets.map((s) => ({
+						set_type: s.set_type,
+						target_weight: s.target_weight ?? undefined,
+						target_reps: s.target_reps ?? undefined
+					}))
+				}))
+			});
+		} catch (e) {
+			error = (e as Error).message;
+		} finally {
+			saving = false;
+		}
+	}
+</script>
+
+<input class="rf-title" placeholder="Routine title" bind:value={title} />
+<textarea class="rf-notes" placeholder="Notes (optional)" rows="2" bind:value={notes}></textarea>
+
+{#each exercises as ex (ex.uid)}
+	<section class="card ex">
+		<div class="ex-head">
+			<strong>{nameFor(ex.exercise_id)}</strong>
+			<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
+		</div>
+		<label class="rest">Rest (s) <input type="number" inputmode="numeric" bind:value={ex.rest_seconds} /></label>
+		<div class="set-head muted"><span>Set</span><span>Type</span><span>Target kg</span><span>Target reps</span><span></span></div>
+		{#each ex.sets as s, i (s.uid)}
+			<div class="set-row">
+				<span>{i + 1}</span>
+				<select bind:value={s.set_type}>{#each setTypes as t}<option value={t}>{t}</option>{/each}</select>
+				<input type="number" inputmode="decimal" bind:value={s.target_weight} />
+				<input type="number" inputmode="numeric" bind:value={s.target_reps} />
+				<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
+			</div>
+		{/each}
+		<button class="btn btn-ghost add-set" onclick={() => addSet(ex)}>+ Add set</button>
+	</section>
+{/each}
+
+{#if pickerOpen}
+	<section class="card">
+		<div class="ex-head"><strong>Add exercise</strong><button class="link" onclick={() => (pickerOpen = false)}>close</button></div>
+		<ul class="lib">
+			{#each library as l (l.id)}
+				<li><button class="lib-item" onclick={() => addExercise(l)}><span>{l.name}</span><span class="muted">{l.primary_muscle}</span></button></li>
+			{/each}
+		</ul>
+	</section>
+{:else}
+	<button class="btn btn-ghost" style="width:100%" onclick={() => (pickerOpen = true)}>+ Add exercise</button>
+{/if}
+
+{#if error}<p class="error">{error}</p>{/if}
+<button class="btn" style="width:100%; margin-top:1rem;" onclick={save} disabled={saving}>
+	{saving ? 'Saving…' : submitLabel}
+</button>
+
+<style>
+	.rf-title {
+		font-size: 1.2rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+	.rf-notes {
+		width: 100%;
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		color: var(--text);
+		padding: 0.5rem 0.75rem;
+		margin-bottom: 1rem;
+		resize: vertical;
+	}
+	.ex {
+		margin-bottom: 1rem;
+	}
+	.ex-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+	.rest {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8rem;
+		color: var(--muted);
+		margin: 0 0 0.5rem;
+	}
+	.rest input {
+		width: 4.5rem;
+		padding: 0.3rem;
+	}
+	.set-head,
+	.set-row {
+		display: grid;
+		grid-template-columns: 1.5rem 5rem 1fr 1fr 1.5rem;
+		gap: 0.4rem;
+		align-items: center;
+		font-size: 0.85rem;
+		margin-bottom: 0.35rem;
+	}
+	.set-row input {
+		padding: 0.4rem;
+	}
+	select {
+		padding: 0.4rem;
+		background: var(--surface-2);
+		color: var(--text);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+	.add-set {
+		margin-top: 0.4rem;
+		padding: 0.35rem 0.7rem;
+		font-size: 0.85rem;
+	}
+	.link {
+		background: none;
+		border: none;
+		color: var(--accent);
+		cursor: pointer;
+		font: inherit;
+	}
+	.lib {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		max-height: 18rem;
+		overflow: auto;
+	}
+	.lib-item {
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		padding: 0.6rem 0.5rem;
+		background: none;
+		border: none;
+		border-bottom: 1px solid var(--border);
+		color: var(--text);
+		cursor: pointer;
+		text-align: left;
+	}
+</style>
