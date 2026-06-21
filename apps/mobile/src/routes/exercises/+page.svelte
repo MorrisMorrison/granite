@@ -33,8 +33,10 @@
 		<div class="list">
 			{#each exercises as ex (ex.id)}
 				<ListRow
+					href={`/exercises/${ex.id}`}
 					title={ex.name}
 					subtitle={`${ex.primary_muscle} · ${ex.exercise_type}`}
+					chevron
 					testid="exercise-row"
 				>
 					{#snippet trailing()}
