@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { getRoutine, updateRoutine, type RoutineDetail, type RoutineInput } from '$lib/repo/routines';
 	import RoutineForm from '$lib/components/RoutineForm.svelte';
+	import BackLink from '$lib/components/ui/BackLink.svelte';
 
 	const id = page.params.id!;
 
@@ -26,6 +27,7 @@
 <svelte:head><title>Edit routine · Granite</title></svelte:head>
 
 <main class="container">
+	<BackLink href="/routines" label="Routines" />
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if loadError}
