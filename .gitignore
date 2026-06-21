@@ -38,4 +38,6 @@ coverage.*
 *.sqlite
 *.sqlite-*
 *.db
+*.db-wal
+*.db-shm
 *.dump
