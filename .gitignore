@@ -20,8 +20,11 @@ dist/
 .pnpm-store/
 *.tsbuildinfo
 
-# ...but keep the embedded web-app placeholder (the real build is copied in at image-build time)
+# ...but keep ONLY the embedded web-app placeholder (the real build is copied in at
+# image-build time and must stay ignored): un-ignore the dir, re-ignore its contents,
+# then keep index.html.
 !apps/api/internal/webui/dist/
+apps/api/internal/webui/dist/*
 !apps/api/internal/webui/dist/index.html
 
 # --- Capacitor native projects (generated; build artifacts) ---
