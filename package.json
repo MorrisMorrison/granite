@@ -9,6 +9,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "dev:web": "pnpm --filter mobile dev -- --port 5173 --strictPort",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "check": "pnpm -r --if-present check",
