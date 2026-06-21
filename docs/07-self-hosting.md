@@ -11,9 +11,10 @@ graph LR
     G --> F[("SQLite file\n(a mounted volume)")]
 ```
 
-That's the whole system: **one container** (the Go binary, which serves the REST/sync/MCP API **and**
+That's the whole system: **one container** (the Go binary, which serves the REST/sync API **and**
 the embedded web app, and stores data in a SQLite file on a mounted volume) behind a reverse proxy for
-TLS. No separate database process to run, tune, or back up.
+TLS. No separate database process to run, tune, or back up. (The optional [MCP server](../../apps/mcp/)
+is a separate stdio process you run alongside, not part of this container.)
 
 ## Image & build
 
@@ -33,18 +34,30 @@ TLS. No separate database process to run, tune, or back up.
 | `GRANITE_JWT_SECRET` | Signing secret for JWTs. |
 | `GRANITE_BASE_URL` | Public URL (links, CORS, etc.). |
 | `GRANITE_ALLOW_REGISTRATION` | `true`/`false` or invite-gated — lock down a personal instance. |
-| `GRANITE_LOG_LEVEL` | Logging. |
+| `GRANITE_LOG_LEVEL` | `debug`/`info`/`warn`/`error` (default `info`). |
 | `PORT` | Listen port (default 8080). |
 
-A `.env.example` + `deploy/docker-compose.yml` will ship with the repo.
+`GRANITE_JWT_SECRET` is **required** and must be ≥ 32 bytes (the server refuses to start otherwise) —
+generate one with `openssl rand -base64 48`. Registration defaults **closed**, but the **first account
+can always be created**, so a personal instance needs no extra steps to bootstrap.
+
+A ready-to-use [`deploy/docker-compose.yml`](../../deploy/docker-compose.yml) +
+[`deploy/.env.example`](../../deploy/.env.example) ship in the repo — see [`deploy/`](../../deploy/).
 
 ## Backups & data ownership
 
 - **Backups** are trivial: snapshot the **single SQLite file** (e.g. a scheduled copy, or use a tool
   like Litestream for continuous replication). No DB dump tooling required.
-- **In-app export**: `GET /api/v1/export` returns a complete JSON of your data from day one — true
-  "own your data," independent of file-level backups.
-- **Restore**: `POST /api/v1/import` reloads an export.
+- **In-app export**: `GET /api/v1/export` (Settings → Export) returns a complete JSON of your data —
+  true "own your data," independent of file-level backups.
+- **Restore**: replace the SQLite file from a backup (the simplest path). A JSON re-import endpoint is
+  planned to restore from an export.
+
+## Graceful lifecycle
+
+The server installs HTTP timeouts (slow-client protection) and shuts down gracefully on `SIGINT`/`SIGTERM`:
+it stops accepting connections, drains in-flight requests (up to 15s), then closes SQLite cleanly — so
+`docker compose stop`/restarts and host reboots won't corrupt the database or drop a request mid-write.
 
 ## Security notes
 
