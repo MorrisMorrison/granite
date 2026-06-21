@@ -1,10 +1,12 @@
 # @granite/mcp
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server for Granite. It exposes your Granite
-data to MCP clients (Claude Desktop, etc.) as **read-only** tools, talking to a Granite instance over its
-REST API with a personal API token.
+data to MCP clients (Claude Desktop, etc.), talking to a Granite instance over its REST API with a
+personal API token. **Read-only by default; write tools are opt-in.**
 
 ## Tools
+
+### Read (always available)
 
 | Tool | What it does |
 |------|--------------|
@@ -16,7 +18,15 @@ REST API with a personal API token.
 | `list_workouts` | Your logged workouts (most recent first) |
 | `get_workout` | One logged workout, with exercises + performed sets |
 
-> Read-only for now. Guarded writes (log a workout, edit a routine) come in a later slice.
+### Write (opt-in)
+
+Registered only when `GRANITE_ALLOW_WRITE=true`. **Double-gated:** the API independently requires the
+token to have **write** scope, so a read-only token still gets a `403` even if these are enabled.
+
+| Tool | What it does |
+|------|--------------|
+| `log_workout` | Log a completed workout (title, optional routine_id/times, exercises + performed sets) |
+| `create_routine` | Create a routine template (title, optional folder, exercises + target sets) |
 
 ## Setup
 
@@ -43,5 +53,6 @@ REST API with a personal API token.
 |---------|---------|-------|
 | `GRANITE_URL` | `http://localhost:8080` | Base URL of your Granite server |
 | `GRANITE_TOKEN` | — | **Required.** A personal API token (`gra_…`) |
+| `GRANITE_ALLOW_WRITE` | `false` | Set `true`/`1`/`yes` to register the write tools. The token must also have write scope. |
 
 The server speaks MCP over **stdio**; logs go to stderr (stdout is the protocol channel).
