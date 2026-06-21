@@ -5,6 +5,7 @@ import type { Change } from '@granite/shared';
 export interface RoutineRow {
 	id: string;
 	title: string;
+	folder_id: string | null;
 }
 
 export interface RoutineSetTarget {
@@ -21,15 +22,29 @@ export interface RoutineDetail {
 	id: string;
 	title: string;
 	notes: string;
+	folder_id: string | null;
 	exercises: RoutineExerciseDetail[];
 }
 
-/** Routines (title only) from the local store, alphabetical. Works offline. */
+/** Routines (title + folder) from the local store, alphabetical. Works offline. */
 export async function listRoutines(): Promise<RoutineRow[]> {
 	const records = await localStore.list('routine');
 	return records
-		.map((c) => ({ id: c.id, title: (c.data as { title?: string }).title ?? '' }))
+		.map((c) => {
+			const d = c.data as { title?: string; folder_id?: string | null };
+			return { id: c.id, title: d.title ?? '', folder_id: d.folder_id ?? null };
+		})
 		.sort((a, b) => a.title.localeCompare(b.title));
+}
+
+/** Move a routine into a folder (or to ungrouped with null), preserving its contents. Offline-ok. */
+export async function setRoutineFolder(id: string, folderId: string | null): Promise<void> {
+	const existing = await localStore.get('routine', id);
+	if (!existing) return;
+	const data = { ...(existing.data as object), folder_id: folderId };
+	const change: Change = { entity: 'routine', id, updated_at: Date.now(), deleted: false, data };
+	await localStore.localWrite(change);
+	void syncNow().catch(() => {});
 }
 
 /** One routine (with its exercises + target sets) from the local store. Offline-ok. */
@@ -39,6 +54,7 @@ export async function getRoutine(id: string): Promise<RoutineDetail | null> {
 	const d = rec.data as {
 		title?: string;
 		notes?: string;
+		folder_id?: string | null;
 		exercises?: {
 			exercise_id: string;
 			rest_seconds?: number;
@@ -49,6 +65,7 @@ export async function getRoutine(id: string): Promise<RoutineDetail | null> {
 		id,
 		title: d.title ?? '',
 		notes: d.notes ?? '',
+		folder_id: d.folder_id ?? null,
 		exercises: (d.exercises ?? []).map((ex) => ({
 			exercise_id: ex.exercise_id,
 			rest_seconds: ex.rest_seconds ?? 0,
@@ -74,6 +91,7 @@ export interface RoutineExerciseInput {
 export interface RoutineInput {
 	title: string;
 	notes: string;
+	folder_id?: string | null;
 	exercises: RoutineExerciseInput[];
 }
 
@@ -81,11 +99,12 @@ export interface RoutineInput {
 export async function createRoutine(input: RoutineInput): Promise<string> {
 	const now = Date.now();
 	const id = crypto.randomUUID();
-	await writeRoutine(id, now, now, null, 0, input);
+	await writeRoutine(id, now, now, input.folder_id ?? null, 0, input);
 	return id;
 }
 
-/** Update a routine in place, preserving created_at/folder/order. Works offline. */
+/** Update a routine in place, preserving created_at/order. Folder comes from the input if set,
+ *  otherwise the existing folder is kept. Works offline. */
 export async function updateRoutine(id: string, input: RoutineInput): Promise<void> {
 	const existing = await localStore.get('routine', id);
 	const d = (existing?.data ?? {}) as {
@@ -93,7 +112,8 @@ export async function updateRoutine(id: string, input: RoutineInput): Promise<vo
 		folder_id?: string | null;
 		order_index?: number;
 	};
-	await writeRoutine(id, Date.now(), d.created_at ?? Date.now(), d.folder_id ?? null, d.order_index ?? 0, input);
+	const folderId = input.folder_id !== undefined ? input.folder_id : (d.folder_id ?? null);
+	await writeRoutine(id, Date.now(), d.created_at ?? Date.now(), folderId, d.order_index ?? 0, input);
 }
 
 async function writeRoutine(

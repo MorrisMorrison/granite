@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { listExercises } from '$lib/repo/exercises';
+	import { listFolders, type FolderRow } from '$lib/repo/folders';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 
@@ -25,6 +26,7 @@
 	interface Payload {
 		title: string;
 		notes: string;
+		folder_id: string | null;
 		exercises: {
 			exercise_id: string;
 			rest_seconds: number;
@@ -35,12 +37,14 @@
 	let {
 		initialTitle = '',
 		initialNotes = '',
+		initialFolderId = null,
 		initialExercises = [],
 		submitLabel = 'Save',
 		onsubmit
 	}: {
 		initialTitle?: string;
 		initialNotes?: string;
+		initialFolderId?: string | null;
 		initialExercises?: InitialExercise[];
 		submitLabel?: string;
 		onsubmit: (payload: Payload) => Promise<void>;
@@ -48,6 +52,8 @@
 
 	let title = $state(initialTitle);
 	let notes = $state(initialNotes);
+	let folderId = $state(initialFolderId ?? '');
+	let folders = $state<FolderRow[]>([]);
 	let exercises = $state<DraftExercise[]>(
 		initialExercises.map((e) => ({
 			uid: crypto.randomUUID(),
@@ -70,11 +76,9 @@
 	let pickerOpen = $state(false);
 
 	onMount(async () => {
-		library = (await listExercises()).map((e) => ({
-			id: e.id,
-			name: e.name,
-			primary_muscle: e.primary_muscle
-		}));
+		const [exs, fs] = await Promise.all([listExercises(), listFolders()]);
+		library = exs.map((e) => ({ id: e.id, name: e.name, primary_muscle: e.primary_muscle }));
+		folders = fs;
 	});
 
 	function nameFor(id: string): string {
@@ -119,6 +123,7 @@
 			await onsubmit({
 				title: title.trim(),
 				notes,
+				folder_id: folderId || null,
 				exercises: exercises.map((ex) => ({
 					exercise_id: ex.exercise_id,
 					rest_seconds: ex.rest_seconds ?? 0,
@@ -139,6 +144,16 @@
 
 <input class="rf-title" placeholder="Routine title" bind:value={title} data-testid="field-routine-title" />
 <textarea class="rf-notes" placeholder="Notes (optional)" rows="2" bind:value={notes}></textarea>
+
+{#if folders.length > 0}
+	<label class="rf-folder">
+		Folder
+		<select bind:value={folderId} data-testid="field-routine-folder">
+			<option value="">No folder</option>
+			{#each folders as f (f.id)}<option value={f.id}>{f.name}</option>{/each}
+		</select>
+	</label>
+{/if}
 
 {#each exercises as ex (ex.uid)}
 	<section class="card ex">
@@ -215,6 +230,17 @@
 		padding: 0.5rem 0.75rem;
 		margin-bottom: 1rem;
 		resize: vertical;
+	}
+	.rf-folder {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-size: 0.85rem;
+		color: var(--muted);
+		margin-bottom: 1rem;
+	}
+	.rf-folder select {
+		flex: 1;
 	}
 	.ex {
 		margin-bottom: 1rem;
