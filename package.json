@@ -15,11 +15,5 @@
     "check": "pnpm -r --if-present check",
     "lint": "pnpm -r --if-present lint",
     "format": "pnpm -r --if-present format"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp"
-    ]
   }
 }
