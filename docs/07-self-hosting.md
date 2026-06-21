@@ -50,8 +50,8 @@ A ready-to-use [`deploy/docker-compose.yml`](../../deploy/docker-compose.yml) +
   like Litestream for continuous replication). No DB dump tooling required.
 - **In-app export**: `GET /api/v1/export` (Settings → Export) returns a complete JSON of your data —
   true "own your data," independent of file-level backups.
-- **Restore**: replace the SQLite file from a backup (the simplest path). A JSON re-import endpoint is
-  planned to restore from an export.
+- **Restore**: either replace the SQLite file from a backup, or `POST /api/v1/import` an export JSON
+  (upsert by id, idempotent) into a fresh or existing account.
 
 ## Graceful lifecycle
 
