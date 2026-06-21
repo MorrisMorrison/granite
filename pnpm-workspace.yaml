@@ -1,3 +1,11 @@
 packages:
   - apps/*
   - packages/*
+
+# Permit these dependencies' install build scripts to run (the Astro/Starlight docs
+# site needs them: esbuild fetches its platform binary, sharp builds image support).
+# pnpm blocks unreviewed build scripts by default (strictDepBuilds) and a frozen
+# install errors with ERR_PNPM_IGNORED_BUILDS otherwise.
+allowBuilds:
+  esbuild: true
+  sharp: true
