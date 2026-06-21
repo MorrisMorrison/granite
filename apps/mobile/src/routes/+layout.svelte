@@ -56,7 +56,7 @@
 	{#if auth.isAuthenticated && page.url.pathname !== '/log'}
 		<header class="appbar">
 			<div class="appbar-inner">
-				<a class="brand" href="/"><span class="logo"></span>Granite</a>
+				<a class="brand" href="/"><img class="logo" src={favicon} alt="" />Granite</a>
 				<div class="appbar-actions">
 					<a class="iconbtn" href="/settings" aria-label="Settings" data-testid="nav-settings">
 						<Icon name="settings" size={20} />
@@ -105,10 +105,9 @@
 		color: var(--text);
 	}
 	.logo {
-		width: 18px;
-		height: 18px;
-		border-radius: 5px;
-		background: var(--accent);
+		width: 20px;
+		height: 20px;
+		display: block;
 	}
 	.iconbtn {
 		display: inline-flex;

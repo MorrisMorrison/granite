@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import favicon from '$lib/assets/favicon.svg';
 
 	let email = $state('');
 	let password = $state('');
@@ -26,7 +27,7 @@
 <svelte:head><title>Log in · Granite</title></svelte:head>
 
 <main class="auth">
-	<div class="brand"><span class="logo"></span>Granite</div>
+	<div class="brand"><img class="logo" src={favicon} alt="" />Granite</div>
 	<form class="card" onsubmit={submit}>
 		<h2>Log in</h2>
 		<label for="email">Email</label>
@@ -66,10 +67,9 @@
 		margin-bottom: 1.25rem;
 	}
 	.logo {
-		width: 22px;
-		height: 22px;
-		border-radius: 6px;
-		background: var(--accent);
+		width: 24px;
+		height: 24px;
+		display: block;
 	}
 	.card h2 {
 		margin: 0 0 0.25rem;
