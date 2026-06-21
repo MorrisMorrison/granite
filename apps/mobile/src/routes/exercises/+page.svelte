@@ -1,27 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
-
-	interface ExerciseRow {
-		id: string;
-		name: string;
-		exercise_type: string;
-		primary_muscle: string;
-		is_builtin: boolean;
-	}
+	import { listExercises, refreshExerciseLibrary, type ExerciseRow } from '$lib/repo/exercises';
 
 	let exercises = $state<ExerciseRow[]>([]);
 	let loading = $state(true);
 	let error = $state('');
 
 	onMount(async () => {
-		const { data, error: err } = await api().GET('/api/v1/exercises');
-		if (err || !data) {
-			error = 'Failed to load exercises.';
-		} else {
-			exercises = data.exercises ?? [];
-		}
+		// Local-first: show the cached library immediately (works offline)...
+		exercises = await listExercises();
 		loading = false;
+		// ...then refresh from the server (incl. built-ins) when online.
+		try {
+			await refreshExerciseLibrary();
+			exercises = await listExercises();
+		} catch {
+			/* offline — keep the local library */
+		}
 	});
 </script>
 
