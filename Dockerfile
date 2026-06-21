@@ -1,16 +1,29 @@
-# Granite production image.
-# Scaffold stage: builds the Go API only (serves /healthz, /readyz, a placeholder page).
-# Bundling the SvelteKit build into the binary comes in a later phase — see docs/07-self-hosting.md.
+# Granite production image: one static Go binary that serves the JSON API *and*
+# the embedded SvelteKit web app from a single origin, over a SQLite file.
 
-# Stage 1 — build the Go binary (CGO-free static build)
+# Stage 1 — build the SvelteKit SPA (pnpm workspace)
+FROM node:24-alpine AS web-builder
+RUN corepack enable
+WORKDIR /src
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/mobile/package.json apps/mobile/
+RUN pnpm install --frozen-lockfile
+COPY packages/ packages/
+COPY apps/mobile/ apps/mobile/
+RUN pnpm --filter mobile build
+
+# Stage 2 — build the Go binary with the web build embedded (CGO-free static)
 FROM golang:1.25-alpine AS api-builder
 WORKDIR /src
-COPY apps/api/go.mod ./
+COPY apps/api/go.mod apps/api/go.sum ./
 RUN go mod download
 COPY apps/api/ ./
+# Replace the committed placeholder with the real web build before embedding.
+COPY --from=web-builder /src/apps/mobile/build/ ./internal/webui/dist/
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/granite ./cmd/granite
 
-# Stage 2 — minimal runtime
+# Stage 3 — minimal runtime
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates curl
 WORKDIR /app
