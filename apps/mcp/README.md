@@ -27,6 +27,8 @@ token to have **write** scope, so a read-only token still gets a `403` even if t
 |------|--------------|
 | `log_workout` | Log a completed workout (title, optional routine_id/times, exercises + performed sets) |
 | `create_routine` | Create a routine template (title, optional folder, exercises + target sets) |
+| `update_routine` | Replace a routine by id (title + exercises/sets overwritten) |
+| `create_folder` | Create a routine folder |
 
 ## Setup
 

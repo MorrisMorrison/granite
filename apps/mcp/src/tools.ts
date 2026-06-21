@@ -8,6 +8,12 @@ type WorkoutBody = NonNullable<
 type RoutineBody = NonNullable<
 	paths['/api/v1/routines']['post']['requestBody']
 >['content']['application/json'];
+type RoutineUpdateBody = NonNullable<
+	paths['/api/v1/routines/{id}']['patch']['requestBody']
+>['content']['application/json'];
+type FolderBody = NonNullable<
+	paths['/api/v1/routine-folders']['post']['requestBody']
+>['content']['application/json'];
 
 // call unwraps an openapi-fetch result, throwing on transport/API errors.
 async function call<T>(p: Promise<{ data?: T; error?: unknown }>): Promise<T> {
@@ -65,6 +71,14 @@ export function logWorkout(c: GraniteClient, body: WorkoutBody) {
 
 export function createRoutine(c: GraniteClient, body: RoutineBody) {
 	return call(c.POST('/api/v1/routines', { body }));
+}
+
+export function updateRoutine(c: GraniteClient, id: string, body: RoutineUpdateBody) {
+	return call(c.PATCH('/api/v1/routines/{id}', { params: { path: { id } }, body }));
+}
+
+export function createFolder(c: GraniteClient, body: FolderBody) {
+	return call(c.POST('/api/v1/routine-folders', { body }));
 }
 
 // --- registration -----------------------------------------------------------
@@ -175,5 +189,28 @@ export function registerTools(
 			exercises: z.array(routineExerciseShape).optional().describe('exercises with target sets')
 		},
 		async (args) => textResult(await createRoutine(c, args))
+	);
+
+	server.tool(
+		'update_routine',
+		'Replace a routine by id (title + exercises/sets are overwritten). Requires GRANITE_ALLOW_WRITE=true and a write-scoped token.',
+		{
+			id: z.string(),
+			title: z.string(),
+			notes: z.string().optional(),
+			folder_id: z.string().optional(),
+			exercises: z.array(routineExerciseShape).optional().describe('the new full set of exercises')
+		},
+		async ({ id, ...body }) => textResult(await updateRoutine(c, id, body))
+	);
+
+	server.tool(
+		'create_folder',
+		'Create a routine folder. Requires GRANITE_ALLOW_WRITE=true and a write-scoped token.',
+		{
+			name: z.string(),
+			order_index: z.number().int().optional()
+		},
+		async (args) => textResult(await createFolder(c, args))
 	);
 }
