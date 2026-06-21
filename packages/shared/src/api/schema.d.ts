@@ -343,6 +343,7 @@ export interface components {
             last_used_at: number | null;
             name: string;
             prefix: string;
+            scopes: string[] | null;
             token?: string;
         };
         ApiChange: {
@@ -381,6 +382,8 @@ export interface components {
             expires_at?: number;
             /** @description A label to identify the token. */
             name: string;
+            /** @description Access scopes: omit for read-only, or ["write"] for read+write. */
+            scopes?: string[] | null;
         };
         ErrorDetail: {
             /** @description Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id' */

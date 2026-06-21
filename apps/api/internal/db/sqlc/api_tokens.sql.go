@@ -11,9 +11,9 @@ import (
 )
 
 const createApiToken = `-- name: CreateApiToken :one
-INSERT INTO api_tokens (id, user_id, name, token_hash, prefix, expires_at, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-RETURNING id, user_id, name, token_hash, prefix, last_used_at, expires_at, created_at
+INSERT INTO api_tokens (id, user_id, name, token_hash, prefix, scopes, expires_at, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, user_id, name, token_hash, prefix, last_used_at, expires_at, created_at, scopes
 `
 
 type CreateApiTokenParams struct {
@@ -22,6 +22,7 @@ type CreateApiTokenParams struct {
 	Name      string        `json:"name"`
 	TokenHash string        `json:"token_hash"`
 	Prefix    string        `json:"prefix"`
+	Scopes    string        `json:"scopes"`
 	ExpiresAt sql.NullInt64 `json:"expires_at"`
 	CreatedAt int64         `json:"created_at"`
 }
@@ -33,6 +34,7 @@ func (q *Queries) CreateApiToken(ctx context.Context, arg CreateApiTokenParams) 
 		arg.Name,
 		arg.TokenHash,
 		arg.Prefix,
+		arg.Scopes,
 		arg.ExpiresAt,
 		arg.CreatedAt,
 	)
@@ -46,6 +48,7 @@ func (q *Queries) CreateApiToken(ctx context.Context, arg CreateApiTokenParams) 
 		&i.LastUsedAt,
 		&i.ExpiresAt,
 		&i.CreatedAt,
+		&i.Scopes,
 	)
 	return i, err
 }
@@ -68,7 +71,7 @@ func (q *Queries) DeleteApiToken(ctx context.Context, arg DeleteApiTokenParams) 
 }
 
 const getApiTokenByHash = `-- name: GetApiTokenByHash :one
-SELECT id, user_id, name, token_hash, prefix, last_used_at, expires_at, created_at FROM api_tokens WHERE token_hash = ? LIMIT 1
+SELECT id, user_id, name, token_hash, prefix, last_used_at, expires_at, created_at, scopes FROM api_tokens WHERE token_hash = ? LIMIT 1
 `
 
 func (q *Queries) GetApiTokenByHash(ctx context.Context, tokenHash string) (ApiToken, error) {
@@ -83,12 +86,13 @@ func (q *Queries) GetApiTokenByHash(ctx context.Context, tokenHash string) (ApiT
 		&i.LastUsedAt,
 		&i.ExpiresAt,
 		&i.CreatedAt,
+		&i.Scopes,
 	)
 	return i, err
 }
 
 const listApiTokensByUser = `-- name: ListApiTokensByUser :many
-SELECT id, user_id, name, token_hash, prefix, last_used_at, expires_at, created_at FROM api_tokens WHERE user_id = ? ORDER BY created_at DESC
+SELECT id, user_id, name, token_hash, prefix, last_used_at, expires_at, created_at, scopes FROM api_tokens WHERE user_id = ? ORDER BY created_at DESC
 `
 
 func (q *Queries) ListApiTokensByUser(ctx context.Context, userID string) ([]ApiToken, error) {
@@ -109,6 +113,7 @@ func (q *Queries) ListApiTokensByUser(ctx context.Context, userID string) ([]Api
 			&i.LastUsedAt,
 			&i.ExpiresAt,
 			&i.CreatedAt,
+			&i.Scopes,
 		); err != nil {
 			return nil, err
 		}

@@ -7,12 +7,13 @@ import (
 )
 
 type apiTokenResp struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Prefix    string `json:"prefix"`
-	Token     string `json:"token"`
-	ExpiresAt *int64 `json:"expires_at"`
-	CreatedAt int64  `json:"created_at"`
+	ID        string   `json:"id"`
+	Name      string   `json:"name"`
+	Prefix    string   `json:"prefix"`
+	Token     string   `json:"token"`
+	Scopes    []string `json:"scopes"`
+	ExpiresAt *int64   `json:"expires_at"`
+	CreatedAt int64    `json:"created_at"`
 }
 
 type tokensListResp struct {
@@ -64,6 +65,34 @@ func TestAPITokenFlow(t *testing.T) {
 	}
 	if rec := doReq(t, h, http.MethodGet, "/api/v1/me", created.Token, nil); rec.Code != http.StatusUnauthorized {
 		t.Fatalf("revoked token still works: %d, want 401", rec.Code)
+	}
+}
+
+func TestAPITokenWriteScope(t *testing.T) {
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "scope@user.com")
+
+	// Default token is read-only.
+	rec := doReq(t, h, http.MethodPost, "/api/v1/tokens", access, map[string]any{"name": "ro"})
+	var ro apiTokenResp
+	mustJSON(t, rec, &ro)
+	if len(ro.Scopes) != 1 || ro.Scopes[0] != "read" {
+		t.Fatalf("default scopes = %v, want [read]", ro.Scopes)
+	}
+	// Reads work; writes are forbidden.
+	if rec := doReq(t, h, http.MethodGet, "/api/v1/routines", ro.Token, nil); rec.Code != http.StatusOK {
+		t.Fatalf("read with read-only token = %d, want 200", rec.Code)
+	}
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/routines", ro.Token, map[string]any{"title": "X", "exercises": []any{}}); rec.Code != http.StatusForbidden {
+		t.Fatalf("write with read-only token = %d, want 403", rec.Code)
+	}
+
+	// A write-scoped token can write.
+	rec = doReq(t, h, http.MethodPost, "/api/v1/tokens", access, map[string]any{"name": "rw", "scopes": []string{"write"}})
+	var rw apiTokenResp
+	mustJSON(t, rec, &rw)
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/routines", rw.Token, map[string]any{"title": "X", "exercises": []any{}}); rec.Code != http.StatusCreated {
+		t.Fatalf("write with read-write token = %d, want 201: %s", rec.Code, rec.Body)
 	}
 }
 

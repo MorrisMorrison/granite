@@ -1,6 +1,6 @@
 -- name: CreateApiToken :one
-INSERT INTO api_tokens (id, user_id, name, token_hash, prefix, expires_at, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?)
+INSERT INTO api_tokens (id, user_id, name, token_hash, prefix, scopes, expires_at, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: ListApiTokensByUser :many

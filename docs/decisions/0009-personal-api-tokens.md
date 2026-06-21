@@ -24,5 +24,7 @@ other tokens.
 ## Consequences
 - ✅ One auth seam for the app, the REST API, and MCP; tokens are revocable and optionally expiring; the raw secret is never persisted.
 - ✅ The `gra_` prefix is greppable by secret scanners and easy to identify on the wire and in the token list.
-- ➖ **No scopes yet** — a token carries the user's full access. Revisit alongside the MCP write-guarding work.
+- ✅ **Scopes** (added 2026-06-21): a token is `read` (the default) or `read,write`; the API enforces the
+  write scope on every mutating operation (method-based, so new write endpoints are guarded by default;
+  `sync/pull` is excepted as a read-over-POST). Finer-grained per-resource scopes remain future work.
 - 🔜 The MCP server will authenticate with these tokens (next Phase 5 slice).

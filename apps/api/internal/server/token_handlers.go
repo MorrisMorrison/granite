@@ -31,8 +31,9 @@ func (s *Server) handleListTokens(ctx context.Context, _ *struct{}) (*listTokens
 
 type createTokenInput struct {
 	Body struct {
-		Name      string `json:"name" doc:"A label to identify the token."`
-		ExpiresAt *int64 `json:"expires_at,omitempty" doc:"Optional expiry (epoch ms); omit for no expiry."`
+		Name      string   `json:"name" doc:"A label to identify the token."`
+		Scopes    []string `json:"scopes,omitempty" doc:"Access scopes: omit for read-only, or [\"write\"] for read+write."`
+		ExpiresAt *int64   `json:"expires_at,omitempty" doc:"Optional expiry (epoch ms); omit for no expiry."`
 	}
 }
 
@@ -46,7 +47,7 @@ func (s *Server) handleCreateToken(ctx context.Context, in *createTokenInput) (*
 	if err := requireInteractive(ctx); err != nil {
 		return nil, toHumaErr(ctx, err)
 	}
-	t, err := s.auth.CreateAPIToken(ctx, userIDFromCtx(ctx), in.Body.Name, in.Body.ExpiresAt)
+	t, err := s.auth.CreateAPIToken(ctx, userIDFromCtx(ctx), in.Body.Name, in.Body.Scopes, in.Body.ExpiresAt)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
 	}
