@@ -3,9 +3,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
@@ -52,9 +56,35 @@ func main() {
 	syncSvc := syncpkg.NewService(database, queries)
 	srv := server.New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{cfg.BaseURL})
 
-	addr := ":" + cfg.Port
-	slog.Info("granite api listening", "addr", addr)
-	if err := http.ListenAndServe(addr, srv.Handler()); err != nil {
-		log.Fatalf("server: %v", err)
+	httpSrv := &http.Server{
+		Addr:              ":" + cfg.Port,
+		Handler:           srv.Handler(),
+		ReadHeaderTimeout: 10 * time.Second, // mitigates slow-header (Slowloris) clients
+		ReadTimeout:       60 * time.Second,
+		WriteTimeout:      120 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
+
+	// Catch SIGINT/SIGTERM; once one arrives we stop catching so a second signal
+	// (or an impatient orchestrator) can still force-quit.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		slog.Info("granite api listening", "addr", httpSrv.Addr)
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("server: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	stop()
+	slog.Info("shutting down, draining in-flight requests")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("graceful shutdown timed out", "err", err)
+	}
+	// The deferred database.Close() runs next, flushing SQLite cleanly.
+	slog.Info("stopped")
 }

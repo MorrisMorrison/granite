@@ -65,6 +65,30 @@ the self-hosted web app.
 | [09 — UI design system](docs/09-ui-design-system.md) | Visual language, tokens, component library |
 | [Decisions (ADRs)](docs/decisions/) | The reasoning behind each locked choice |
 
+## Run it yourself (self-hosting)
+
+Granite is a single Go binary that serves the API **and** the web app from one SQLite file — so hosting
+it is one container behind a reverse proxy.
+
+```sh
+cd deploy
+cp .env.example .env
+# edit .env: set GRANITE_JWT_SECRET (openssl rand -base64 48) and GRANITE_BASE_URL
+docker compose up -d
+```
+
+Open `GRANITE_BASE_URL` and **register** — the first account is always allowed, even with registration
+closed (leave `GRANITE_ALLOW_REGISTRATION=false` to keep further signups off). That's it.
+
+- **Your data** is the single file in the `granite-data` volume (`/data/granite.db`). Back it up by
+  copying it, or use **Settings → Export** for a JSON dump. Schema migrations run automatically on start.
+- **Update:** `docker compose pull && docker compose up -d`.
+- **HTTPS:** terminate TLS at a reverse proxy (Caddy / Traefik / nginx) and point `GRANITE_BASE_URL` at it.
+
+Prefer the bare binary? `make build` produces `granite` with the web app embedded — run it with
+`GRANITE_JWT_SECRET` set. Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and
+[`deploy/`](deploy/).
+
 ## Local development
 
 No `make` needed. From the repo root, in two terminals:
