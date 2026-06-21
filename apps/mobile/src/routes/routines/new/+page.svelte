@@ -1,21 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { api } from '$lib/api/client';
+	import { createRoutine, type RoutineInput } from '$lib/repo/routines';
 	import RoutineForm from '$lib/components/RoutineForm.svelte';
 
-	type RoutinePayload = {
-		title: string;
-		notes: string;
-		exercises: {
-			exercise_id: string;
-			rest_seconds: number;
-			sets: { set_type: string; target_weight?: number; target_reps?: number }[];
-		}[];
-	};
-
-	async function create(payload: RoutinePayload) {
-		const { data, error } = await api().POST('/api/v1/routines', { body: payload });
-		if (error || !data) throw new Error('Failed to save routine');
+	async function create(payload: RoutineInput) {
+		await createRoutine(payload);
 		await goto('/routines');
 	}
 </script>
