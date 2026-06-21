@@ -69,8 +69,8 @@
 		margin-bottom: 1.25rem;
 	}
 	.logo {
-		width: 24px;
-		height: 24px;
+		width: 28px;
+		height: 28px;
 		display: block;
 	}
 	.card h2 {
