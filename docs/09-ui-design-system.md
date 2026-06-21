@@ -44,5 +44,5 @@ Stable, semantic hooks for the upcoming UI e2e — never style/DOM-dependent. Pa
 4. ✅ **Polish + new screens** — motion pass, routine folders, exercise create/edit, settings.
 
 Each slice was verified offline against the `:8080` production build, with `data-testid`s in place. The
-[Playwright UI e2e suite](../../apps/mobile/e2e/) (real binary + throwaway SQLite) now covers the key
+[Playwright UI e2e suite](../apps/mobile/e2e/) (real binary + throwaway SQLite) now covers the key
 flows — auth, routines + folders, logging a workout, and personal API tokens.

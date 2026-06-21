@@ -13,7 +13,7 @@ graph LR
 
 That's the whole system: **one container** (the Go binary, which serves the REST/sync API **and**
 the embedded web app, and stores data in a SQLite file on a mounted volume) behind a reverse proxy for
-TLS. No separate database process to run, tune, or back up. (The optional [MCP server](../../apps/mcp/)
+TLS. No separate database process to run, tune, or back up. (The optional [MCP server](../apps/mcp/)
 is a separate stdio process you run alongside, not part of this container.)
 
 ## Image & build
@@ -41,8 +41,56 @@ is a separate stdio process you run alongside, not part of this container.)
 generate one with `openssl rand -base64 48`. Registration defaults **closed**, but the **first account
 can always be created**, so a personal instance needs no extra steps to bootstrap.
 
-A ready-to-use [`deploy/docker-compose.yml`](../../deploy/docker-compose.yml) +
-[`deploy/.env.example`](../../deploy/.env.example) ship in the repo — see [`deploy/`](../../deploy/).
+A ready-to-use [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) +
+[`deploy/.env.example`](../deploy/.env.example) ship in the repo — see [`deploy/`](../deploy/).
+
+### The compose file
+
+```yaml
+services:
+  granite:
+    image: ghcr.io/morrismorrison/granite:latest
+    # build: ..   # ...or build from source instead of pulling the image
+    ports:
+      - "${GRANITE_PORT:-8080}:8080"
+    environment:
+      PORT: "8080"
+      GRANITE_DB_PATH: /data/granite.db
+      GRANITE_BASE_URL: ${GRANITE_BASE_URL:-http://localhost:8080}
+      GRANITE_ALLOW_REGISTRATION: ${GRANITE_ALLOW_REGISTRATION:-false}
+      GRANITE_LOG_LEVEL: ${GRANITE_LOG_LEVEL:-info}
+      GRANITE_JWT_SECRET: ${GRANITE_JWT_SECRET:?set GRANITE_JWT_SECRET in your .env}
+    volumes:
+      - granite-data:/data
+    restart: unless-stopped
+
+volumes:
+  granite-data:
+```
+
+### `.env`
+
+Copy `.env.example` to `.env` next to the compose file and fill it in:
+
+```sh
+# REQUIRED — signing secret for auth tokens (min 32 bytes):
+#   openssl rand -base64 48
+GRANITE_JWT_SECRET=
+
+# Public URL your instance is reached at (no trailing slash). Behind a proxy, your https:// domain.
+GRANITE_BASE_URL=http://localhost:8080
+
+# Leave false for a personal instance — the FIRST account can always be created.
+GRANITE_ALLOW_REGISTRATION=false
+
+# Host port to expose (maps to the container's PORT).
+GRANITE_PORT=8080
+
+# debug | info | warn | error
+GRANITE_LOG_LEVEL=info
+```
+
+Then `docker compose up -d` and open `GRANITE_BASE_URL`.
 
 ## Backups & data ownership
 

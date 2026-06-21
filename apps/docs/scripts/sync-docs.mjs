@@ -3,7 +3,7 @@
 // from its first H1, add Starlight frontmatter, and rewrite cross-links to site routes
 // (or GitHub for files outside /docs). Output dirs are gitignored.
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
-import { dirname, join, resolve, relative } from 'node:path';
+import { basename, dirname, join, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -32,29 +32,39 @@ function stripFirstH1(md) {
 }
 const yaml = (s) => `"${s.replace(/"/g, '\\"')}"`;
 
-function rewriteLinks(md) {
-	// ADR links: decisions/NNNN-name.md(#anchor) -> /base/decisions/NNNN-name/(#anchor)
-	md = md.replace(
-		/\]\((?:\.\/)?decisions\/(\d{4}-[a-z0-9-]+)\.md(#[\w-]+)?\)/gi,
-		(_m, name, anchor) => `](${BASE}/decisions/${name.toLowerCase()}/${anchor ?? ''})`
-	);
-	md = md.replace(/\]\((?:\.\/)?decisions\/?\)/gi, `](${BASE}/decisions/)`);
-	// Repo-relative links that leave /docs (../apps/…, ../../README.md) -> GitHub blob.
-	md = md.replace(/\]\((\.\.\/[^)\s]+)\)/g, (_m, p) => {
-		const rel = relative(repoRoot, resolve(docsSrc, p)).replace(/\\/g, '/');
-		return `](${GH}/${rel})`;
+// Rewrite each relative link target, resolved against the source file's own
+// directory: links to other docs become site routes; links outside /docs become
+// GitHub "blob/main" links. Absolute URLs and anchors are left untouched.
+function rewriteLinks(md, fileDir) {
+	return md.replace(/\]\(([^)\s]+)\)/g, (full, target) => {
+		if (/^(https?:|mailto:|#|\/)/i.test(target)) return full;
+		const hash = target.search(/[#?]/);
+		const path = hash === -1 ? target : target.slice(0, hash);
+		const suffix = hash === -1 ? '' : target.slice(hash);
+		if (!path) return full;
+
+		const abs = resolve(fileDir, path);
+		const underDocs = abs === docsSrc || abs.startsWith(docsSrc + sep);
+
+		if (underDocs && /\.md$/i.test(abs)) {
+			const rel = relative(docsSrc, abs).replace(/\\/g, '/');
+			if (rel.startsWith('decisions/')) {
+				const slug = basename(rel).replace(/\.md$/i, '').toLowerCase();
+				return `](${BASE}/decisions/${slug}/${suffix})`;
+			}
+			return `](${BASE}/guides/${guideSlug(basename(rel))}/${suffix})`;
+		}
+		if (underDocs && relative(docsSrc, abs).replace(/\\/g, '/') === 'decisions') {
+			return `](${BASE}/decisions/${suffix})`;
+		}
+		// Outside /docs (code, deploy assets, README, …) → link to the repo on GitHub.
+		return `](${GH}/${relative(repoRoot, abs).replace(/\\/g, '/')}${suffix})`;
 	});
-	// Sibling doc links: (NN-)name.md(#anchor) -> /base/guides/name/(#anchor)
-	md = md.replace(
-		/\]\((?:\.\/)?(?:\d+-)?([A-Za-z0-9-]+)\.md(#[\w-]+)?\)/g,
-		(_m, name, anchor) => `](${BASE}/guides/${name.toLowerCase()}/${anchor ?? ''})`
-	);
-	return md;
 }
 
 function emit(srcFile, destDir, { slug, title, order }) {
 	const raw = readFileSync(srcFile, 'utf8');
-	const body = rewriteLinks(stripFirstH1(raw));
+	const body = rewriteLinks(stripFirstH1(raw), dirname(srcFile));
 	const fm = `---\ntitle: ${yaml(title)}\nsidebar:\n  order: ${order}\n---\n\n`;
 	writeFileSync(join(destDir, `${slug}.md`), fm + body);
 }
