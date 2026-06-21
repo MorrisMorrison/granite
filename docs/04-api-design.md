@@ -4,6 +4,19 @@ The API serves three consumers with the same surface: the **Granite app** (mobil
 and **third parties / MCP**. It is REST + JSON, described by an **OpenAPI 3** spec that generates the
 TS client.
 
+## Interactive reference
+
+Every instance serves its own, always-up-to-date API reference (no hosting needed):
+
+| Path | What |
+|---|---|
+| `/docs` | Interactive API reference (browse + try endpoints) |
+| `/openapi.yaml`, `/openapi.json` | The machine-readable OpenAPI 3.1 spec |
+
+These are generated from the Go code (code-first, via huma), so they never drift from the
+implementation. The committed [`apps/api/openapi.yaml`](../apps/api/openapi.yaml) is the same spec that
+drives the generated TypeScript client.
+
 ## Conventions
 
 - Base path `**/api/v1**`. Version in the path; breaking changes bump the version.

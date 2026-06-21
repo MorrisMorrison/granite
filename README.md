@@ -81,7 +81,10 @@ Open `GRANITE_BASE_URL` and **register** — the first account is always allowed
 closed (leave `GRANITE_ALLOW_REGISTRATION=false` to keep further signups off). That's it.
 
 - **Your data** is the single file in the `granite-data` volume (`/data/granite.db`). Back it up by
-  copying it, or use **Settings → Export** for a JSON dump. Schema migrations run automatically on start.
+  copying it, or use **Settings → Export** for a JSON dump (restore via `POST /api/v1/import`). Schema
+  migrations run automatically on start.
+- **API reference:** every instance serves an interactive reference at **`/docs`** and the spec at
+  **`/openapi.yaml`** — handy for scripts, the [MCP server](apps/mcp/), and personal API tokens.
 - **Update:** `docker compose pull && docker compose up -d`.
 - **HTTPS:** terminate TLS at a reverse proxy (Caddy / Traefik / nginx) and point `GRANITE_BASE_URL` at it.
 
