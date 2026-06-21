@@ -4,6 +4,7 @@
 > A clean gym logger you run yourself.
 
 [![CI](https://github.com/MorrisMorrison/granite/actions/workflows/ci.yml/badge.svg)](https://github.com/MorrisMorrison/granite/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-live-2563eb)](https://morrismorrison.github.io/granite/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-2563eb.svg)](LICENSE)
 
 **Status:** 🟢 In active development, **in the open**. A working offline-first PWA — Today, History,
@@ -50,7 +51,9 @@ Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and [`deploy
 
 ## Documentation
 
-Design docs, architecture, and ADRs live in **[`docs/`](docs/README.md)** — start there. Highlights:
+📖 **Documentation site: <https://morrismorrison.github.io/granite/>** (generated from `docs/`).
+
+Or browse the source: design docs, architecture, and ADRs live in **[`docs/`](docs/README.md)**. Highlights:
 [Vision](docs/00-vision.md) · [Architecture](docs/02-architecture.md) ·
 [API design](docs/04-api-design.md) · [Sync & offline](docs/05-sync-and-offline.md) ·
 [Self-hosting](docs/07-self-hosting.md).

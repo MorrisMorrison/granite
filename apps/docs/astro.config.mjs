@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import mermaid from 'astro-mermaid';
 
 // GitHub Pages project site: served at https://<user>.github.io/granite/
 const site = process.env.DOCS_SITE ?? 'https://morrismorrison.github.io';
@@ -10,6 +11,9 @@ export default defineConfig({
 	site,
 	base,
 	integrations: [
+		// Must precede Starlight: renders ```mermaid code blocks client-side and tells
+		// Expressive Code to leave them alone. autoTheme follows the site's light/dark mode.
+		mermaid({ autoTheme: true }),
 		starlight({
 			title: 'Granite',
 			description:
