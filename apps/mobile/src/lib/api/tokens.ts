@@ -2,7 +2,7 @@ const ACCESS = 'granite.access';
 const REFRESH = 'granite.refresh';
 
 /** Token storage. (localStorage for now; a later slice moves to a more secure
- *  store and adds silent refresh-on-401.) */
+ *  store. Silent refresh-on-401 lives in client.ts.) */
 export const tokens = {
 	access(): string | null {
 		return typeof localStorage !== 'undefined' ? localStorage.getItem(ACCESS) : null;
