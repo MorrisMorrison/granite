@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { tick } from 'svelte';
 	import Icon from './Icon.svelte';
 
 	let {
@@ -9,8 +10,47 @@
 		children
 	}: { open?: boolean; title?: string; onclose: () => void; children: Snippet } = $props();
 
+	let dialogEl = $state<HTMLElement | undefined>();
+	let lastFocused: HTMLElement | null = null;
+
+	// Move focus into the dialog on open; restore it to the trigger on close.
+	$effect(() => {
+		if (open) {
+			lastFocused = (document.activeElement as HTMLElement) ?? null;
+			void tick().then(() => dialogEl?.focus());
+		} else if (lastFocused) {
+			lastFocused.focus();
+			lastFocused = null;
+		}
+	});
+
+	const FOCUSABLE =
+		'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
 	function onkeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') onclose();
+		if (!open) return;
+		if (e.key === 'Escape') {
+			onclose();
+			return;
+		}
+		if (e.key !== 'Tab' || !dialogEl) return;
+		// Trap Tab within the dialog.
+		const f = Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE));
+		if (f.length === 0) {
+			e.preventDefault();
+			dialogEl.focus();
+			return;
+		}
+		const first = f[0];
+		const last = f[f.length - 1];
+		const active = document.activeElement;
+		if (e.shiftKey && (active === first || active === dialogEl)) {
+			e.preventDefault();
+			last.focus();
+		} else if (!e.shiftKey && active === last) {
+			e.preventDefault();
+			first.focus();
+		}
 	}
 </script>
 
@@ -19,7 +59,7 @@
 {#if open}
 	<div class="overlay">
 		<button class="backdrop" aria-label="Close" onclick={onclose}></button>
-		<div class="sheet" role="dialog" aria-modal="true" tabindex="-1">
+		<div class="sheet" role="dialog" aria-modal="true" tabindex="-1" bind:this={dialogEl}>
 			<div class="sheet-head">
 				<strong>{title}</strong>
 				<button class="x" onclick={onclose} aria-label="Close"><Icon name="x" size={20} /></button>

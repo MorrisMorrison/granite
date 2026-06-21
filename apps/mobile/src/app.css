@@ -106,8 +106,13 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-	outline: none;
 	border-color: var(--accent);
+}
+/* Drop the outline only for pointer focus; keyboard focus keeps the :focus-visible ring. */
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+	outline: none;
 }
 
 input::placeholder,
