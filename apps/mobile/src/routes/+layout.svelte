@@ -25,6 +25,7 @@
 			'/routines/new',
 			'/routines/_',
 			'/exercises',
+			'/exercises/_',
 			'/history',
 			'/settings'
 		]) {
