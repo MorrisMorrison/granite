@@ -27,6 +27,20 @@ export async function listExercises(): Promise<ExerciseRow[]> {
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** One exercise by id from the local store. Offline-ok. */
+export async function getExercise(id: string): Promise<ExerciseRow | null> {
+	const rec = await localStore.get('exercise', id);
+	if (!rec || rec.deleted) return null;
+	const d = rec.data as Partial<ExerciseRow>;
+	return {
+		id,
+		name: d.name ?? '',
+		exercise_type: d.exercise_type ?? '',
+		primary_muscle: d.primary_muscle ?? '',
+		is_builtin: d.is_builtin ?? false
+	};
+}
+
 /**
  * Pull the full exercise library (built-ins + custom) into the local store.
  * Built-ins are server-seeded and not part of per-user sync, so they're fetched
