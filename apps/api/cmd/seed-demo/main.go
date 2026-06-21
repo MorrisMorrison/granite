@@ -97,11 +97,17 @@ func seed(database *sql.DB) (bool, error) {
 		return id
 	}
 
-	folder, err := rtSvc.CreateFolder(ctx, user.ID, routine.FolderInput{Name: "Push / Pull / Legs"})
-	if err != nil {
-		return false, err
+	// Two folders + an ungrouped routine, to showcase folder grouping.
+	mkFolder := func(name string) *string {
+		f, err := rtSvc.CreateFolder(ctx, user.ID, routine.FolderInput{Name: name})
+		if err != nil {
+			log.Fatalf("create folder %q: %v", name, err)
+		}
+		id := f.ID
+		return &id
 	}
-	fid := folder.ID
+	ppl := mkFolder("Push / Pull / Legs")
+	bodyweight := mkFolder("Bodyweight")
 
 	rset := func(weight float64, reps int) routine.SetInput {
 		w, r := weight, reps
@@ -110,23 +116,31 @@ func seed(database *sql.DB) (bool, error) {
 	rex := func(name string, rest int, sets ...routine.SetInput) routine.ExerciseInput {
 		return routine.ExerciseInput{ExerciseID: ex(name), RestSeconds: rest, Sets: sets}
 	}
-	mkRoutine := func(title string, exs ...routine.ExerciseInput) {
-		if _, err := rtSvc.Create(ctx, user.ID, routine.RoutineInput{Title: title, FolderID: &fid, Exercises: exs}); err != nil {
+	mkRoutine := func(title string, folderID *string, exs ...routine.ExerciseInput) {
+		if _, err := rtSvc.Create(ctx, user.ID, routine.RoutineInput{Title: title, FolderID: folderID, Exercises: exs}); err != nil {
 			log.Fatalf("create routine %q: %v", title, err)
 		}
 	}
-	mkRoutine("Push",
+	mkRoutine("Push", ppl,
 		rex("Barbell Bench Press", 180, rset(65, 5), rset(65, 5), rset(65, 5)),
 		rex("Overhead Press", 120, rset(37.5, 8), rset(37.5, 8)),
 		rex("Triceps Pushdown", 90, rset(27.5, 12), rset(27.5, 12)))
-	mkRoutine("Pull",
+	mkRoutine("Pull", ppl,
 		rex("Conventional Deadlift", 210, rset(110, 5), rset(110, 5)),
 		rex("Barbell Row", 120, rset(60, 8), rset(60, 8)),
 		rex("Pull Up", 120, rset(0, 8), rset(0, 8)))
-	mkRoutine("Legs",
+	mkRoutine("Legs", ppl,
 		rex("Barbell Back Squat", 210, rset(90, 5), rset(90, 5), rset(90, 5)),
 		rex("Romanian Deadlift", 150, rset(80, 8), rset(80, 8)),
 		rex("Leg Press", 120, rset(150, 12), rset(150, 12)))
+	mkRoutine("Calisthenics", bodyweight,
+		rex("Pull Up", 120, rset(0, 8), rset(0, 8), rset(0, 6)),
+		rex("Dip", 120, rset(0, 10), rset(0, 8)),
+		rex("Push Up", 90, rset(0, 15), rset(0, 15)))
+	mkRoutine("Full Body (quick)", nil, // ungrouped — shows the "Ungrouped" section
+		rex("Barbell Back Squat", 180, rset(80, 5), rset(80, 5)),
+		rex("Barbell Bench Press", 180, rset(60, 5), rset(60, 5)),
+		rex("Barbell Row", 120, rset(55, 8), rset(55, 8)))
 
 	// History: 3 cycles of Push/Pull/Legs over ~6 weeks, progressing each cycle so
 	// the per-exercise charts trend up and PRs land on the latest sessions.
