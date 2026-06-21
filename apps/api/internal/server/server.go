@@ -19,6 +19,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
+	"github.com/MorrisMorrison/granite/apps/api/internal/webui"
 	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
 
@@ -36,11 +37,12 @@ type Server struct {
 	sync     *syncpkg.Service
 	tokens   *auth.TokenManager
 	db       *sql.DB
+	web      http.Handler
 }
 
 // New constructs a Server. allowedOrigins is the CORS allow-list.
 func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, syncSvc *syncpkg.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string) *Server {
-	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db}
+	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler()}
 	s.setupRouter(allowedOrigins)
 	s.setupAPI()
 	s.registerRoutes()
@@ -83,10 +85,11 @@ func (s *Server) setupRouter(allowedOrigins []string) {
 		})
 	})
 
-	// Plain chi for liveness/readiness and the placeholder root.
+	// Liveness/readiness on plain chi; everything else (the web app + its assets)
+	// falls through to the embedded SPA handler.
 	r.Get("/healthz", s.handleHealthz)
 	r.Get("/readyz", s.handleReadyz)
-	r.Get("/", s.handleRoot)
+	r.NotFound(s.handleNotFound)
 }
 
 func (s *Server) setupAPI() {

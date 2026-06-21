@@ -6,7 +6,12 @@ export function getServerUrl(): string {
 		const saved = localStorage.getItem(SERVER_KEY);
 		if (saved) return saved;
 	}
-	return import.meta.env.VITE_GRANITE_API ?? 'http://localhost:8080';
+	// Explicit build-time override wins; in dev point at the local API; in a
+	// production build default to same-origin (the binary serves API + web app).
+	if (import.meta.env.VITE_GRANITE_API) return import.meta.env.VITE_GRANITE_API;
+	if (import.meta.env.DEV) return 'http://localhost:8080';
+	if (typeof window !== 'undefined') return window.location.origin;
+	return 'http://localhost:8080';
 }
 
 export function setServerUrl(url: string): void {

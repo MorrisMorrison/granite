@@ -20,6 +20,10 @@ dist/
 .pnpm-store/
 *.tsbuildinfo
 
+# ...but keep the embedded web-app placeholder (the real build is copied in at image-build time)
+!apps/api/internal/webui/dist/
+!apps/api/internal/webui/dist/index.html
+
 # --- Capacitor native projects (generated; build artifacts) ---
 apps/mobile/android/
 apps/mobile/ios/
