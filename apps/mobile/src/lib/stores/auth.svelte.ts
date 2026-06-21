@@ -1,5 +1,6 @@
 import { api } from '$lib/api/client';
 import { tokens } from '$lib/api/tokens';
+import { refreshExerciseLibrary } from '$lib/repo/exercises';
 import { syncNow } from '$lib/sync';
 
 export interface CurrentUser {
@@ -108,6 +109,7 @@ class Auth {
 	 *  are swallowed so the app keeps running against the local store. */
 	private bootstrap(): void {
 		void syncNow().catch(() => {});
+		void refreshExerciseLibrary().catch(() => {});
 	}
 }
 
