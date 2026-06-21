@@ -3,6 +3,10 @@ import { syncNow } from '$lib/sync';
 import type { Change } from '@granite/shared';
 import { listRoutines, setRoutineFolder } from './routines';
 
+// Must match the server's sync entity name (sync.EntityRoutineFolder), so folders
+// round-trip: server-originated folders show up locally, and local folders sync up.
+const FOLDER_ENTITY = 'routine_folder';
+
 export interface FolderRow {
 	id: string;
 	name: string;
@@ -11,7 +15,7 @@ export interface FolderRow {
 
 /** Folders from the local store, ordered. Works offline. */
 export async function listFolders(): Promise<FolderRow[]> {
-	const records = await localStore.list('folder');
+	const records = await localStore.list(FOLDER_ENTITY);
 	return records
 		.map((c) => {
 			const d = c.data as { name?: string; order_index?: number };
@@ -21,7 +25,7 @@ export async function listFolders(): Promise<FolderRow[]> {
 }
 
 async function writeFolder(id: string, updatedAt: number, data: object): Promise<void> {
-	const change: Change = { entity: 'folder', id, updated_at: updatedAt, deleted: false, data };
+	const change: Change = { entity: FOLDER_ENTITY, id, updated_at: updatedAt, deleted: false, data };
 	await localStore.localWrite(change);
 	void syncNow().catch(() => {}); // pushes online; queued in the outbox offline
 }
@@ -37,7 +41,7 @@ export async function createFolder(name: string): Promise<string> {
 
 /** Rename a folder, preserving order_index/created_at. */
 export async function renameFolder(id: string, name: string): Promise<void> {
-	const existing = await localStore.get('folder', id);
+	const existing = await localStore.get(FOLDER_ENTITY, id);
 	if (!existing) return;
 	const d = existing.data as { order_index?: number; created_at?: number };
 	await writeFolder(id, Date.now(), {
@@ -53,7 +57,7 @@ export async function deleteFolder(id: string): Promise<void> {
 	for (const r of routines) {
 		if (r.folder_id === id) await setRoutineFolder(r.id, null);
 	}
-	const change: Change = { entity: 'folder', id, updated_at: Date.now(), deleted: true, data: {} };
+	const change: Change = { entity: FOLDER_ENTITY, id, updated_at: Date.now(), deleted: true, data: {} };
 	await localStore.localWrite(change);
 	void syncNow().catch(() => {});
 }
