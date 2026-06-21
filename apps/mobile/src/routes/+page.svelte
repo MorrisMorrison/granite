@@ -10,8 +10,10 @@
 		<p class="muted">Signed in as {auth.user.email}</p>
 	{/if}
 	<div class="card">
-		<p>Welcome to Granite. Your workout logger is taking shape.</p>
-		<p class="muted">Next up: routines and the workout logger. For now, browse your
-			<a href="/exercises">exercises</a>.</p>
+		<a class="btn" href="/log" style="width:100%; padding:0.9rem;">Start workout</a>
+		<p class="muted" style="margin-top:0.75rem; margin-bottom:0;">
+			Review past sessions in <a href="/history">History</a>, or browse the
+			<a href="/exercises">exercise library</a>.
+		</p>
 	</div>
 </main>
