@@ -217,6 +217,40 @@ export interface paths {
         patch: operations["updateRoutine"];
         trace?: never;
     };
+    "/api/v1/sync/pull": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pull changes since a cursor */
+        post: operations["syncPull"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sync/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Push local changes */
+        post: operations["syncPush"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workouts": {
         parameters: {
             query?: never;
@@ -258,6 +292,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ApiChange: {
+            data: unknown;
+            deleted: boolean;
+            entity: string;
+            id: string;
+            /**
+             * Format: int64
+             * @description Record's last-modified time (epoch ms); the LWW key.
+             */
+            updated_at: number;
+        };
         AuthOutputBody: {
             /**
              * Format: uri
@@ -543,6 +588,51 @@ export interface components {
             target_rpe?: number;
             /** Format: double */
             target_weight?: number;
+        };
+        SyncPullInputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/SyncPullInputBody.json
+             */
+            readonly $schema?: string;
+            /**
+             * Format: int64
+             * @description Cursor from a previous pull/push (epoch ms); 0 for a full sync.
+             */
+            since: number;
+        };
+        SyncPullOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/SyncPullOutputBody.json
+             */
+            readonly $schema?: string;
+            changes: components["schemas"]["ApiChange"][] | null;
+            /** Format: int64 */
+            cursor: number;
+        };
+        SyncPushInputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/SyncPushInputBody.json
+             */
+            readonly $schema?: string;
+            changes: components["schemas"]["ApiChange"][] | null;
+        };
+        SyncPushOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/SyncPushOutputBody.json
+             */
+            readonly $schema?: string;
+            /** @description IDs accepted by the server (others lost a last-write-wins race). */
+            applied: string[] | null;
+            /** Format: int64 */
+            cursor: number;
         };
         TokenOutputBody: {
             /**
@@ -1322,6 +1412,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Routine"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    syncPull: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncPullInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncPullOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    syncPush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncPushInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncPushOutputBody"];
                 };
             };
             /** @description Error */
