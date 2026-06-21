@@ -12,10 +12,10 @@
 	--faint: #6b7480;
 
 	/* Accent (blue) */
-	--accent: #3b82f6;
-	--accent-hover: #2f6fe0;
+	--accent: #2563eb;
+	--accent-hover: #1d4ed8;
 	--accent-text: #ffffff;
-	--accent-subtle: rgba(59, 130, 246, 0.14);
+	--accent-subtle: rgba(37, 99, 235, 0.14);
 
 	/* Semantic (used sparingly) */
 	--danger: #ef4444;
