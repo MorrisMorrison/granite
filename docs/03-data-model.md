@@ -5,8 +5,11 @@
 - **Familiar concepts.** The entity set mirrors the concepts common to popular gym loggers (workouts,
   routines, routine folders, exercise templates, body measurements). This keeps the model intuitive and
   makes **import/export with other trackers** straightforward later.
-- **The same logical schema exists twice**: in **SQLite on the device** and in **SQLite on the server**.
-  Sync reconciles them. One SQL dialect, so the schemas stay aligned.
+- **One logical model, two stores.** The server holds it as a **SQLite schema**; the device holds the
+  same entities in its local store. Sync reconciles them. (Note: the current web client stores records
+  in **IndexedDB**, keyed by `entity:id`, rather than an on-device SQL schema — see
+  [ADR-0010](decisions/0010-web-local-store-indexeddb.md). The logical model and the sync metadata below
+  are identical regardless of the on-device engine.)
 - **Every syncable row carries sync metadata** (see below). This is what makes offline-first work.
 
 ## Sync metadata (on every syncable table)

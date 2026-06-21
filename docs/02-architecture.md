@@ -46,7 +46,9 @@ path. It talks to local SQLite. Sync is a separate, retryable concern.
 - That single build is consumed two ways:
   1. **Capacitor** wraps it into iOS/Android apps (with native SQLite + notifications plugins).
   2. The **Go binary embeds it** to serve the self-hosted web app / PWA.
-- On-device storage = **SQLite** (native via Capacitor on mobile; WASM/OPFS on web).
+- On-device storage sits behind a `SyncStore`/repository seam: the **web/PWA client uses IndexedDB**
+  (see [ADR-0010](decisions/0010-web-local-store-indexeddb.md)); native (Capacitor, later) will use
+  **SQLite**. Same logical model, swappable engine.
 
 ### `packages/shared` — TypeScript
 - The **generated API client** (from the server's OpenAPI spec) — type-safe calls, no hand-written DTOs.
@@ -67,10 +69,12 @@ Go handlers + annotations  ──►  OpenAPI spec (checked into repo)  ──�
 
 ## Same database engine on both sides
 
-Both the device and the server run **SQLite**, so there's **one SQL dialect** to target across the whole
-system. The sync engine reconciles two SQLite databases. This keeps schemas and queries aligned and the
-server tiny (no separate database process). See [ADR-0004](decisions/0004-sqlite-everywhere.md) for why,
-and how Postgres can be slotted in later as an optional backend.
+The **server** runs **SQLite**, keeping it tiny (no separate database process). See
+[ADR-0004](decisions/0004-sqlite-everywhere.md) for why, and how Postgres can be slotted in later as an
+optional backend. On the device the sync engine is **store-agnostic** (it talks to a `SyncStore` over
+opaque `entity:id` records), so the on-device engine doesn't have to match the server's: the web client
+uses IndexedDB today ([ADR-0010](decisions/0010-web-local-store-indexeddb.md)), with native SQLite a
+later, drop-in `SyncStore`.
 
 ## Tech stack
 
@@ -82,7 +86,7 @@ and how Postgres can be slotted in later as an optional backend.
 | Migrations | plain SQL, checked in _(tbd tool)_ | e.g. `goose`/`golang-migrate`. |
 | Frontend | **SvelteKit** (`adapter-static`) | One static SPA build. |
 | Mobile shell | **Capacitor** | iOS/Android wrappers + native plugins. ADR-0002. |
-| Device DB | **SQLite** | `@capacitor-community/sqlite` (native) / wa-sqlite (web). |
+| Device store | **IndexedDB** (web) / SQLite (native, later) | Behind a `SyncStore` seam. ADR-0010. |
 | Client pkg mgr | **pnpm** workspaces | Monorepo JS. |
 | API contract | **OpenAPI 3** | Generates the TS client. |
 | Charts | a lightweight Svelte chart lib _(tbd)_ | Keep it small. |
