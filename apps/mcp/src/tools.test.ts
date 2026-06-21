@@ -1,17 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+	createFolder,
 	createRoutine,
 	getRoutine,
 	listExercises,
 	listRoutines,
 	listWorkouts,
-	logWorkout
+	logWorkout,
+	updateRoutine
 } from './tools';
 import type { GraniteClient } from '@granite/shared';
 
 const stub = (get: unknown) => ({ GET: get }) as unknown as GraniteClient;
 const stubPost = (post: unknown) => ({ POST: post }) as unknown as GraniteClient;
+const stubPatch = (patch: unknown) => ({ PATCH: patch }) as unknown as GraniteClient;
 
 describe('mcp read tools', () => {
 	it('list_exercises filters by case-insensitive name substring', async () => {
@@ -52,6 +55,22 @@ describe('mcp write tools', () => {
 		const body = { title: 'Push Day', exercises: [{ exercise_id: 'e1' }] };
 		expect(await createRoutine(c, body)).toEqual({ id: 'r1' });
 		expect(post).toHaveBeenCalledWith('/api/v1/routines', { body });
+	});
+
+	it('update_routine PATCHes /routines/{id} with the path param + body', async () => {
+		const patch = vi.fn().mockResolvedValue({ data: { id: 'r1' } });
+		const c = stubPatch(patch);
+		const body = { title: 'Pull Day', exercises: [{ exercise_id: 'e2' }] };
+		expect(await updateRoutine(c, 'r1', body)).toEqual({ id: 'r1' });
+		expect(patch).toHaveBeenCalledWith('/api/v1/routines/{id}', { params: { path: { id: 'r1' } }, body });
+	});
+
+	it('create_folder POSTs to /routine-folders', async () => {
+		const post = vi.fn().mockResolvedValue({ data: { id: 'f1' } });
+		const c = stubPost(post);
+		const body = { name: 'Strength' };
+		expect(await createFolder(c, body)).toEqual({ id: 'f1' });
+		expect(post).toHaveBeenCalledWith('/api/v1/routine-folders', { body });
 	});
 
 	it('propagates API errors (e.g. 403 from a read-only token)', async () => {
