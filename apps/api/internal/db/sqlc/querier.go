@@ -10,6 +10,11 @@ import (
 )
 
 type Querier interface {
+	// Sync: changed-since reads (include soft-deleted for tombstones) + LWW upserts.
+	ChangedExercises(ctx context.Context, arg ChangedExercisesParams) ([]Exercise, error)
+	ChangedRoutineFolders(ctx context.Context, arg ChangedRoutineFoldersParams) ([]RoutineFolder, error)
+	ChangedRoutines(ctx context.Context, arg ChangedRoutinesParams) ([]Routine, error)
+	ChangedWorkouts(ctx context.Context, arg ChangedWorkoutsParams) ([]Workout, error)
 	CountExercises(ctx context.Context) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateBuiltinExercise(ctx context.Context, arg CreateBuiltinExerciseParams) error
@@ -26,12 +31,16 @@ type Querier interface {
 	DeleteRoutineExercisesByRoutine(ctx context.Context, routineID string) error
 	DeleteWorkoutExercisesByWorkout(ctx context.Context, workoutID string) error
 	GetExercise(ctx context.Context, id string) (Exercise, error)
+	GetExerciseForSync(ctx context.Context, id string) (Exercise, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
 	GetRoutine(ctx context.Context, id string) (Routine, error)
 	GetRoutineFolder(ctx context.Context, id string) (RoutineFolder, error)
+	GetRoutineFolderForSync(ctx context.Context, id string) (RoutineFolder, error)
+	GetRoutineForSync(ctx context.Context, id string) (Routine, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id string) (User, error)
 	GetWorkout(ctx context.Context, id string) (Workout, error)
+	GetWorkoutForSync(ctx context.Context, id string) (Workout, error)
 	ListExercises(ctx context.Context, userID sql.NullString) ([]Exercise, error)
 	// Routine exercises + sets (children, replaced wholesale on update) ------------
 	ListRoutineExercises(ctx context.Context, routineID string) ([]RoutineExercise, error)
@@ -54,6 +63,10 @@ type Querier interface {
 	UpdateRoutineMeta(ctx context.Context, arg UpdateRoutineMetaParams) (Routine, error)
 	UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error)
 	UpdateWorkoutMeta(ctx context.Context, arg UpdateWorkoutMetaParams) (Workout, error)
+	UpsertExercise(ctx context.Context, arg UpsertExerciseParams) error
+	UpsertRoutine(ctx context.Context, arg UpsertRoutineParams) error
+	UpsertRoutineFolder(ctx context.Context, arg UpsertRoutineFolderParams) error
+	UpsertWorkout(ctx context.Context, arg UpsertWorkoutParams) error
 }
 
 var _ Querier = (*Queries)(nil)
