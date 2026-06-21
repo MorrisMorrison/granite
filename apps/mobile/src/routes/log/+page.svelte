@@ -5,6 +5,8 @@
 	import { listExercises } from '$lib/repo/exercises';
 	import { getRoutine } from '$lib/repo/routines';
 	import { logWorkout } from '$lib/repo/workouts';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Sheet from '$lib/components/ui/Sheet.svelte';
 
 	interface DraftSet {
 		uid: string;
@@ -207,38 +209,38 @@
 					<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
 				</div>
 			{/each}
-			<button class="btn btn-ghost add-set" onclick={() => addSet(ex)}>+ Add set</button>
+			<div class="add-set">
+				<Button variant="ghost" size="sm" icon="plus" onclick={() => addSet(ex)}>Add set</Button>
+			</div>
 		</section>
 	{/each}
 
-	{#if pickerOpen}
-		<section class="card">
-			<div class="ex-head">
-				<strong>Add exercise</strong>
-				<button class="link" onclick={() => (pickerOpen = false)}>close</button>
-			</div>
-			{#if !libraryLoaded}
-				<p class="muted">Loading…</p>
-			{:else}
-				<ul class="lib">
-					{#each library as l (l.id)}
-						<li><button class="lib-item" onclick={() => addExercise(l)}>
+	<Button variant="outline" block icon="plus" onclick={openPicker} testid="btn-add-exercise">
+		Add exercise
+	</Button>
+
+	<Sheet open={pickerOpen} title="Add exercise" onclose={() => (pickerOpen = false)}>
+		{#if !libraryLoaded}
+			<p class="muted">Loading…</p>
+		{:else}
+			<ul class="lib">
+				{#each library as l (l.id)}
+					<li>
+						<button class="lib-item" onclick={() => addExercise(l)} data-testid="picker-exercise">
 							<span>{l.name}</span><span class="muted">{l.primary_muscle}</span>
-						</button></li>
-					{/each}
-				</ul>
-			{/if}
-		</section>
-	{:else}
-		<button class="btn btn-ghost" style="width:100%" onclick={openPicker}>+ Add exercise</button>
-	{/if}
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</Sheet>
 
 	{#if error}<p class="error">{error}</p>{/if}
 </main>
 
 <div class="footer">
 	<div class="container footer-inner">
-		<button class="btn btn-ghost" onclick={cancel} data-testid="btn-cancel-workout">Cancel</button>
+		<Button variant="ghost" onclick={cancel} testid="btn-cancel-workout">Cancel</Button>
 		{#if restActive}
 			<div class="rest">
 				<button class="link" onclick={() => bumpRest(-15)}>-15</button>
@@ -249,9 +251,9 @@
 		{:else}
 			<span class="muted">{completedCount} set{completedCount === 1 ? '' : 's'} done</span>
 		{/if}
-		<button class="btn" onclick={finish} disabled={saving} data-testid="btn-finish-workout"
-			>{saving ? 'Saving…' : 'Finish'}</button
-		>
+		<Button onclick={finish} disabled={saving} testid="btn-finish-workout">
+			{saving ? 'Saving…' : 'Finish'}
+		</Button>
 	</div>
 </div>
 
@@ -304,8 +306,6 @@
 	}
 	.add-set {
 		margin-top: 0.5rem;
-		padding: 0.35rem 0.7rem;
-		font-size: 0.85rem;
 	}
 	.link {
 		background: none;

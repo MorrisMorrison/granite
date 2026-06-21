@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -24,12 +25,12 @@
 
 <svelte:head><title>Register · Granite</title></svelte:head>
 
-<main class="container" style="max-width: 24rem; margin-top: 4rem;">
-	<h1>🪨 Granite</h1>
+<main class="auth">
+	<div class="brand"><span class="logo"></span>Granite</div>
 	<form class="card" onsubmit={submit}>
-		<h2 style="margin-top:0">Create account</h2>
+		<h2>Create account</h2>
 		<label for="email">Email</label>
-		<input id="email" type="email" bind:value={email} autocomplete="username" required />
+		<input id="email" type="email" bind:value={email} autocomplete="username" required data-testid="field-email" />
 		<label for="password">Password</label>
 		<input
 			id="password"
@@ -38,12 +39,55 @@
 			autocomplete="new-password"
 			minlength="8"
 			required
+			data-testid="field-password"
 		/>
-		<p class="muted" style="font-size:0.8rem">At least 8 characters.</p>
+		<p class="muted hint">At least 8 characters.</p>
 		{#if error}<p class="error">{error}</p>{/if}
-		<button class="btn" type="submit" disabled={busy} style="width:100%; margin-top:1rem;">
-			{busy ? 'Creating…' : 'Create account'}
-		</button>
+		<div class="submit">
+			<Button type="submit" block disabled={busy} testid="btn-register">
+				{busy ? 'Creating…' : 'Create account'}
+			</Button>
+		</div>
 	</form>
-	<p class="muted" style="text-align:center">Have an account? <a href="/login">Log in</a></p>
+	<p class="muted alt">Have an account? <a href="/login">Log in</a></p>
 </main>
+
+<style>
+	.auth {
+		max-width: 22rem;
+		margin: 0 auto;
+		padding: 4rem 1rem 2rem;
+	}
+	.brand {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		font-weight: 600;
+		font-size: 1.15rem;
+		margin-bottom: 1.25rem;
+	}
+	.logo {
+		width: 22px;
+		height: 22px;
+		border-radius: 6px;
+		background: var(--accent);
+	}
+	.card h2 {
+		margin: 0 0 0.25rem;
+		font-size: 1.1rem;
+		font-weight: 600;
+		text-align: center;
+	}
+	.hint {
+		font-size: 0.8rem;
+		margin: 0.4rem 0 0;
+	}
+	.submit {
+		margin-top: 1.1rem;
+	}
+	.alt {
+		text-align: center;
+		margin-top: 1rem;
+	}
+</style>
