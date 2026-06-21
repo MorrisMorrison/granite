@@ -34,12 +34,20 @@ func TestSeedDemoIdempotent(t *testing.T) {
 		t.Fatalf("demo user not found after seed: %v", err)
 	}
 
-	routines, err := routine.NewService(database, q).ListFull(ctx, u.ID)
+	rtSvc := routine.NewService(database, q)
+	routines, err := rtSvc.ListFull(ctx, u.ID)
 	if err != nil {
 		t.Fatalf("list routines: %v", err)
 	}
-	if len(routines) != 3 {
-		t.Fatalf("want 3 routines, got %d", len(routines))
+	if len(routines) != 5 {
+		t.Fatalf("want 5 routines, got %d", len(routines))
+	}
+	folders, err := rtSvc.ListFolders(ctx, u.ID)
+	if err != nil {
+		t.Fatalf("list folders: %v", err)
+	}
+	if len(folders) != 2 {
+		t.Fatalf("want 2 folders, got %d", len(folders))
 	}
 
 	woSvc := workout.NewService(database, q)
