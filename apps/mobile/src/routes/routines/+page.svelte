@@ -2,10 +2,12 @@
 	import { onMount } from 'svelte';
 	import { listRoutines, type RoutineRow } from '$lib/repo/routines';
 	import { syncNow } from '$lib/sync';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let routines = $state<RoutineRow[]>([]);
 	let loading = $state(true);
-	let error = $state('');
 
 	onMount(async () => {
 		routines = await listRoutines();
@@ -22,58 +24,65 @@
 <svelte:head><title>Routines · Granite</title></svelte:head>
 
 <main class="container">
-	<div class="head">
-		<h1>Routines</h1>
-		<a class="btn" href="/routines/new">New routine</a>
-	</div>
+	<PageHeader title="Routines">
+		{#snippet action()}
+			<Button href="/routines/new" icon="plus" size="sm" testid="btn-new-routine">New</Button>
+		{/snippet}
+	</PageHeader>
+
 	{#if loading}
 		<p class="muted">Loading…</p>
-	{:else if error}
-		<p class="error">{error}</p>
 	{:else if routines.length === 0}
-		<div class="card">
-			<p class="muted">No routines yet. Build one to start workouts faster.</p>
-		</div>
+		<EmptyState
+			icon="routines"
+			title="No routines yet"
+			description="Build a routine to start workouts faster."
+		>
+			{#snippet action()}
+				<Button href="/routines/new" icon="plus" testid="btn-new-routine-empty">New routine</Button>
+			{/snippet}
+		</EmptyState>
 	{:else}
-		<ul class="list">
+		<div class="list">
 			{#each routines as r (r.id)}
-				<li class="card row">
-					<a class="name" href="/routines/{r.id}">{r.title}</a>
-					<a class="btn" href="/log?routine={r.id}">Start</a>
-				</li>
+				<div class="rrow" data-testid="routine-row">
+					<a class="rrow-title" href="/routines/{r.id}">{r.title}</a>
+					<Button
+						href={`/log?routine=${r.id}`}
+						variant="secondary"
+						size="sm"
+						testid="btn-start-routine">Start</Button
+					>
+				</div>
 			{/each}
-		</ul>
+		</div>
 	{/if}
 </main>
 
 <style>
-	.head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.head :global(.btn) {
-		padding: 0.4rem 0.8rem;
-	}
 	.list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
-	.row {
+	.rrow {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 0.75rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		padding: 0.85rem 1rem;
 	}
-	.name {
+	.rrow-title {
+		flex: 1;
+		min-width: 0;
 		font-weight: 600;
-		text-decoration: none;
 		color: var(--text);
+		text-decoration: none;
 	}
-	.row :global(.btn) {
-		padding: 0.4rem 0.9rem;
+	.rrow-title:hover {
+		color: var(--accent);
 	}
 </style>

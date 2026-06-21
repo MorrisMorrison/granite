@@ -2,21 +2,21 @@
 	import { onMount } from 'svelte';
 	import { listWorkouts, type WorkoutSummary } from '$lib/repo/workouts';
 	import { syncNow } from '$lib/sync';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	let workouts = $state<WorkoutSummary[]>([]);
 	let loading = $state(true);
-	let error = $state('');
 
 	onMount(async () => {
-		// Local-first: show what we have immediately (works offline)...
 		workouts = await listWorkouts();
 		loading = false;
-		// ...then refresh from the server in the background if we're online.
 		try {
 			await syncNow();
 			workouts = await listWorkouts();
 		} catch {
-			/* offline — keep showing local data */
+			/* offline — keep local */
 		}
 	});
 
@@ -40,41 +40,45 @@
 <svelte:head><title>History · Granite</title></svelte:head>
 
 <main class="container">
-	<h1>History</h1>
+	<PageHeader title="History" />
 	{#if loading}
 		<p class="muted">Loading…</p>
-	{:else if error}
-		<p class="error">{error}</p>
 	{:else if workouts.length === 0}
-		<div class="card">
-			<p class="muted">No workouts yet.</p>
-			<a class="btn" href="/log">Start your first workout</a>
-		</div>
+		<EmptyState
+			icon="history"
+			title="No workouts yet"
+			description="Your logged sessions will show up here."
+		>
+			{#snippet action()}
+				<Button href="/log" icon="play" testid="btn-start-first">Start a workout</Button>
+			{/snippet}
+		</EmptyState>
 	{:else}
-		<ul class="list">
+		<div class="list">
 			{#each workouts as w (w.id)}
-				<li class="card">
+				<div class="card item" data-testid="workout-row">
 					<div class="name">{w.title || 'Workout'}</div>
 					<div class="muted meta">{fmtDate(w.start_time)}{duration(w)}</div>
-				</li>
+				</div>
 			{/each}
-		</ul>
+		</div>
 	{/if}
 </main>
 
 <style>
 	.list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+	}
+	.item {
+		padding: 0.85rem 1rem;
 	}
 	.name {
 		font-weight: 600;
 	}
 	.meta {
-		font-size: 0.85rem;
+		font-size: 0.82rem;
+		margin-top: 2px;
 	}
 </style>

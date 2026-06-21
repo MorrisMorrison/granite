@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { listExercises, refreshExerciseLibrary, type ExerciseRow } from '$lib/repo/exercises';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let exercises = $state<ExerciseRow[]>([]);
 	let loading = $state(true);
-	let error = $state('');
 
 	onMount(async () => {
-		// Local-first: show the cached library immediately (works offline)...
 		exercises = await listExercises();
 		loading = false;
-		// ...then refresh from the server (incl. built-ins) when online.
 		try {
 			await refreshExerciseLibrary();
 			exercises = await listExercises();
@@ -23,56 +24,32 @@
 <svelte:head><title>Exercises · Granite</title></svelte:head>
 
 <main class="container">
-	<h1>Exercises</h1>
+	<PageHeader title="Exercises" />
 	{#if loading}
 		<p class="muted">Loading…</p>
-	{:else if error}
-		<p class="error">{error}</p>
 	{:else if exercises.length === 0}
-		<p class="muted">No exercises yet.</p>
+		<EmptyState title="No exercises yet" description="Your exercise library will appear here." />
 	{:else}
-		<ul class="list">
+		<div class="list">
 			{#each exercises as ex (ex.id)}
-				<li class="card row">
-					<div>
-						<div class="name">{ex.name}</div>
-						<div class="muted meta">{ex.primary_muscle} · {ex.exercise_type}</div>
-					</div>
-					{#if ex.is_builtin}<span class="badge">built-in</span>{/if}
-				</li>
+				<ListRow
+					title={ex.name}
+					subtitle={`${ex.primary_muscle} · ${ex.exercise_type}`}
+					testid="exercise-row"
+				>
+					{#snippet trailing()}
+						{#if ex.is_builtin}<Badge>built-in</Badge>{/if}
+					{/snippet}
+				</ListRow>
 			{/each}
-		</ul>
+		</div>
 	{/if}
 </main>
 
 <style>
 	.list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-	}
-	.row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem 1rem;
-	}
-	.name {
-		font-weight: 600;
-	}
-	.meta {
-		font-size: 0.85rem;
-	}
-	.badge {
-		font-size: 0.7rem;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: var(--muted);
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		padding: 0.1rem 0.5rem;
 	}
 </style>
