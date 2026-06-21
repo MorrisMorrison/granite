@@ -3,47 +3,57 @@
 Phased so each step is usable on its own. Offline-first is built in from the start (retrofitting it
 later is painful), but **sync** is deferred until after a single-device app works.
 
-## Phase 0 — Planning ✅ (this repo)
+> **Status (2026-06-21):** Phases 0–4 are essentially done — Granite is a working, self-hostable,
+> offline-first PWA with sync, personal API tokens, an MCP server, and a full UI pass, all under a
+> unit + end-to-end test net in CI. Remaining: some Phase 2 niceties (progress charts/PRs, units &
+> rest-default settings, "previous" values, rest notification), Phase 5 polish (keyboard nav, a
+> published API reference), and Phase 6 (native packaging + integrations).
+
+## Phase 0 — Planning ✅
 - [x] Decisions locked (stack, sync model, license, name).
 - [x] Design docs + ADRs.
-- [ ] Scaffold the monorepo skeleton (empty `apps/`, `packages/`, tooling, CI).
+- [x] Scaffold the monorepo skeleton (`apps/`, `packages/`, tooling, CI).
 
-## Phase 1 — API + data foundation
-- [ ] Go service scaffold (HTTP, config, logging, typed error taxonomy).
-- [ ] SQLite schema + migrations for the core entities (with sync metadata).
-- [ ] Auth: register/login/refresh, JWTs, argon2id.
-- [ ] CRUD endpoints + OpenAPI spec + generated TS client.
-- [ ] Built-in exercise seed data.
-- [ ] `export` / `import`.
+## Phase 1 — API + data foundation ✅
+- [x] Go service scaffold (HTTP, config, logging, typed error taxonomy).
+- [x] SQLite schema + migrations for the core entities (with sync metadata).
+- [x] Auth: register/login/refresh, JWTs, argon2id.
+- [x] CRUD endpoints + OpenAPI spec + generated TS client.
+- [x] Built-in exercise seed data.
+- [x] `export` / `import`.
 
-## Phase 2 — Mobile MVP, single-device (offline-only)
-- [ ] SvelteKit app scaffold (`adapter-static`), local SQLite data layer.
-- [ ] Exercises (library + custom), Routines (+ folders).
-- [ ] **Workout logger** hot path: sets, "previous", rest timer + notification.
-- [ ] History + per-exercise progress chart + PRs.
-- [ ] Settings (units, rest default, export).
-- [ ] Runs as an installable **PWA** for real on-phone testing.
-- 🎯 *Milestone: log a full real session offline, no account/server needed.*
+## Phase 2 — Mobile MVP, single-device (offline-first) ✅ *(core)*
+- [x] SvelteKit app scaffold (`adapter-static`); local data layer (IndexedDB, [ADR-0010](decisions/0010-web-local-store-indexeddb.md)).
+- [x] Exercises (library + built-ins), Routines (+ folders).
+- [x] **Workout logger** hot path: sets, rest timer.
+  - [ ] "previous" set values; rest-timer notification.
+- [x] History.
+  - [ ] Per-exercise progress chart + PRs.
+- [x] Settings (account, JSON export, API tokens).
+  - [ ] Units, default rest, and other preferences.
+- [x] Runs as an installable **PWA** (service worker, offline shell).
+- 🎯 *Milestone met: log a full real session offline, no account/server needed.*
 
-## Phase 3 — Sync
+## Phase 3 — Sync ✅
 - [x] Server sync endpoints (`POST /api/v1/sync/{pull,push}`), LWW + tombstones — see [ADR-0008](decisions/0008-sync-engine-v1.md).
 - [x] Convergence tests (server-side: nested round-trip, incremental cursor, LWW, idempotency, isolation).
-- [ ] Sync client (pull/push, pending outbox, LWW, tombstones) in `packages/shared`.
-- [ ] Device-local SQLite store + swap the app's data layer to local-first.
-- [ ] Connect app to a self-hosted server; verify round-trip across reinstall / second device.
-- [ ] *(Hardening, later)* switch the pull cursor to per-user `server_seq`; consider per-child-record sync.
-- 🎯 *Milestone: MVP success criteria met — usable as a daily workout logger.*
+- [x] Sync client (pull/push, pending outbox, LWW, tombstones) in `packages/shared`.
+- [x] Device-local store + app swapped to local-first.
+- [x] Self-hosted round-trip verified (offline cutover + the real-binary e2e suite).
+- [ ] *(Hardening, later)* per-user `server_seq` pull cursor; consider per-child-record sync.
+- 🎯 *Milestone met: usable as a daily workout logger.*
 
-## Phase 4 — Self-hosting polish
-- [ ] Multi-stage Docker image (Go binary + embedded web build + SQLite).
-- [ ] `docker-compose.yml`, `.env.example`, setup doc.
-- [ ] GitHub Actions: build/test/publish image.
-- [ ] Backup guidance (SQLite file snapshot / export; optional Litestream).
+## Phase 4 — Self-hosting polish ✅
+- [x] Multi-stage Docker image (Go binary + embedded web build + SQLite).
+- [x] `docker-compose.yml`, `.env.example`, setup docs.
+- [x] GitHub Actions: build/test (+ image build on every PR); publish on main.
+- [x] Backup guidance (SQLite snapshot / export); graceful shutdown for safe restarts.
 
 ## Phase 5 — Web + API/MCP for others
-- [ ] Web app UX pass (desktop layouts, keyboard).
-- [ ] Harden + document the public REST API (OpenAPI published).
-- [ ] **MCP server** (read tools + guarded writes), personal API tokens.
+- [x] **MCP server** (read tools + opt-in guarded writes) + personal API tokens (read/write scopes).
+- [x] Web app responsive / desktop layouts (UI overhaul — centered dialogs, etc.).
+  - [ ] Keyboard-first navigation pass.
+- [ ] Publish the REST API reference (OpenAPI is generated + committed; a hosted reference is pending).
 
 ## Phase 6 — Native & nice-to-haves
 - [ ] Capacitor native wrappers → app-store/sideload builds (needs macOS for iOS).
@@ -54,11 +64,11 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [ ] OIDC / passkeys.
 - [ ] Advanced analytics (volume per muscle group, etc.).
 
-## Cross-cutting backlog (not phase-bound)
-- [ ] **UI modernization & polish.** The current UI is functional but utilitarian. Once core
-  functionality (offline/sync + the full feature set) is solid, do a proper design pass: visual
-  refresh, a consistent component system, motion, and mobile ergonomics. **Core functionality is the
-  priority — this comes after.**
+## Cross-cutting
+- [x] **UI modernization & polish** — dark, deep-blue, shadcn-inspired component library + design
+  system ([docs/09](09-ui-design-system.md)); every screen rebuilt on it.
+- [x] **Test safety net** — unit tests (vitest: sync engine, IndexedDB store, UI components) plus a
+  Playwright **end-to-end** suite against the real binary, all green in CI.
 
 ---
 
