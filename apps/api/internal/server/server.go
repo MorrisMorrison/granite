@@ -18,6 +18,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
+	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
 	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
 
@@ -32,13 +33,14 @@ type Server struct {
 	exercise *exercise.Service
 	routine  *routine.Service
 	workout  *workout.Service
+	sync     *syncpkg.Service
 	tokens   *auth.TokenManager
 	db       *sql.DB
 }
 
 // New constructs a Server. allowedOrigins is the CORS allow-list.
-func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string) *Server {
-	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, tokens: tokens, db: db}
+func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, syncSvc *syncpkg.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string) *Server {
+	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db}
 	s.setupRouter(allowedOrigins)
 	s.setupAPI()
 	s.registerRoutes()
@@ -135,6 +137,10 @@ func (s *Server) registerRoutes() {
 	huma.Register(a, huma.Operation{OperationID: "getWorkout", Method: http.MethodGet, Path: "/api/v1/workouts/{id}", Summary: "Get a workout (full)", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleGetWorkout)
 	huma.Register(a, huma.Operation{OperationID: "updateWorkout", Method: http.MethodPatch, Path: "/api/v1/workouts/{id}", Summary: "Update a workout", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleUpdateWorkout)
 	huma.Register(a, huma.Operation{OperationID: "deleteWorkout", Method: http.MethodDelete, Path: "/api/v1/workouts/{id}", Summary: "Delete a workout", Tags: []string{"Workouts"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteWorkout)
+
+	// Sync (offline-first delta sync)
+	huma.Register(a, huma.Operation{OperationID: "syncPull", Method: http.MethodPost, Path: "/api/v1/sync/pull", Summary: "Pull changes since a cursor", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPull)
+	huma.Register(a, huma.Operation{OperationID: "syncPush", Method: http.MethodPost, Path: "/api/v1/sync/push", Summary: "Push local changes", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPush)
 
 	// Export
 	huma.Register(a, huma.Operation{OperationID: "exportData", Method: http.MethodGet, Path: "/api/v1/export", Summary: "Export all of your data", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleExport)

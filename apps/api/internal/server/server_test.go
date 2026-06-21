@@ -15,6 +15,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
+	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
 	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
 
@@ -48,7 +49,8 @@ func newTestServer(t *testing.T) (http.Handler, *sqlc.Queries) {
 	exerciseSvc := exercise.NewService(q)
 	routineSvc := routine.NewService(database, q)
 	workoutSvc := workout.NewService(database, q)
-	return New(authSvc, exerciseSvc, routineSvc, workoutSvc, tokens, database, []string{"*"}).Handler(), q
+	syncSvc := syncpkg.NewService(database, q)
+	return New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{"*"}).Handler(), q
 }
 
 func doReq(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {

@@ -26,10 +26,12 @@ later is painful), but **sync** is deferred until after a single-device app work
 - 🎯 *Milestone: log a full real session offline, no account/server needed.*
 
 ## Phase 3 — Sync
+- [x] Server sync endpoints (`POST /api/v1/sync/{pull,push}`), LWW + tombstones — see [ADR-0008](decisions/0008-sync-engine-v1.md).
+- [x] Convergence tests (server-side: nested round-trip, incremental cursor, LWW, idempotency, isolation).
 - [ ] Sync client (pull/push, pending outbox, LWW, tombstones) in `packages/shared`.
-- [ ] Server sync endpoints + `server_seq` watermark.
-- [ ] Convergence tests (two-client simulation, idempotency).
+- [ ] Device-local SQLite store + swap the app's data layer to local-first.
 - [ ] Connect app to a self-hosted server; verify round-trip across reinstall / second device.
+- [ ] *(Hardening, later)* switch the pull cursor to per-user `server_seq`; consider per-child-record sync.
 - 🎯 *Milestone: MVP success criteria met — usable as a daily workout logger.*
 
 ## Phase 4 — Self-hosting polish
@@ -51,6 +53,12 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [ ] Apple Health / Google Fit; (later) Watch / Wear OS.
 - [ ] OIDC / passkeys.
 - [ ] Advanced analytics (volume per muscle group, etc.).
+
+## Cross-cutting backlog (not phase-bound)
+- [ ] **UI modernization & polish.** The current UI is functional but utilitarian. Once core
+  functionality (offline/sync + the full feature set) is solid, do a proper design pass: visual
+  refresh, a consistent component system, motion, and mobile ergonomics. **Core functionality is the
+  priority — this comes after.**
 
 ---
 

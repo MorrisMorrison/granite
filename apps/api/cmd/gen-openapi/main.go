@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	srv := server.New(nil, nil, nil, nil, nil, nil, []string{"*"})
+	srv := server.New(nil, nil, nil, nil, nil, nil, nil, []string{"*"})
 	spec, err := srv.OpenAPIYAML()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "gen-openapi:", err)

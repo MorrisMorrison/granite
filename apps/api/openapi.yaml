@@ -1,5 +1,26 @@
 components:
   schemas:
+    ApiChange:
+      additionalProperties: false
+      properties:
+        data: {}
+        deleted:
+          type: boolean
+        entity:
+          type: string
+        id:
+          type: string
+        updated_at:
+          description: Record's last-modified time (epoch ms); the LWW key.
+          format: int64
+          type: integer
+      required:
+        - entity
+        - id
+        - updated_at
+        - deleted
+        - data
+      type: object
     AuthOutputBody:
       additionalProperties: false
       properties:
@@ -587,6 +608,89 @@ components:
         target_weight:
           format: double
           type: number
+      type: object
+    SyncPullInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/SyncPullInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        since:
+          description: Cursor from a previous pull/push (epoch ms); 0 for a full sync.
+          format: int64
+          type: integer
+      required:
+        - since
+      type: object
+    SyncPullOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/SyncPullOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        changes:
+          items:
+            $ref: "#/components/schemas/ApiChange"
+          type:
+            - array
+            - "null"
+        cursor:
+          format: int64
+          type: integer
+      required:
+        - changes
+        - cursor
+      type: object
+    SyncPushInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/SyncPushInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        changes:
+          items:
+            $ref: "#/components/schemas/ApiChange"
+          type:
+            - array
+            - "null"
+      required:
+        - changes
+      type: object
+    SyncPushOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/SyncPushOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        applied:
+          description: IDs accepted by the server (others lost a last-write-wins race).
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        cursor:
+          format: int64
+          type: integer
+      required:
+        - applied
+        - cursor
       type: object
     TokenOutputBody:
       additionalProperties: false
@@ -1384,6 +1488,60 @@ paths:
       summary: Update a routine
       tags:
         - Routines
+  /api/v1/sync/pull:
+    post:
+      operationId: syncPull
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncPullInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncPullOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Pull changes since a cursor
+      tags:
+        - Sync
+  /api/v1/sync/push:
+    post:
+      operationId: syncPush
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncPushInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncPushOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Push local changes
+      tags:
+        - Sync
   /api/v1/workouts:
     get:
       operationId: listWorkouts
