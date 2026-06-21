@@ -147,7 +147,7 @@ func (s *Server) registerRoutes() {
 	huma.Register(a, huma.Operation{OperationID: "deleteWorkout", Method: http.MethodDelete, Path: "/api/v1/workouts/{id}", Summary: "Delete a workout", Tags: []string{"Workouts"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteWorkout)
 
 	// Sync (offline-first delta sync)
-	huma.Register(a, huma.Operation{OperationID: "syncPull", Method: http.MethodPost, Path: "/api/v1/sync/pull", Summary: "Pull changes since a cursor", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPull)
+	huma.Register(a, huma.Operation{OperationID: "syncPull", Method: http.MethodPost, Path: "/api/v1/sync/pull", Summary: "Pull changes since a cursor", Tags: []string{"Sync"}, Security: bearerSecurity, Metadata: map[string]any{metaReadOnly: true}}, s.handleSyncPull)
 	huma.Register(a, huma.Operation{OperationID: "syncPush", Method: http.MethodPost, Path: "/api/v1/sync/push", Summary: "Push local changes", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPush)
 
 	// Export

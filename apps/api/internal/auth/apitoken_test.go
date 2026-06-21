@@ -87,6 +87,12 @@ func TestAPITokenScopes(t *testing.T) {
 		t.Fatal("write token should allow writes")
 	}
 
+	// Scope strings are canonicalized (case-insensitive, trimmed, deduped).
+	mixed, err := s.CreateAPIToken(ctx, user.ID, "mixed", []string{"READ", " write "}, nil)
+	if err != nil || len(mixed.Scopes) != 2 {
+		t.Fatalf("canonicalized scopes = %v (err %v), want [read write]", mixed.Scopes, err)
+	}
+
 	// Unknown scope is rejected.
 	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "bad", []string{"admin"}, nil)), apperr.CodeValidation)
 }
