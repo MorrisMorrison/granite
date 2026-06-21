@@ -1,8 +1,3 @@
 packages:
   - apps/*
   - packages/*
-
-# Allow esbuild (pulled in by tsup for the MCP server build) to run its install
-# script; otherwise pnpm's frozen install fails with ERR_PNPM_IGNORED_BUILDS.
-onlyBuiltDependencies:
-  - esbuild
