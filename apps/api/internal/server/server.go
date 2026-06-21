@@ -157,6 +157,7 @@ func (s *Server) registerRoutes() {
 	huma.Register(a, huma.Operation{OperationID: "syncPull", Method: http.MethodPost, Path: "/api/v1/sync/pull", Summary: "Pull changes since a cursor", Tags: []string{"Sync"}, Security: bearerSecurity, Metadata: map[string]any{metaReadOnly: true}}, s.handleSyncPull)
 	huma.Register(a, huma.Operation{OperationID: "syncPush", Method: http.MethodPost, Path: "/api/v1/sync/push", Summary: "Push local changes", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPush)
 
-	// Export
+	// Export / import (own your data)
 	huma.Register(a, huma.Operation{OperationID: "exportData", Method: http.MethodGet, Path: "/api/v1/export", Summary: "Export all of your data", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleExport)
+	huma.Register(a, huma.Operation{OperationID: "importData", Method: http.MethodPost, Path: "/api/v1/import", Summary: "Import a previously exported dump (upsert by id, idempotent)", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleImport)
 }

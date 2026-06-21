@@ -126,6 +126,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import a previously exported dump (upsert by id, idempotent) */
+        post: operations["importData"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -533,6 +550,42 @@ export interface components {
             name: string;
             /** Format: int64 */
             order_index?: number;
+        };
+        ImportInputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ImportInputBody.json
+             */
+            readonly $schema?: string;
+            exercises: components["schemas"]["ExerciseResponse"][] | null;
+            /** Format: int64 */
+            exported_at?: number;
+            routine_folders: components["schemas"]["Folder"][] | null;
+            routines: components["schemas"]["Routine"][] | null;
+            user?: unknown;
+            /** Format: int64 */
+            version?: number;
+            workouts: components["schemas"]["Workout"][] | null;
+        };
+        ImportOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ImportOutputBody.json
+             */
+            readonly $schema?: string;
+            imported: components["schemas"]["ImportedStruct"];
+        };
+        ImportedStruct: {
+            /** Format: int64 */
+            exercises: number;
+            /** Format: int64 */
+            folders: number;
+            /** Format: int64 */
+            routines: number;
+            /** Format: int64 */
+            workouts: number;
         };
         ListExercisesOutputBody: {
             /**
@@ -1147,6 +1200,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    importData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOutputBody"];
                 };
             };
             /** @description Error */
