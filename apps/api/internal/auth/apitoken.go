@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 	"strings"
 
 	"github.com/google/uuid"
@@ -17,6 +18,10 @@ const (
 	ScopeRead  = "read"
 	ScopeWrite = "write"
 )
+
+// lastUsedThrottleMs caps how often last_used_at is rewritten per token, so a busy
+// client doesn't trigger a DB write on every authenticated request.
+const lastUsedThrottleMs int64 = 60_000
 
 // APIToken is the client-facing representation of a personal API token. The raw
 // Token is only ever populated when a token is first created.
@@ -115,7 +120,7 @@ func (s *Service) CreateAPIToken(ctx context.Context, userID, name string, scope
 		UserID:    userID,
 		Name:      name,
 		TokenHash: HashToken(raw),
-		Prefix:    raw[:12], // "gra_" + 8 chars, enough to identify
+		Prefix:    raw[:len(APITokenPrefix)+8], // prefix + 8 chars, enough to identify
 		Scopes:    scopeStr,
 		ExpiresAt: nullInt64(expiresAt),
 		CreatedAt: now,
@@ -167,7 +172,13 @@ func (s *Service) AuthenticateAPIToken(ctx context.Context, raw string) (userID,
 	if row.ExpiresAt.Valid && now.UnixMilli() >= row.ExpiresAt.Int64 {
 		return "", "", apperr.Unauthorized("API token has expired")
 	}
-	_ = s.q.TouchApiToken(ctx, sqlc.TouchApiTokenParams{LastUsedAt: nullMillis(now), ID: row.ID})
+	// Record last_used_at (an audit signal), throttled to at most once per minute per
+	// token to avoid a write per request against SQLite's single writer.
+	if !row.LastUsedAt.Valid || now.UnixMilli()-row.LastUsedAt.Int64 >= lastUsedThrottleMs {
+		if err := s.q.TouchApiToken(ctx, sqlc.TouchApiTokenParams{LastUsedAt: nullMillis(now), ID: row.ID}); err != nil {
+			slog.WarnContext(ctx, "failed to update api token last_used_at", "token_id", row.ID, "err", err)
+		}
+	}
 	return row.UserID, row.Scopes, nil
 }
 

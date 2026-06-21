@@ -64,9 +64,9 @@ func (s *Server) handleRevokeToken(ctx context.Context, in *idPathInput) (*struc
 	return nil, nil
 }
 
-// requireInteractive rejects requests authenticated with an API token: token
-// management must use an interactive (JWT) session, so a leaked token can't mint
-// or revoke other tokens.
+// requireInteractive rejects requests authenticated with an API token: all token
+// management (create, list, revoke) must use an interactive (JWT) session, so a
+// leaked token can't enumerate, mint, or revoke tokens.
 func requireInteractive(ctx context.Context) error {
 	if authMethodFromCtx(ctx) != authMethodJWT {
 		return apperr.Forbidden("API tokens cannot manage API tokens; use an interactive session")
