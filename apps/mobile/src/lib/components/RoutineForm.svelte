@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { listExercises } from '$lib/repo/exercises';
 	import { listFolders, type FolderRow } from '$lib/repo/folders';
+	import { prefs } from '$lib/stores/prefs.svelte';
+	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 
@@ -54,6 +56,8 @@
 	let notes = $state(initialNotes);
 	let folderId = $state(initialFolderId ?? '');
 	let folders = $state<FolderRow[]>([]);
+	const unit = $derived(prefs.current.weightUnit);
+	// Drafts hold weights in the user's display unit; stored targets are kg.
 	let exercises = $state<DraftExercise[]>(
 		initialExercises.map((e) => ({
 			uid: crypto.randomUUID(),
@@ -62,7 +66,7 @@
 			sets: e.sets.map((s) => ({
 				uid: crypto.randomUUID(),
 				set_type: s.set_type,
-				target_weight: s.target_weight,
+				target_weight: kgToDisplay(s.target_weight, prefs.current.weightUnit),
 				target_reps: s.target_reps
 			}))
 		}))
@@ -129,7 +133,7 @@
 					rest_seconds: ex.rest_seconds ?? 0,
 					sets: ex.sets.map((s) => ({
 						set_type: s.set_type,
-						target_weight: s.target_weight ?? undefined,
+						target_weight: displayToKg(s.target_weight, unit) ?? undefined,
 						target_reps: s.target_reps ?? undefined
 					}))
 				}))
@@ -166,7 +170,7 @@
 			<input type="number" inputmode="numeric" bind:value={ex.rest_seconds} />
 		</label>
 		<div class="set-head muted">
-			<span>Set</span><span>Type</span><span>Target kg</span><span>Target reps</span><span></span>
+			<span>Set</span><span>Type</span><span>Target {unit}</span><span>Target reps</span><span></span>
 		</div>
 		{#each ex.sets as s, i (s.uid)}
 			<div class="set-row">

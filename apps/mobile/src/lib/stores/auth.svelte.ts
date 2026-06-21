@@ -1,6 +1,7 @@
 import { api } from '$lib/api/client';
 import { tokens } from '$lib/api/tokens';
 import { refreshExerciseLibrary } from '$lib/repo/exercises';
+import { prefs } from '$lib/stores/prefs.svelte';
 import { syncNow } from '$lib/sync';
 
 export interface CurrentUser {
@@ -110,6 +111,7 @@ class Auth {
 	private bootstrap(): void {
 		void syncNow().catch(() => {});
 		void refreshExerciseLibrary().catch(() => {});
+		void prefs.load().catch(() => {});
 	}
 }
 

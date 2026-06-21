@@ -5,6 +5,8 @@
 	import { listExercises } from '$lib/repo/exercises';
 	import { getRoutine } from '$lib/repo/routines';
 	import { logWorkout } from '$lib/repo/workouts';
+	import { prefs } from '$lib/stores/prefs.svelte';
+	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 
@@ -30,6 +32,7 @@
 	const startTime = Date.now();
 
 	const setTypes = ['normal', 'warmup', 'drop', 'failure'];
+	const unit = $derived(prefs.current.weightUnit);
 
 	// --- exercise picker ---
 	let pickerOpen = $state(false);
@@ -80,7 +83,7 @@
 
 	function toggleComplete(s: DraftSet) {
 		s.is_completed = !s.is_completed;
-		if (s.is_completed) startRest(90);
+		if (s.is_completed) startRest(prefs.current.restSeconds);
 	}
 
 	// --- rest timer ---
@@ -139,7 +142,7 @@
 					exercise_id: ex.exercise_id,
 					sets: ex.sets.map((s) => ({
 						set_type: s.set_type,
-						weight: s.weight,
+						weight: displayToKg(s.weight, unit),
 						reps: s.reps,
 						is_completed: s.is_completed
 					}))
@@ -169,7 +172,7 @@
 			sets: ex.sets.map((s) => ({
 				uid: crypto.randomUUID(),
 				set_type: s.set_type,
-				weight: s.target_weight,
+				weight: kgToDisplay(s.target_weight, unit),
 				reps: s.target_reps,
 				is_completed: false
 			}))
@@ -195,7 +198,7 @@
 				<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
 			</div>
 			<div class="set-head muted">
-				<span>Set</span><span>Type</span><span>Weight</span><span>Reps</span><span>✓</span><span></span>
+				<span>Set</span><span>Type</span><span>Weight ({unit})</span><span>Reps</span><span>✓</span><span></span>
 			</div>
 			{#each ex.sets as s, i (s.uid)}
 				<div class="set-row" class:done={s.is_completed} data-testid="set-row">

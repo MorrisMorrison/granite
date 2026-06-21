@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
+	import { prefs } from '$lib/stores/prefs.svelte';
 	import { api } from '$lib/api/client';
 	import { getServerUrl } from '$lib/config';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -134,6 +135,38 @@
 	</section>
 
 	<section class="block">
+		<h2>Preferences</h2>
+		<div class="card">
+			<div class="row">
+				<label class="muted" for="pref-unit">Weight unit</label>
+				<select
+					id="pref-unit"
+					class="control"
+					value={prefs.current.weightUnit}
+					onchange={(e) => prefs.update({ weightUnit: e.currentTarget.value as 'kg' | 'lb' })}
+					data-testid="field-weight-unit"
+				>
+					<option value="kg">kg</option>
+					<option value="lb">lb</option>
+				</select>
+			</div>
+			<div class="row">
+				<label class="muted" for="pref-rest">Default rest (seconds)</label>
+				<input
+					id="pref-rest"
+					class="control"
+					type="number"
+					inputmode="numeric"
+					min="0"
+					value={prefs.current.restSeconds}
+					onchange={(e) => prefs.update({ restSeconds: Math.max(0, Number(e.currentTarget.value) || 0) })}
+					data-testid="field-rest-seconds"
+				/>
+			</div>
+		</div>
+	</section>
+
+	<section class="block">
 		<h2>Your data</h2>
 		<div class="card">
 			<p class="muted desc">Download everything — routines, workouts, exercises — as a JSON file.</p>
@@ -255,6 +288,10 @@
 		justify-content: space-between;
 		gap: 1rem;
 		padding: 0.35rem 0;
+	}
+	.control {
+		width: 7rem;
+		text-align: right;
 	}
 	.actions {
 		margin-top: 0.85rem;
