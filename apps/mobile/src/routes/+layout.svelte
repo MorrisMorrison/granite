@@ -25,7 +25,8 @@
 			'/routines/new',
 			'/routines/_',
 			'/exercises',
-			'/history'
+			'/history',
+			'/settings'
 		]) {
 			void preloadCode(path).catch(() => {});
 		}
@@ -55,9 +56,14 @@
 		<header class="appbar">
 			<div class="appbar-inner">
 				<a class="brand" href="/"><span class="logo"></span>Granite</a>
-				<button class="iconbtn" onclick={logout} aria-label="Log out" data-testid="btn-logout">
-					<Icon name="logout" size={20} />
-				</button>
+				<div class="appbar-actions">
+					<a class="iconbtn" href="/settings" aria-label="Settings" data-testid="nav-settings">
+						<Icon name="settings" size={20} />
+					</a>
+					<button class="iconbtn" onclick={logout} aria-label="Log out" data-testid="btn-logout">
+						<Icon name="logout" size={20} />
+					</button>
+				</div>
 			</div>
 		</header>
 	{/if}
@@ -83,6 +89,11 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.65rem 1rem;
+	}
+	.appbar-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.1rem;
 	}
 	.brand {
 		display: flex;
