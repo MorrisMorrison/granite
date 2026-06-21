@@ -16,6 +16,11 @@
 		settings:
 			'<path d="M4 6l8 0" /><path d="M16 6l4 0" /><path d="M4 12l2 0" /><path d="M10 12l10 0" /><path d="M4 18l8 0" /><path d="M16 18l4 0" /><path d="M14 4m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M8 10m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M14 16m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
 		'chevron-right': '<path d="M9 6l6 6l-6 6" />',
+		'chevron-down': '<path d="M6 9l6 6l6 -6" />',
+		folder:
+			'<path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" />',
+		'dots-vertical':
+			'<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />',
 		'arrow-left': '<path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" />',
 		trash:
 			'<path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />',

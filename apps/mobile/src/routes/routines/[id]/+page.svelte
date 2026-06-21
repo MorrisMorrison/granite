@@ -37,6 +37,7 @@
 		<RoutineForm
 			initialTitle={loaded.title}
 			initialNotes={loaded.notes}
+			initialFolderId={loaded.folder_id}
 			initialExercises={loaded.exercises}
 			submitLabel="Save changes"
 			onsubmit={update}
