@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest an idea for Granite
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do? What's missing or awkward today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      description: Granite is a focused, self-hosted gym logger.
+      options:
+        - label: This fits the mission (in-gym logging / own-your-data) and isn't a non-goal (no social, nutrition, or cardio/GPS — see docs/00-vision.md)
+          required: true
