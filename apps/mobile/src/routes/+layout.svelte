@@ -105,8 +105,8 @@
 		color: var(--text);
 	}
 	.logo {
-		width: 20px;
-		height: 20px;
+		width: 28px;
+		height: 28px;
 		display: block;
 	}
 	.iconbtn {
