@@ -19,9 +19,13 @@ is small and isolated to a few Capacitor plugins. No React, no Dart, no second U
 
 ## Local storage
 
-- **SQLite on device:** `@capacitor-community/sqlite` on native; `wa-sqlite` (WASM + OPFS) on web.
-- A thin data-access layer hides which backend is in use, so app code is platform-agnostic.
-- All reads/writes hit local SQLite; the [sync client](05-sync-and-offline.md) reconciles with the server.
+- **On-device store behind a `SyncStore`/repository seam**, so app code is platform-agnostic.
+- **Web/PWA (today): IndexedDB** via `idb` — see
+  [ADR-0010](decisions/0010-web-local-store-indexeddb.md). Granite's data is small and aggregate-shaped
+  (a routine/workout is one record with its children), so rich on-device SQL isn't needed.
+- **Native (later): SQLite** via `@capacitor-community/sqlite` — a separate `SyncStore` implementation
+  against the same interface.
+- All reads/writes hit the local store; the [sync client](05-sync-and-offline.md) reconciles with the server.
 
 ## Native capabilities we actually need (and the plugin)
 
@@ -46,7 +50,8 @@ one area where Capacitor is weaker than React Native. Out of MVP by design (see 
 - **Exercises** — searchable library, create/edit custom exercises.
 - **History** — past workouts; open one.
 - **Exercise detail / stats** — history + a simple progress chart + PRs.
-- **Settings** — units, default rest, account, server URL, export, logout.
+- **Settings** — account, **JSON export**, **personal API tokens** (read/write scopes, `gra_` prefix),
+  logout. (Units / default-rest preferences planned.)
 
 ## Server connection
 

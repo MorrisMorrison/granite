@@ -3,8 +3,10 @@
 > Open-source, self-hostable, **offline-first** workout tracker. Own your training data.
 > A clean gym logger you run yourself — **without** a social network.
 
-**Status:** 🟢 In active development, **in the open**. The backend API (auth, exercises, routines,
-workouts, export) is in, and the SvelteKit app is taking shape. See [`docs/`](docs/) for the design.
+**Status:** 🟢 In active development, **in the open**. The Go API (auth, exercises, routines,
+workouts, sync, export, personal API tokens) is in, and the SvelteKit app is a working offline-first
+PWA — Today, History, Exercises, Routines (with folders), the in-gym logger, and Settings all exist.
+See [`docs/`](docs/) for the design.
 
 ---
 
@@ -26,17 +28,17 @@ your training, not a platform.
 | **Data model** | **Offline-first + sync** | App fully works offline; syncs to your server when online. The product's backbone. |
 | **Storage** | **SQLite** (device **and** server) | Full local copy per device drives instant offline reads/stats; the server is a single SQLite file. Postgres optional later. |
 | **License** | **AGPL-3.0** | Keeps the project genuinely open, even when run as a service. |
-| **Auth** | **Email + password + JWT** _(proposed)_ | Simple, works offline-first & multi-user. OIDC/passkeys later. See ADR-0006. |
+| **Auth** | **Email + password + JWT** | Simple, works offline-first & multi-user. OIDC/passkeys later. See ADR-0006. |
 
 Full reasoning lives in the [Architecture Decision Records](docs/decisions/).
 
-## Planned repo layout (monorepo)
+## Repo layout (monorepo)
 
 ```
 granite/
 ├─ apps/
-│  ├─ api/         # Go backend — REST API, sync engine, MCP server, SQLite, embeds the web build
-│  └─ mobile/      # SvelteKit app (static SPA) wrapped by Capacitor → iOS/Android + web/PWA
+│  ├─ api/         # Go backend — REST API, sync engine, SQLite, embeds the web build (MCP later)
+│  └─ mobile/      # SvelteKit app (static SPA / PWA); Capacitor wrappers planned for iOS/Android
 ├─ packages/
 │  └─ shared/      # TS: generated API client (from OpenAPI), shared types, sync logic
 ├─ docs/           # all design & planning docs (you are here)
@@ -60,6 +62,7 @@ the self-hosted web app.
 | [06 — Mobile app](docs/06-mobile-app.md) | SvelteKit + Capacitor structure, screens, local DB |
 | [07 — Self-hosting](docs/07-self-hosting.md) | Deployment model, config, backups |
 | [08 — Roadmap](docs/08-roadmap.md) | Phases & milestones |
+| [09 — UI design system](docs/09-ui-design-system.md) | Visual language, tokens, component library |
 | [Decisions (ADRs)](docs/decisions/) | The reasoning behind each locked choice |
 
 ## Local development
@@ -78,10 +81,33 @@ pnpm dev:web
 Then open <http://localhost:5173> and register an account. The dev API uses a throwaway secret and
 open registration — **local use only**.
 
+### Build & test (Makefile)
+
+```sh
+make build      # build api + web + shared
+make test       # go test + vitest across the workspace
+make verify     # fmt + lint + test (pre-push gate)
+make gen-client # regenerate openapi.yaml + the typed TS client after API changes
+```
+
+`GOTOOLCHAIN=auto` is set by the Makefile so the Go toolchain self-fetches the version `go.mod`
+targets. JS deps run through `corepack pnpm` (no global pnpm needed).
+
+## Testing
+
+- **Unit — vitest.** `pnpm -r test` (or `make test-web`) runs the TS unit suites: the sync engine and
+  store contract in `packages/shared`, the IndexedDB store, and the API client.
+- **End-to-end — Playwright, against the real binary.** `corepack pnpm --filter mobile e2e` builds the
+  SPA, embeds it into the Go binary, and runs that binary against a throwaway SQLite DB — the same
+  artifact that ships, no mocks or Docker. Specs in [`apps/mobile/e2e/`](apps/mobile/e2e/) cover
+  register/login, creating a routine + folder and moving it, logging a workout into history, and
+  creating/revoking a personal API token. See the harness in `apps/mobile/e2e/serve.mjs` and
+  `apps/mobile/playwright.config.ts`.
+
 ## Contributing
 
-Granite is built in the open. It's early (planning stage) — issues and discussion are welcome. A
-contribution guide will land once the codebase is scaffolded.
+Granite is built in the open. It's early — issues and discussion are welcome. A formal contribution
+guide will land as the project matures.
 
 ## License
 
