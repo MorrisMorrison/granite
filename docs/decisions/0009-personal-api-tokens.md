@@ -13,8 +13,8 @@ email/password flow.
 stored only as a **sha-256 hash** (the raw token is shown once), **optionally expiring**, and **revocable
 by deletion**. The same Bearer middleware accepts them — a `gra_` prefix routes to the token store,
 anything else stays the JWT path — both yielding the same user in context. **Token management
-(create/list/revoke) requires an interactive (JWT) session**, so a leaked API token cannot mint or revoke
-other tokens.
+(create/list/revoke) requires an interactive (JWT) session**, so a leaked API token cannot enumerate, mint,
+or revoke other tokens.
 
 ## Alternatives considered
 - **OAuth2 client-credentials / personal OAuth apps** — far too heavy for a single-user, self-hosted tool.

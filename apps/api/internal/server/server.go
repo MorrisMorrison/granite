@@ -72,16 +72,23 @@ func (s *Server) setupRouter(allowedOrigins []string) {
 		MaxAge:         300,
 	}))
 
-	// Rate-limit only the auth endpoints (brute-force / DoS defense).
+	// Per-IP rate limits: a strict bucket on the auth endpoints (brute-force defense)
+	// and a generous bucket on the rest of the API (DoS / amplification defense — the
+	// token-auth path hashes + hits the DB on every authenticated request).
 	authLimiter := httprate.LimitByIP(30, time.Minute)
+	apiLimiter := httprate.LimitByIP(600, time.Minute)
 	r.Use(func(next http.Handler) http.Handler {
-		limited := authLimiter(next)
+		limitedAuth := authLimiter(next)
+		limitedAPI := apiLimiter(next)
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			if strings.HasPrefix(req.URL.Path, "/api/v1/auth/") {
-				limited.ServeHTTP(w, req)
-				return
+			switch {
+			case strings.HasPrefix(req.URL.Path, "/api/v1/auth/"):
+				limitedAuth.ServeHTTP(w, req)
+			case strings.HasPrefix(req.URL.Path, "/api/v1/"):
+				limitedAPI.ServeHTTP(w, req)
+			default:
+				next.ServeHTTP(w, req)
 			}
-			next.ServeHTTP(w, req)
 		})
 	})
 

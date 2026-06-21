@@ -128,4 +128,49 @@ func TestAPITokenExpiry(t *testing.T) {
 	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "", nil, nil)), apperr.CodeValidation)
 }
 
+func TestAPITokenLastUsed(t *testing.T) {
+	s := newTestService(t, true)
+	ctx := context.Background()
+	user, _, _ := s.Register(ctx, "lastused@example.com", "supersecret", "LU")
+
+	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	s.now = func() time.Time { return t0 }
+	tok, err := s.CreateAPIToken(ctx, user.ID, "t", nil, nil)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	lastUsed := func() *int64 {
+		list, _ := s.ListAPITokens(ctx, user.ID)
+		return list[0].LastUsedAt
+	}
+
+	if lastUsed() != nil {
+		t.Fatal("last_used_at should be null before first use")
+	}
+
+	// First authentication stamps it.
+	if _, _, err := s.AuthenticateAPIToken(ctx, tok.Token); err != nil {
+		t.Fatalf("authenticate: %v", err)
+	}
+	if lu := lastUsed(); lu == nil || *lu != t0.UnixMilli() {
+		t.Fatalf("last_used_at = %v, want %d", lu, t0.UnixMilli())
+	}
+
+	// A second use within the throttle window does not rewrite it.
+	s.now = func() time.Time { return t0.Add(30 * time.Second) }
+	_, _, _ = s.AuthenticateAPIToken(ctx, tok.Token)
+	if lu := lastUsed(); *lu != t0.UnixMilli() {
+		t.Fatalf("last_used_at = %d, want unchanged %d (throttled)", *lu, t0.UnixMilli())
+	}
+
+	// Past the window, it updates.
+	later := t0.Add(2 * time.Minute)
+	s.now = func() time.Time { return later }
+	_, _, _ = s.AuthenticateAPIToken(ctx, tok.Token)
+	if lu := lastUsed(); *lu != later.UnixMilli() {
+		t.Fatalf("last_used_at = %d, want %d (past throttle window)", *lu, later.UnixMilli())
+	}
+}
+
 func mustErr(_ APIToken, err error) error { return err }
