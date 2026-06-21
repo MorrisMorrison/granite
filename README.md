@@ -3,8 +3,8 @@
 > Open-source, self-hostable, **offline-first** workout tracker. Own your training data.
 > A clean gym logger you run yourself — **without** a social network.
 
-**Status:** 🟡 Planning / pre-MVP. No code yet — this repo currently holds the design and plans, and is
-developed **in the open**. See [`docs/`](docs/).
+**Status:** 🟢 In active development, **in the open**. The backend API (auth, exercises, routines,
+workouts, export) is in, and the SvelteKit app is taking shape. See [`docs/`](docs/) for the design.
 
 ---
 
@@ -61,6 +61,22 @@ the self-hosted web app.
 | [07 — Self-hosting](docs/07-self-hosting.md) | Deployment model, config, backups |
 | [08 — Roadmap](docs/08-roadmap.md) | Phases & milestones |
 | [Decisions (ADRs)](docs/decisions/) | The reasoning behind each locked choice |
+
+## Local development
+
+No `make` needed. From the repo root, in two terminals:
+
+```sh
+# 1) API — open registration + CORS for the dev origin, dev DB at apps/api/dev.db (needs Go on PATH)
+pwsh scripts/dev-api.ps1     # Windows PowerShell
+./scripts/dev-api.sh         # macOS / Linux
+
+# 2) Web — SvelteKit dev server with hot reload
+pnpm dev:web
+```
+
+Then open <http://localhost:5173> and register an account. The dev API uses a throwaway secret and
+open registration — **local use only**.
 
 ## Contributing
 
