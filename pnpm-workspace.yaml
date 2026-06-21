@@ -1,3 +1,10 @@
 packages:
   - apps/*
   - packages/*
+
+# Allow these dependencies' install build scripts to run (needed by the Astro/Starlight
+# docs site: esbuild fetches its platform binary, sharp builds image support). Without
+# this, pnpm blocks them and a frozen install errors (ERR_PNPM_IGNORED_BUILDS).
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

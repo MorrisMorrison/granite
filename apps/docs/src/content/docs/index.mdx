@@ -1,0 +1,38 @@
+---
+title: Granite
+description: Open-source, self-hostable, offline-first workout tracker. Own your training data.
+template: splash
+hero:
+  tagline: A clean gym logger you run yourself — offline-first, no social network. Your training data stays yours.
+  actions:
+    - text: Self-host it
+      link: /granite/guides/self-hosting/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/MorrisMorrison/granite
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+	<Card title="Offline-first">
+		Every core action works with no signal; changes sync to your server when you're back online.
+	</Card>
+	<Card title="Yours to host">
+		One Go binary + a SQLite file behind a reverse proxy. JSON export/import — no lock-in.
+	</Card>
+	<Card title="Just training">
+		Routines, the in-gym logger, history, progress charts + PRs. No feeds, followers, or likes.
+	</Card>
+	<Card title="Open & scriptable">
+		AGPL-3.0, a typed REST API with an interactive reference, and an MCP server for AI tooling.
+	</Card>
+</CardGrid>
+
+## Get started
+
+- **[Run it yourself](/granite/guides/self-hosting/)** — `docker compose up` and you're logging.
+- **[Develop locally](/granite/guides/development/)** — build Granite from source.
+- **[Architecture](/granite/guides/architecture/)** and the **[Decisions (ADRs)](/granite/decisions/)** — how it's built, and why.
