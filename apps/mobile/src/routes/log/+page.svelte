@@ -5,6 +5,7 @@
 	import { listExercises } from '$lib/repo/exercises';
 	import { getRoutine } from '$lib/repo/routines';
 	import { logWorkout } from '$lib/repo/workouts';
+	import { lastPerformance } from '$lib/repo/stats';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -22,6 +23,7 @@
 		exercise_id: string;
 		name: string;
 		sets: DraftSet[];
+		prev?: { weight: number | null; reps: number | null }[]; // last session's sets (kg)
 	}
 
 	let title = $state('');
@@ -59,6 +61,24 @@
 			sets: [blankSet()]
 		});
 		pickerOpen = false;
+		void attachPrev(exercises[exercises.length - 1]);
+	}
+
+	// Load the exercise's last performance to hint targets (shown as input placeholders).
+	async function attachPrev(ex: DraftExercise) {
+		const last = await lastPerformance(ex.exercise_id);
+		if (last) ex.prev = last.sets;
+	}
+
+	function prevWeight(ex: DraftExercise, i: number): string | undefined {
+		const p = ex.prev?.[i];
+		if (!p || p.weight == null) return undefined;
+		const v = kgToDisplay(p.weight, unit);
+		return v == null ? undefined : String(v);
+	}
+	function prevReps(ex: DraftExercise, i: number): string | undefined {
+		const p = ex.prev?.[i];
+		return p?.reps == null ? undefined : String(p.reps);
 	}
 
 	function blankSet(from?: DraftSet): DraftSet {
@@ -177,6 +197,7 @@
 				is_completed: false
 			}))
 		}));
+		for (const ex of exercises) void attachPrev(ex);
 	}
 
 	onMount(() => {
@@ -206,8 +227,20 @@
 					<select bind:value={s.set_type}>
 						{#each setTypes as t}<option value={t}>{t}</option>{/each}
 					</select>
-					<input type="number" inputmode="decimal" bind:value={s.weight} data-testid="input-weight" />
-					<input type="number" inputmode="numeric" bind:value={s.reps} data-testid="input-reps" />
+					<input
+						type="number"
+						inputmode="decimal"
+						bind:value={s.weight}
+						placeholder={prevWeight(ex, i)}
+						data-testid="input-weight"
+					/>
+					<input
+						type="number"
+						inputmode="numeric"
+						bind:value={s.reps}
+						placeholder={prevReps(ex, i)}
+						data-testid="input-reps"
+					/>
 					<input
 						type="checkbox"
 						checked={s.is_completed}

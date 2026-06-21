@@ -32,6 +32,36 @@ interface WorkoutData {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+/** The completed sets from the most recent prior session of an exercise (kg). */
+export interface LastPerformance {
+	date: number;
+	sets: { weight: number | null; reps: number | null }[];
+}
+
+/** The most recent session (by start_time) in which the exercise had completed sets. */
+export function computeLastPerformance(
+	records: { id: string; data: unknown }[],
+	exerciseId: string
+): LastPerformance | null {
+	let best: LastPerformance | null = null;
+	for (const rec of records) {
+		const d = rec.data as WorkoutData;
+		const matches = (d.exercises ?? []).filter((e) => e.exercise_id === exerciseId);
+		if (matches.length === 0) continue;
+		const sets: { weight: number | null; reps: number | null }[] = [];
+		for (const ex of matches) {
+			for (const s of ex.sets ?? []) {
+				if (s.is_completed === false) continue;
+				sets.push({ weight: s.weight ?? null, reps: s.reps ?? null });
+			}
+		}
+		if (sets.length === 0) continue;
+		const date = d.start_time ?? 0;
+		if (best === null || date > best.date) best = { date, sets };
+	}
+	return best;
+}
+
 /** Aggregate per-session stats + PRs for one exercise from raw workout records. */
 export function computeExerciseProgress(
 	records: { id: string; data: unknown }[],
