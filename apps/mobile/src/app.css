@@ -1,13 +1,46 @@
 :root {
-	--bg: #0f1115;
-	--surface: #181b21;
-	--surface-2: #20242c;
-	--border: #2a2f38;
-	--text: #e7e9ee;
-	--muted: #9aa3b2;
-	--accent: #6b8afd;
-	--danger: #ef5d6f;
-	--radius: 10px;
+	/* Surfaces */
+	--bg: #0e1114;
+	--surface: #171b20;
+	--elevated: #1d222a;
+	--border: #272d36;
+	--border-strong: #323a45;
+
+	/* Text */
+	--text: #e6e9ee;
+	--muted: #99a2ad;
+	--faint: #6b7480;
+
+	/* Accent (blue) */
+	--accent: #3b82f6;
+	--accent-hover: #2f6fe0;
+	--accent-text: #ffffff;
+	--accent-subtle: rgba(59, 130, 246, 0.14);
+
+	/* Semantic (used sparingly) */
+	--danger: #ef4444;
+	--success: #22c55e;
+	--warning: #f59e0b;
+
+	/* Radius */
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+	--radius-pill: 999px;
+
+	/* Compat aliases for screens not yet migrated to the component library */
+	--surface-2: var(--elevated);
+	--radius: var(--radius-md);
+
+	/* Motion */
+	--dur-fast: 120ms;
+	--dur: 200ms;
+	--ease: cubic-bezier(0.2, 0, 0, 1);
+
+	/* Layout */
+	--content-max: 30rem;
+	--tabbar-h: 56px;
+
 	color-scheme: dark;
 }
 
@@ -20,39 +53,70 @@ body {
 	margin: 0;
 	background: var(--bg);
 	color: var(--text);
-	font-family: system-ui, -apple-system, sans-serif;
+	font-family:
+		system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+h1 {
+	font-size: 1.5rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	margin: 0 0 1rem;
 }
 
 a {
 	color: var(--accent);
+	text-decoration: none;
 }
 
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* App layout: centered mobile column, room for the bottom tab bar. */
 .container {
-	max-width: 40rem;
+	max-width: var(--content-max);
 	margin: 0 auto;
-	padding: 1rem;
+	padding: 1rem 1rem calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1.5rem);
 }
 
 .card {
 	background: var(--surface);
 	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	padding: 1rem;
+	border-radius: var(--radius-lg);
+	padding: 1rem 1.1rem;
 }
 
 input,
-button {
+select,
+textarea {
 	font: inherit;
+	width: 100%;
+	padding: 0.65rem 0.8rem;
+	background: var(--elevated);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	color: var(--text);
+	transition: border-color var(--dur-fast) var(--ease);
 }
 
-input {
-	width: 100%;
-	padding: 0.6rem 0.75rem;
-	background: var(--surface-2);
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	color: var(--text);
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+	color: var(--faint);
+}
+
+button {
+	font: inherit;
 }
 
 .btn {
@@ -60,24 +124,40 @@ input {
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
-	padding: 0.6rem 1rem;
+	padding: 0.7rem 1.1rem;
 	background: var(--accent);
-	color: #0b1020;
+	color: var(--accent-text);
 	border: none;
-	border-radius: var(--radius);
+	border-radius: var(--radius-md);
 	font-weight: 600;
 	cursor: pointer;
+	transition:
+		background var(--dur-fast) var(--ease),
+		transform var(--dur-fast) var(--ease);
+}
+
+.btn:hover {
+	background: var(--accent-hover);
+}
+
+.btn:active {
+	transform: scale(0.98);
 }
 
 .btn:disabled {
-	opacity: 0.6;
+	opacity: 0.55;
 	cursor: default;
+	transform: none;
 }
 
 .btn-ghost {
 	background: transparent;
 	color: var(--text);
-	border: 1px solid var(--border);
+	border: 1px solid var(--border-strong);
+}
+
+.btn-ghost:hover {
+	background: var(--elevated);
 }
 
 .error {
@@ -93,5 +173,5 @@ label {
 	display: block;
 	font-size: 0.85rem;
 	color: var(--muted);
-	margin: 0.75rem 0 0.25rem;
+	margin: 0.75rem 0 0.3rem;
 }
