@@ -198,14 +198,19 @@
 				<span>Set</span><span>Type</span><span>Weight</span><span>Reps</span><span>✓</span><span></span>
 			</div>
 			{#each ex.sets as s, i (s.uid)}
-				<div class="set-row" class:done={s.is_completed}>
+				<div class="set-row" class:done={s.is_completed} data-testid="set-row">
 					<span>{i + 1}</span>
 					<select bind:value={s.set_type}>
 						{#each setTypes as t}<option value={t}>{t}</option>{/each}
 					</select>
-					<input type="number" inputmode="decimal" bind:value={s.weight} />
-					<input type="number" inputmode="numeric" bind:value={s.reps} />
-					<input type="checkbox" checked={s.is_completed} onchange={() => toggleComplete(s)} />
+					<input type="number" inputmode="decimal" bind:value={s.weight} data-testid="input-weight" />
+					<input type="number" inputmode="numeric" bind:value={s.reps} data-testid="input-reps" />
+					<input
+						type="checkbox"
+						checked={s.is_completed}
+						onchange={() => toggleComplete(s)}
+						data-testid="set-complete"
+					/>
 					<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
 				</div>
 			{/each}
