@@ -16,6 +16,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/logging"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 	"github.com/MorrisMorrison/granite/apps/api/internal/server"
+	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
 	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
 
@@ -48,7 +49,8 @@ func main() {
 	exerciseSvc := exercise.NewService(queries)
 	routineSvc := routine.NewService(database, queries)
 	workoutSvc := workout.NewService(database, queries)
-	srv := server.New(authSvc, exerciseSvc, routineSvc, workoutSvc, tokens, database, []string{cfg.BaseURL})
+	syncSvc := syncpkg.NewService(database, queries)
+	srv := server.New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{cfg.BaseURL})
 
 	addr := ":" + cfg.Port
 	slog.Info("granite api listening", "addr", addr)
