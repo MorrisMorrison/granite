@@ -17,6 +17,7 @@ type ApiToken struct {
 	LastUsedAt sql.NullInt64 `json:"last_used_at"`
 	ExpiresAt  sql.NullInt64 `json:"expires_at"`
 	CreatedAt  int64         `json:"created_at"`
+	Scopes     string        `json:"scopes"`
 }
 
 type Exercise struct {

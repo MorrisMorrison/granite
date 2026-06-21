@@ -7,12 +7,13 @@ import (
 )
 
 type apiTokenResp struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Prefix    string `json:"prefix"`
-	Token     string `json:"token"`
-	ExpiresAt *int64 `json:"expires_at"`
-	CreatedAt int64  `json:"created_at"`
+	ID        string   `json:"id"`
+	Name      string   `json:"name"`
+	Prefix    string   `json:"prefix"`
+	Token     string   `json:"token"`
+	Scopes    []string `json:"scopes"`
+	ExpiresAt *int64   `json:"expires_at"`
+	CreatedAt int64    `json:"created_at"`
 }
 
 type tokensListResp struct {
@@ -50,7 +51,10 @@ func TestAPITokenFlow(t *testing.T) {
 		t.Fatalf("list = %+v, want 1 token with no raw secret", list.Tokens)
 	}
 
-	// An API token cannot manage tokens (mint or list) — that needs a session.
+	// An API token can't manage tokens. (This token is read-only, so the POST is
+	// stopped by write-enforcement; the GET list is a read and is stopped by
+	// requireInteractive. See TestAPITokenManagementNeedsSession for that guard in
+	// isolation with a write-scoped token.)
 	if rec := doReq(t, h, http.MethodPost, "/api/v1/tokens", created.Token, map[string]any{"name": "x"}); rec.Code != http.StatusForbidden {
 		t.Fatalf("create token via API token = %d, want 403", rec.Code)
 	}
@@ -64,6 +68,56 @@ func TestAPITokenFlow(t *testing.T) {
 	}
 	if rec := doReq(t, h, http.MethodGet, "/api/v1/me", created.Token, nil); rec.Code != http.StatusUnauthorized {
 		t.Fatalf("revoked token still works: %d, want 401", rec.Code)
+	}
+}
+
+func TestAPITokenWriteScope(t *testing.T) {
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "scope@user.com")
+
+	// Default token is read-only.
+	rec := doReq(t, h, http.MethodPost, "/api/v1/tokens", access, map[string]any{"name": "ro"})
+	var ro apiTokenResp
+	mustJSON(t, rec, &ro)
+	if len(ro.Scopes) != 1 || ro.Scopes[0] != "read" {
+		t.Fatalf("default scopes = %v, want [read]", ro.Scopes)
+	}
+	// Reads work; writes are forbidden.
+	if rec := doReq(t, h, http.MethodGet, "/api/v1/routines", ro.Token, nil); rec.Code != http.StatusOK {
+		t.Fatalf("read with read-only token = %d, want 200", rec.Code)
+	}
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/routines", ro.Token, map[string]any{"title": "X", "exercises": []any{}}); rec.Code != http.StatusForbidden {
+		t.Fatalf("write with read-only token = %d, want 403", rec.Code)
+	}
+
+	// An unknown scope is rejected (the only gate — OpenAPI types scopes as a free string[]).
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/tokens", access, map[string]any{"name": "bad", "scopes": []string{"admin"}}); rec.Code != http.StatusUnprocessableEntity && rec.Code != http.StatusBadRequest {
+		t.Fatalf("unknown scope = %d, want 4xx", rec.Code)
+	}
+
+	// A write-scoped token can write.
+	rec = doReq(t, h, http.MethodPost, "/api/v1/tokens", access, map[string]any{"name": "rw", "scopes": []string{"write"}})
+	var rw apiTokenResp
+	mustJSON(t, rec, &rw)
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/routines", rw.Token, map[string]any{"title": "X", "exercises": []any{}}); rec.Code != http.StatusCreated {
+		t.Fatalf("write with read-write token = %d, want 201: %s", rec.Code, rec.Body)
+	}
+}
+
+// A write-scoped token passes write-enforcement but still can't manage tokens —
+// isolating the requireInteractive (JWT-only) guard.
+func TestAPITokenManagementNeedsSession(t *testing.T) {
+	h, _ := newTestServer(t)
+	access := registerUser(t, h, "mgmt@user.com")
+	rec := doReq(t, h, http.MethodPost, "/api/v1/tokens", access, map[string]any{"name": "rw", "scopes": []string{"write"}})
+	var rw apiTokenResp
+	mustJSON(t, rec, &rw)
+
+	if rec := doReq(t, h, http.MethodPost, "/api/v1/tokens", rw.Token, map[string]any{"name": "x"}); rec.Code != http.StatusForbidden {
+		t.Fatalf("write token minting a token = %d, want 403 (requireInteractive)", rec.Code)
+	}
+	if rec := doReq(t, h, http.MethodGet, "/api/v1/tokens", rw.Token, nil); rec.Code != http.StatusForbidden {
+		t.Fatalf("write token listing tokens = %d, want 403", rec.Code)
 	}
 }
 

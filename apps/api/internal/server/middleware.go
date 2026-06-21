@@ -26,6 +26,10 @@ const (
 	authMethodAPIToken = "apitoken"
 )
 
+// metaReadOnly marks an operation that uses a write HTTP method but doesn't
+// mutate data, so read-only API tokens are still allowed (e.g. sync/pull).
+const metaReadOnly = "readOnly"
+
 // secureHeaders sets conservative security response headers.
 func secureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -73,13 +77,14 @@ func newAuthMiddleware(api huma.API, tokens *auth.TokenManager, svc *auth.Servic
 			return
 		}
 		var userID, method string
+		canWrite := true // JWT sessions have full access
 		if strings.HasPrefix(token, auth.APITokenPrefix) {
-			id, err := svc.AuthenticateAPIToken(ctx.Context(), token)
+			id, scopes, err := svc.AuthenticateAPIToken(ctx.Context(), token)
 			if err != nil {
 				_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "invalid or expired API token")
 				return
 			}
-			userID, method = id, authMethodAPIToken
+			userID, method, canWrite = id, authMethodAPIToken, auth.ScopesAllowWrite(scopes)
 		} else {
 			id, err := tokens.ParseAccessToken(token)
 			if err != nil {
@@ -88,7 +93,26 @@ func newAuthMiddleware(api huma.API, tokens *auth.TokenManager, svc *auth.Servic
 			}
 			userID, method = id, authMethodJWT
 		}
+		// Read-only API tokens may not perform write operations.
+		if !canWrite && isWriteOp(ctx.Operation()) {
+			_ = huma.WriteErr(api, ctx, http.StatusForbidden, "this API token is read-only")
+			return
+		}
 		next(huma.WithValue(huma.WithValue(ctx, userIDKey, userID), authMethodKey, method))
+	}
+}
+
+// isWriteOp reports whether an operation mutates data. It's method-based (so new
+// write endpoints are guarded by default); a non-mutating endpoint that uses a
+// write method (e.g. sync/pull reads over POST) opts out by setting the
+// readOnly metadata flag at registration, keeping the exception next to the route.
+func isWriteOp(op *huma.Operation) bool {
+	switch op.Method {
+	case http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete:
+		readOnly, _ := op.Metadata[metaReadOnly].(bool)
+		return !readOnly
+	default:
+		return false
 	}
 }
 

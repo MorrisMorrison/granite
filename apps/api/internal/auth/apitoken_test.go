@@ -17,7 +17,7 @@ func TestAPITokenLifecycle(t *testing.T) {
 		t.Fatalf("register: %v", err)
 	}
 
-	tok, err := s.CreateAPIToken(ctx, user.ID, "CLI", nil)
+	tok, err := s.CreateAPIToken(ctx, user.ID, "CLI", nil, nil)
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
@@ -29,13 +29,13 @@ func TestAPITokenLifecycle(t *testing.T) {
 	}
 
 	// Authenticates back to the owner.
-	uid, err := s.AuthenticateAPIToken(ctx, tok.Token)
+	uid, _, err := s.AuthenticateAPIToken(ctx, tok.Token)
 	if err != nil || uid != user.ID {
 		t.Fatalf("authenticate = %q, %v; want %q", uid, err, user.ID)
 	}
 
 	// Unknown token is rejected.
-	if _, err := s.AuthenticateAPIToken(ctx, "gra_nope"); err == nil {
+	if _, _, err := s.AuthenticateAPIToken(ctx, "gra_nope"); err == nil {
 		t.Fatal("expected unknown token to be rejected")
 	}
 
@@ -52,10 +52,49 @@ func TestAPITokenLifecycle(t *testing.T) {
 	if err := s.RevokeAPIToken(ctx, user.ID, tok.ID); err != nil {
 		t.Fatalf("revoke: %v", err)
 	}
-	if _, err := s.AuthenticateAPIToken(ctx, tok.Token); err == nil {
+	if _, _, err := s.AuthenticateAPIToken(ctx, tok.Token); err == nil {
 		t.Fatal("revoked token should not authenticate")
 	}
 	assertCode(t, s.RevokeAPIToken(ctx, user.ID, tok.ID), apperr.CodeNotFound)
+}
+
+func TestAPITokenScopes(t *testing.T) {
+	s := newTestService(t, true)
+	ctx := context.Background()
+	user, _, _ := s.Register(ctx, "scopes@example.com", "supersecret", "Scopes")
+
+	// Default is read-only.
+	ro, err := s.CreateAPIToken(ctx, user.ID, "reader", nil, nil)
+	if err != nil {
+		t.Fatalf("create read-only: %v", err)
+	}
+	if len(ro.Scopes) != 1 || ro.Scopes[0] != ScopeRead {
+		t.Fatalf("default scopes = %v, want [read]", ro.Scopes)
+	}
+	if _, scopes, _ := s.AuthenticateAPIToken(ctx, ro.Token); ScopesAllowWrite(scopes) {
+		t.Fatal("read-only token should not allow writes")
+	}
+
+	// Requesting write yields read+write.
+	rw, err := s.CreateAPIToken(ctx, user.ID, "writer", []string{ScopeWrite}, nil)
+	if err != nil {
+		t.Fatalf("create read-write: %v", err)
+	}
+	if len(rw.Scopes) != 2 {
+		t.Fatalf("write token scopes = %v, want [read write]", rw.Scopes)
+	}
+	if _, scopes, _ := s.AuthenticateAPIToken(ctx, rw.Token); !ScopesAllowWrite(scopes) {
+		t.Fatal("write token should allow writes")
+	}
+
+	// Scope strings are canonicalized (case-insensitive, trimmed, deduped).
+	mixed, err := s.CreateAPIToken(ctx, user.ID, "mixed", []string{"READ", " write "}, nil)
+	if err != nil || len(mixed.Scopes) != 2 {
+		t.Fatalf("canonicalized scopes = %v (err %v), want [read write]", mixed.Scopes, err)
+	}
+
+	// Unknown scope is rejected.
+	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "bad", []string{"admin"}, nil)), apperr.CodeValidation)
 }
 
 func TestAPITokenExpiry(t *testing.T) {
@@ -69,24 +108,24 @@ func TestAPITokenExpiry(t *testing.T) {
 	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	s.now = func() time.Time { return t0 }
 	expires := t0.Add(time.Hour).UnixMilli()
-	tok, err := s.CreateAPIToken(ctx, user.ID, "temp", &expires)
+	tok, err := s.CreateAPIToken(ctx, user.ID, "temp", nil, &expires)
 	if err != nil {
 		t.Fatalf("create with expiry: %v", err)
 	}
-	if _, err := s.AuthenticateAPIToken(ctx, tok.Token); err != nil {
+	if _, _, err := s.AuthenticateAPIToken(ctx, tok.Token); err != nil {
 		t.Fatalf("token should be valid before expiry: %v", err)
 	}
 
 	// Past expiry: rejected.
 	s.now = func() time.Time { return t0.Add(2 * time.Hour) }
-	if _, err := s.AuthenticateAPIToken(ctx, tok.Token); err == nil {
+	if _, _, err := s.AuthenticateAPIToken(ctx, tok.Token); err == nil {
 		t.Fatal("expired token should be rejected")
 	}
 
 	// Creating a token that's already expired is a validation error.
 	past := t0.Add(-time.Hour).UnixMilli()
-	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "stale", &past)), apperr.CodeValidation)
-	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "", nil)), apperr.CodeValidation)
+	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "stale", nil, &past)), apperr.CodeValidation)
+	assertCode(t, mustErr(s.CreateAPIToken(ctx, user.ID, "", nil, nil)), apperr.CodeValidation)
 }
 
 func mustErr(_ APIToken, err error) error { return err }

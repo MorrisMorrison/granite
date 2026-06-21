@@ -29,12 +29,19 @@ components:
           type: string
         prefix:
           type: string
+        scopes:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
         token:
           type: string
       required:
         - id
         - name
         - prefix
+        - scopes
         - last_used_at
         - expires_at
         - created_at
@@ -98,6 +105,13 @@ components:
         name:
           description: A label to identify the token.
           type: string
+        scopes:
+          description: "Access scopes: omit for read-only, or [\"write\"] for read+write."
+          items:
+            type: string
+          type:
+            - array
+            - "null"
       required:
         - name
       type: object
