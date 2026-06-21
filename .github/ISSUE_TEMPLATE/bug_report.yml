@@ -1,0 +1,53 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Tap …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Image tag, release, or commit SHA.
+    validations:
+      required: false
+  - type: dropdown
+    id: context
+    attributes:
+      label: How are you running Granite?
+      options:
+        - Self-hosted (Docker)
+        - Self-hosted (bare binary)
+        - Local development
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Platform / browser
+      description: e.g. Firefox on Android, Chrome on Windows, installed PWA.
+    validations:
+      required: false
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Offline
+      options:
+        - label: This happened (or also happens) while offline
+          required: false
