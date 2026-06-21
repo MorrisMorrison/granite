@@ -1,24 +1,21 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
-
-	interface RoutineRow {
-		id: string;
-		title: string;
-	}
+	import { listRoutines, type RoutineRow } from '$lib/repo/routines';
+	import { syncNow } from '$lib/sync';
 
 	let routines = $state<RoutineRow[]>([]);
 	let loading = $state(true);
 	let error = $state('');
 
 	onMount(async () => {
-		const { data, error: err } = await api().GET('/api/v1/routines');
-		if (err || !data) {
-			error = 'Failed to load routines.';
-		} else {
-			routines = (data.routines ?? []).map((r) => ({ id: r.id, title: r.title }));
-		}
+		routines = await listRoutines();
 		loading = false;
+		try {
+			await syncNow();
+			routines = await listRoutines();
+		} catch {
+			/* offline — keep local */
+		}
 	});
 </script>
 

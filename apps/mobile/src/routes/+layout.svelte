@@ -2,7 +2,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, preloadCode } from '$app/navigation';
 	import { page } from '$app/state';
 	import { auth } from '$lib/stores/auth.svelte';
 
@@ -12,6 +12,21 @@
 
 	onMount(() => {
 		void auth.init();
+		// Warm every screen's code while online so each route works offline on first
+		// visit (the service worker caches what's fetched). Best-effort.
+		for (const path of [
+			'/',
+			'/login',
+			'/register',
+			'/log',
+			'/routines',
+			'/routines/new',
+			'/routines/_',
+			'/exercises',
+			'/history'
+		]) {
+			void preloadCode(path).catch(() => {});
+		}
 	});
 
 	$effect(() => {

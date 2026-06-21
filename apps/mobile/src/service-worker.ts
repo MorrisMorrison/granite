@@ -10,10 +10,12 @@ const CACHE = 'granite-v1';
 const PRECACHE = ['/', ...build, ...files, ...prerendered];
 
 sw.addEventListener('install', (event) => {
+	// Cache entries individually (not addAll) so one transient failure can't abort
+	// the whole precache and leave route chunks missing.
 	event.waitUntil(
 		caches
 			.open(CACHE)
-			.then((c) => c.addAll(PRECACHE))
+			.then((c) => Promise.allSettled(PRECACHE.map((url) => c.add(url))))
 			.then(() => sw.skipWaiting())
 	);
 });
@@ -34,21 +36,31 @@ sw.addEventListener('fetch', (event) => {
 	if (url.origin !== sw.location.origin) return; // leave cross-origin (e.g. a remote API) alone
 	if (url.pathname.startsWith('/api/')) return; // never cache API calls
 
+	// Content-hashed build assets never change for a given URL → cache-first.
+	const immutable = url.pathname.startsWith('/_app/immutable/');
+
 	event.respondWith(
 		(async () => {
 			const cache = await caches.open(CACHE);
-			const cached = await cache.match(req);
-			if (cached) return cached;
 
+			if (immutable) {
+				const hit = await cache.match(req);
+				if (hit) return hit;
+				const res = await fetch(req);
+				if (res.ok) cache.put(req, res.clone());
+				return res;
+			}
+
+			// The app shell (/, navigations) and other files are network-first, so an
+			// online load always gets the current build (no stale shell), with the cache
+			// as the offline fallback.
 			try {
 				const res = await fetch(req);
-				// Runtime-cache successful same-origin responses (e.g. on-demand route chunks).
-				if (res.ok && res.type === 'basic') {
-					cache.put(req, res.clone());
-				}
+				if (res.ok && res.type === 'basic') cache.put(req, res.clone());
 				return res;
 			} catch {
-				// Offline: fall back to the cached SPA shell for client-side navigations.
+				const hit = await cache.match(req);
+				if (hit) return hit;
 				if (req.mode === 'navigate') {
 					const shell = await cache.match('/');
 					if (shell) return shell;

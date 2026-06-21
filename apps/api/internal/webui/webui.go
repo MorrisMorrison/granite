@@ -43,8 +43,15 @@ func Handler() http.Handler {
 				}
 			}
 		}
-		// SPA fallback: hand index.html to the client router. Don't cache it, so a
-		// deploy is picked up immediately (the hashed assets it references are cached).
+		// A missing *asset* (a path with a file extension, e.g. a stale hashed chunk)
+		// must 404 — returning the HTML shell instead makes a failed import look like a
+		// successful fetch of the wrong type.
+		if path.Ext(name) != "" {
+			http.NotFound(w, r)
+			return
+		}
+		// SPA fallback: hand index.html to the client router for navigations. Don't
+		// cache it, so a deploy is picked up immediately (its hashed assets are cached).
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(index)

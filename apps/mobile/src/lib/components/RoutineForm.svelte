@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
+	import { listExercises } from '$lib/repo/exercises';
 
 	interface DraftSet {
 		uid: string;
@@ -68,8 +68,7 @@
 	let pickerOpen = $state(false);
 
 	onMount(async () => {
-		const { data } = await api().GET('/api/v1/exercises');
-		library = (data?.exercises ?? []).map((e) => ({
+		library = (await listExercises()).map((e) => ({
 			id: e.id,
 			name: e.name,
 			primary_muscle: e.primary_muscle
