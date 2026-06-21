@@ -2,7 +2,9 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
+	import { listExercises } from '$lib/repo/exercises';
+	import { getRoutine } from '$lib/repo/routines';
+	import { logWorkout } from '$lib/repo/workouts';
 
 	interface DraftSet {
 		uid: string;
@@ -35,8 +37,7 @@
 	async function openPicker() {
 		pickerOpen = true;
 		if (!libraryLoaded) {
-			const { data } = await api().GET('/api/v1/exercises');
-			library = (data?.exercises ?? []).map((e) => ({
+			library = (await listExercises()).map((e) => ({
 				id: e.id,
 				name: e.name,
 				primary_muscle: e.primary_muscle
@@ -122,24 +123,22 @@
 		saving = true;
 		error = '';
 		try {
-			const { data, error: err } = await api().POST('/api/v1/workouts', {
-				body: {
-					routine_id: fromRoutineId,
-					title: title || undefined,
-					start_time: startTime,
-					end_time: Date.now(),
-					exercises: exercises.map((ex) => ({
-						exercise_id: ex.exercise_id,
-						sets: ex.sets.map((s) => ({
-							set_type: s.set_type,
-							weight: s.weight ?? undefined,
-							reps: s.reps ?? undefined,
-							is_completed: s.is_completed
-						}))
+			// Saves locally (works offline) and syncs in the background.
+			await logWorkout({
+				routine_id: fromRoutineId ?? null,
+				title: title || undefined,
+				start_time: startTime,
+				end_time: Date.now(),
+				exercises: exercises.map((ex) => ({
+					exercise_id: ex.exercise_id,
+					sets: ex.sets.map((s) => ({
+						set_type: s.set_type,
+						weight: s.weight,
+						reps: s.reps,
+						is_completed: s.is_completed
 					}))
-				}
+				}))
 			});
-			if (err || !data) throw new Error('Failed to save workout');
 			await goto('/history');
 		} catch (e) {
 			error = (e as Error).message;
@@ -149,12 +148,7 @@
 	}
 
 	async function prefillFromRoutine(routineId: string) {
-		const [routineRes, libRes] = await Promise.all([
-			api().GET('/api/v1/routines/{id}', { params: { path: { id: routineId } } }),
-			api().GET('/api/v1/exercises')
-		]);
-		const r = routineRes.data;
-		const lib = libRes.data?.exercises ?? [];
+		const [r, lib] = await Promise.all([getRoutine(routineId), listExercises()]);
 		if (!r) {
 			void openPicker();
 			return;
@@ -162,15 +156,15 @@
 		const nameOf = (id: string) => lib.find((e) => e.id === id)?.name ?? 'Exercise';
 		fromRoutineId = r.id;
 		if (r.title) title = r.title;
-		exercises = (r.exercises ?? []).map((ex) => ({
+		exercises = r.exercises.map((ex) => ({
 			uid: crypto.randomUUID(),
 			exercise_id: ex.exercise_id,
 			name: nameOf(ex.exercise_id),
-			sets: (ex.sets ?? []).map((s) => ({
+			sets: ex.sets.map((s) => ({
 				uid: crypto.randomUUID(),
 				set_type: s.set_type,
-				weight: s.target_weight ?? null,
-				reps: s.target_reps ?? null,
+				weight: s.target_weight,
+				reps: s.target_reps,
 				is_completed: false
 			}))
 		}));
