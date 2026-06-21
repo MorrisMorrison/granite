@@ -15,8 +15,7 @@ backed by a Go API with auth, sync, JSON export/import, and personal API tokens.
 
 Granite lets you build routines, log workouts at the gym (even with no signal), and track your
 progress — and lets you **run the whole thing on your own server** so your data is yours. It's
-mobile-first with a web app, a public REST API, and an MCP server. It deliberately leaves out the
-social network (feeds, followers, likes): a tool for *you* and your training, not a platform.
+mobile-first with a web app, a public REST API, and an MCP server.
 
 - **Offline-first** — every core action works with no network; changes sync to your server when online.
 - **Yours to host** — one Go binary + a SQLite file behind a reverse proxy. JSON export/import, no lock-in.
@@ -53,10 +52,7 @@ Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and [`deploy
 
 📖 **Documentation site: <https://morrismorrison.github.io/granite/>** (generated from `docs/`).
 
-Or browse the source: design docs, architecture, and ADRs live in **[`docs/`](docs/README.md)**. Highlights:
-[Vision](docs/00-vision.md) · [Architecture](docs/02-architecture.md) ·
-[API design](docs/04-api-design.md) · [Sync & offline](docs/05-sync-and-offline.md) ·
-[Self-hosting](docs/07-self-hosting.md).
+Or browse the source: design docs, architecture, and ADRs live in **[`docs/`](docs/README.md)**. 
 
 ## Development
 
