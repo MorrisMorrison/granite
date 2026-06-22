@@ -1,0 +1,39 @@
+# Codecov config. Coverage is tracked per app via flags (api / mobile) so each
+# app's README can show its own badge. It's informational only — never gates CI
+# or PRs (see docs: coverage is a proxy, weight the dangerous code, don't block).
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+# Per-app flags. carryforward keeps a flag's last value on commits where that
+# app's job didn't upload (e.g. a PR touching only the other app).
+flags:
+  api:
+    paths:
+      - apps/api
+    carryforward: true
+  mobile:
+    paths:
+      - apps/mobile
+    carryforward: true
+
+# Dashboard breakdown that mirrors the flags.
+component_management:
+  individual_components:
+    - component_id: api
+      name: API (Go)
+      paths:
+        - apps/api/**
+    - component_id: mobile
+      name: Web (SvelteKit)
+      paths:
+        - apps/mobile/**
+
+comment:
+  layout: 'reach, diff, flags, components'
+  require_changes: true

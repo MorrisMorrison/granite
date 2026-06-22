@@ -20,7 +20,14 @@ jobs:
           cache: false
       - run: go vet ./...
       - run: go build ./...
-      - run: go test ./...
+      - run: go test -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/api/coverage.out
+          flags: api
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   web:
     name: Web (SvelteKit + shared)
@@ -35,6 +42,14 @@ jobs:
       - run: corepack pnpm -r build
       - run: corepack pnpm -r --if-present check
       - run: corepack pnpm -r test
+      - run: corepack pnpm -C apps/mobile test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/mobile/coverage/lcov.info
+          flags: mobile
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   docker:
     name: Docker image builds

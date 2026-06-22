@@ -1,5 +1,7 @@
 # apps/api — Go backend
 
+[![api coverage](https://codecov.io/gh/MorrisMorrison/granite/graph/badge.svg?flag=api)](https://codecov.io/gh/MorrisMorrison/granite)
+
 The Go service: the REST API, the offline-first **sync** engine, auth, and personal API tokens. It
 stores data in an embedded **SQLite** file and `go:embed`s the SvelteKit static build to serve the
 self-hosted web app — so a self-hoster runs a **single binary**. (An MCP server is a later phase.)
