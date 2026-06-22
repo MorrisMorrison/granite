@@ -17,6 +17,15 @@ coverage:
 fixes:
   - 'github.com/MorrisMorrison/granite/apps/api/::apps/api/'
 
+# Exclude code that isn't meaningfully unit-tested so the % reflects business
+# logic: app entrypoints (main), generated sqlc, and SQL migrations. (The api job
+# runs with -coverpkg=./... so cross-package coverage — e.g. the sync package
+# exercised by the server tests — is credited rather than showing as 0%.)
+ignore:
+  - 'apps/api/cmd/**'
+  - 'apps/api/internal/db/sqlc/**'
+  - 'apps/api/internal/db/migrations/**'
+
 # Per-app flags. No path filter: each flag is scoped by its own CI upload (the
 # api job uploads the Go profile, the web job the mobile lcov), so they never
 # overlap. carryforward keeps a flag's last value on commits that didn't re-upload
