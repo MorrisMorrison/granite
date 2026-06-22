@@ -7,6 +7,7 @@
 	import { logWorkout } from '$lib/repo/workouts';
 	import { lastPerformance } from '$lib/repo/stats';
 	import { prefs } from '$lib/stores/prefs.svelte';
+	import { restAlert } from '$lib/restAlert';
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
@@ -117,7 +118,10 @@
 		if (restInterval) clearInterval(restInterval);
 		restInterval = setInterval(() => {
 			restRemaining -= 1;
-			if (restRemaining <= 0) stopRest();
+			if (restRemaining <= 0) {
+				restAlert(); // buzz + beep when the rest period ends
+				stopRest();
+			}
 		}, 1000);
 	}
 	function bumpRest(delta: number) {
