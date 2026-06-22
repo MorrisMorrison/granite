@@ -20,7 +20,8 @@ jobs:
           cache: false
       - run: go vet ./...
       - run: go build ./...
-      - run: go test -covermode=atomic -coverprofile=coverage.out ./...
+      # One run produces both the JUnit report (Test Analytics) and the coverage profile.
+      - run: go run gotest.tools/gotestsum@latest --junitfile junit.xml -- -covermode=atomic -coverprofile=coverage.out ./...
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -28,6 +29,13 @@ jobs:
           flags: api
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          files: apps/api/junit.xml
+          flags: api
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   web:
     name: Web (SvelteKit + shared)
@@ -42,7 +50,7 @@ jobs:
       - run: corepack pnpm -r build
       - run: corepack pnpm -r --if-present check
       - run: corepack pnpm -r test
-      - run: corepack pnpm -C apps/mobile test:coverage
+      - run: corepack pnpm -C apps/mobile exec vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=junit.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -50,6 +58,13 @@ jobs:
           flags: mobile
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          files: apps/mobile/junit.xml
+          flags: mobile
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   docker:
     name: Docker image builds
@@ -89,6 +104,13 @@ jobs:
           name: playwright-report
           path: apps/mobile/playwright-report
           retention-days: 7
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          files: apps/mobile/junit.xml
+          flags: e2e
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   openapi:
     name: OpenAPI client up-to-date
