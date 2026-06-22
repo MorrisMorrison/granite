@@ -3,9 +3,18 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
 )
+
+// registerSyncRoutes wires the offline-first delta-sync endpoints.
+func (s *Server) registerSyncRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "syncPull", Method: http.MethodPost, Path: "/api/v1/sync/pull", Summary: "Pull changes since a cursor", Tags: []string{"Sync"}, Security: bearerSecurity, Metadata: map[string]any{metaReadOnly: true}}, s.handleSyncPull)
+	huma.Register(a, huma.Operation{OperationID: "syncPush", Method: http.MethodPost, Path: "/api/v1/sync/push", Summary: "Push local changes", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPush)
+}
 
 // apiChange is the wire form of a sync change. Data is free-form JSON (the
 // record's fields); huma renders `any` as an unconstrained schema.

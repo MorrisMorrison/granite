@@ -2,10 +2,20 @@ package server
 
 import (
 	"context"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 )
+
+// registerTokenRoutes wires the personal API-token endpoints.
+func (s *Server) registerTokenRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "listApiTokens", Method: http.MethodGet, Path: "/api/v1/tokens", Summary: "List your API tokens", Tags: []string{"Tokens"}, Security: bearerSecurity}, s.handleListTokens)
+	huma.Register(a, huma.Operation{OperationID: "createApiToken", Method: http.MethodPost, Path: "/api/v1/tokens", Summary: "Create an API token", Tags: []string{"Tokens"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateToken)
+	huma.Register(a, huma.Operation{OperationID: "revokeApiToken", Method: http.MethodDelete, Path: "/api/v1/tokens/{id}", Summary: "Revoke an API token", Tags: []string{"Tokens"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleRevokeToken)
+}
 
 type listTokensOutput struct {
 	Body struct {

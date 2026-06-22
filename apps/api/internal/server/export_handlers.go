@@ -2,11 +2,21 @@ package server
 
 import (
 	"context"
+	"net/http"
 	"time"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
+
+// registerExportRoutes wires the "own your data" export + import endpoints
+// (handleImport lives in import_handlers.go).
+func (s *Server) registerExportRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "exportData", Method: http.MethodGet, Path: "/api/v1/export", Summary: "Export all of your data", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleExport)
+	huma.Register(a, huma.Operation{OperationID: "importData", Method: http.MethodPost, Path: "/api/v1/import", Summary: "Import a previously exported dump (upsert by id, idempotent)", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleImport)
+}
 
 // exportOutput is a complete, re-importable dump of the user's data ("own your
 // data"). Built-in exercises are excluded (they ship with every instance).

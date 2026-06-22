@@ -2,9 +2,28 @@ package server
 
 import (
 	"context"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 )
+
+// registerRoutineRoutes wires the routine + routine-folder endpoints.
+func (s *Server) registerRoutineRoutes(a huma.API) {
+	// Routine folders
+	huma.Register(a, huma.Operation{OperationID: "listRoutineFolders", Method: http.MethodGet, Path: "/api/v1/routine-folders", Summary: "List routine folders", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleListFolders)
+	huma.Register(a, huma.Operation{OperationID: "createRoutineFolder", Method: http.MethodPost, Path: "/api/v1/routine-folders", Summary: "Create a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateFolder)
+	huma.Register(a, huma.Operation{OperationID: "updateRoutineFolder", Method: http.MethodPatch, Path: "/api/v1/routine-folders/{id}", Summary: "Update a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleUpdateFolder)
+	huma.Register(a, huma.Operation{OperationID: "deleteRoutineFolder", Method: http.MethodDelete, Path: "/api/v1/routine-folders/{id}", Summary: "Delete a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteFolder)
+
+	// Routines
+	huma.Register(a, huma.Operation{OperationID: "listRoutines", Method: http.MethodGet, Path: "/api/v1/routines", Summary: "List routines (metadata)", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleListRoutines)
+	huma.Register(a, huma.Operation{OperationID: "createRoutine", Method: http.MethodPost, Path: "/api/v1/routines", Summary: "Create a routine", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateRoutine)
+	huma.Register(a, huma.Operation{OperationID: "getRoutine", Method: http.MethodGet, Path: "/api/v1/routines/{id}", Summary: "Get a routine (full)", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleGetRoutine)
+	huma.Register(a, huma.Operation{OperationID: "updateRoutine", Method: http.MethodPatch, Path: "/api/v1/routines/{id}", Summary: "Update a routine", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleUpdateRoutine)
+	huma.Register(a, huma.Operation{OperationID: "deleteRoutine", Method: http.MethodDelete, Path: "/api/v1/routines/{id}", Summary: "Delete a routine", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteRoutine)
+}
 
 // --- Folders ----------------------------------------------------------------
 
