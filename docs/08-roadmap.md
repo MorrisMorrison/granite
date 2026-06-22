@@ -58,7 +58,8 @@ later is painful), but **sync** is deferred until after a single-device app work
 ## Phase 6 — Native & nice-to-haves
 - [ ] Capacitor native wrappers → app-store/sideload builds (needs macOS for iOS).
 - [ ] Body measurements / bodyweight tracking.
-- [ ] Import from other trackers (CSV).
+- [ ] Import from other popular trackers — parse their CSV/JSON exports into Granite's data model so users can
+      migrate their full history and switch over seamlessly (builds on the existing `import` endpoint).
 - [ ] Plate / 1RM / warmup calculators in UI.
 - [ ] Apple Health / Google Fit; (later) Watch / Wear OS.
 - [ ] OIDC / passkeys.
