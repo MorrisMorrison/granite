@@ -15,6 +15,18 @@ test('starts a workout prefilled from a routine', async ({ page }) => {
 	await expect(page.getByTestId('set-row')).toBeVisible();
 });
 
+test('opens a logged workout detail from history', async ({ page }) => {
+	await register(page);
+	const name = await logWorkout(page, '60', '5'); // lands on /history
+
+	await page.getByTestId('workout-row').first().click();
+	await expect(page).toHaveURL(/\/history\/[^/]+$/);
+
+	const detail = page.getByTestId('workout-detail');
+	await expect(detail).toContainText(name); // the logged exercise
+	await expect(detail).toContainText('60'); // its weight
+});
+
 test('shows the previous session values as set placeholders', async ({ page }) => {
 	await register(page);
 
