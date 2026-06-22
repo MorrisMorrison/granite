@@ -2,17 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // syncNow wires the shared sync engine to the app's store + API client. We mock
 // those collaborators and assert the deduping behaviour syncNow adds on top.
-const { syncFn, createSyncApi } = vi.hoisted(() => ({
+const { syncFn, createSyncApi, setCursor } = vi.hoisted(() => ({
 	syncFn: vi.fn(),
-	createSyncApi: vi.fn(() => ({}))
+	createSyncApi: vi.fn(() => ({})),
+	setCursor: vi.fn(() => Promise.resolve())
 }));
 vi.mock('@granite/shared', () => ({ sync: syncFn, createSyncApi }));
 vi.mock('$lib/api/client', () => ({ api: vi.fn(() => ({})) }));
-vi.mock('$lib/local/store', () => ({ localStore: {} }));
+vi.mock('$lib/local/store', () => ({ localStore: { setCursor } }));
 
-import { syncNow } from './index';
+import { resync, syncNow } from './index';
 
-beforeEach(() => syncFn.mockReset());
+beforeEach(() => {
+	syncFn.mockReset();
+	setCursor.mockClear();
+});
 
 describe('syncNow', () => {
 	it('dedupes concurrent calls into a single sync cycle', async () => {
@@ -44,5 +48,16 @@ describe('syncNow', () => {
 
 		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
 		await expect(syncNow()).resolves.toBeDefined();
+	});
+});
+
+describe('resync', () => {
+	it('resets the cursor to 0, then syncs (full re-pull)', async () => {
+		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
+
+		await resync();
+
+		expect(setCursor).toHaveBeenCalledWith(0);
+		expect(syncFn).toHaveBeenCalledOnce();
 	});
 });

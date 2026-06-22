@@ -18,3 +18,14 @@ export function syncNow(): Promise<SyncResult> {
 	}
 	return running;
 }
+
+/**
+ * Reset the pull cursor, then sync — so the next pull replays the full history.
+ * Needed after a server-side import: imported records keep their original
+ * updated_at (older than an already-synced device's cursor), so an incremental
+ * pull would skip them.
+ */
+export async function resync(): Promise<SyncResult> {
+	await localStore.setCursor(0);
+	return syncNow();
+}
