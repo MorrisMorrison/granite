@@ -41,6 +41,7 @@ apps/api/tmp/
 *.out
 coverage.*
 coverage/
+junit.xml
 
 # --- Local databases / dumps ---
 *.sqlite
