@@ -23,21 +23,37 @@ export async function loginAs(page: Page, email: string, password = PASSWORD): P
 }
 
 /**
- * Log a one-set workout from Today. Caller must already be on Today (`/`).
- * Uses in-app navigation only (no full page loads), so it also works offline
- * once the exercise library has been synced into local storage.
+ * Log a one-set workout from Today and return the (first-in-library) exercise's
+ * name. Caller must already be on Today (`/`). Uses in-app navigation only (no
+ * full page loads), so it also works offline once the exercise library has been
+ * synced into local storage.
  */
-export async function logWorkout(page: Page, weight = '60', reps = '5'): Promise<void> {
+export async function logWorkout(page: Page, weight = '60', reps = '5'): Promise<string> {
 	await page.getByTestId('btn-start-workout').click();
 	await expect(page).toHaveURL(/\/log$/);
-	// The picker opens automatically on a fresh workout; add the first exercise.
-	await page.getByTestId('picker-exercise').first().click();
+	// The picker opens automatically on a fresh workout; add (and name) the first exercise.
+	const first = page.getByTestId('picker-exercise').first();
+	const name = (await first.locator('span').first().innerText()).trim();
+	await first.click();
 	await expect(page.getByTestId('set-row')).toBeVisible();
 	await page.getByTestId('input-weight').fill(weight);
 	await page.getByTestId('input-reps').fill(reps);
 	await page.getByTestId('set-complete').check();
 	await page.getByTestId('btn-finish-workout').click();
 	await expect(page).toHaveURL(/\/history$/);
+	return name;
+}
+
+/** Create a routine with `title` and one (first-in-library) exercise; lands back on /routines. */
+export async function createRoutine(page: Page, title: string): Promise<void> {
+	await page.goto('/routines');
+	await page.getByTestId('btn-new-routine').click();
+	await page.getByTestId('field-routine-title').fill(title);
+	await page.getByTestId('btn-add-exercise').click();
+	await page.getByTestId('picker-exercise').first().click();
+	await page.getByTestId('btn-save-routine').click();
+	await expect(page).toHaveURL(/\/routines$/);
+	await expect(page.getByTestId('routine-row').filter({ hasText: title })).toBeVisible();
 }
 
 /**
