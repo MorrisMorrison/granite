@@ -14,6 +14,13 @@ export default defineConfig({
 	],
 	test: {
 		expect: { requireAssertions: true },
+		coverage: {
+			provider: 'v8',
+			reporter: ['text-summary', 'text', 'html'],
+			// The logic worth measuring lives in src/lib; routes are screens (e2e's job).
+			include: ['src/lib/**/*.{ts,svelte}'],
+			exclude: ['**/*.{test,spec}.{js,ts}', '**/*.d.ts', 'src/lib/index.ts']
+		},
 		projects: [
 			{
 				extends: './vite.config.ts',

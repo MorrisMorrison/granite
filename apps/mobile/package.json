@@ -12,6 +12,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
 		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
 		"e2e": "playwright test"
 	},
 	"devDependencies": {
@@ -21,6 +22,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/svelte": "^5.3.1",
+		"@vitest/coverage-v8": "^4.1.9",
 		"fake-indexeddb": "^6.2.5",
 		"jsdom": "^29.1.1",
 		"svelte": "^5.56.1",
