@@ -3,7 +3,9 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { api } from '$lib/api/client';
+	import { resync } from '$lib/sync';
 	import { getServerUrl } from '$lib/config';
+	import type { paths } from '@granite/shared';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -34,6 +36,11 @@
 
 	let exporting = $state(false);
 	let exportError = $state('');
+
+	let importing = $state(false);
+	let importError = $state('');
+	let importMessage = $state('');
+	let fileInput: HTMLInputElement;
 
 	async function loadTokens() {
 		tokensLoading = true;
@@ -106,6 +113,42 @@
 		URL.revokeObjectURL(url);
 	}
 
+	type ImportBody = NonNullable<
+		paths['/api/v1/import']['post']['requestBody']
+	>['content']['application/json'];
+
+	async function onImportFile(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		input.value = ''; // let the same file be picked again later
+		if (!file) return;
+		importing = true;
+		importError = '';
+		importMessage = '';
+		try {
+			const dump = JSON.parse(await file.text()) as ImportBody;
+			const { data, error } = await api().POST('/api/v1/import', { body: dump });
+			if (error || !data) {
+				importError = 'Import failed — is this a Granite export?';
+				return;
+			}
+			const c = data.imported;
+			const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+			importMessage = `Imported ${plural(c.routines, 'routine')}, ${plural(c.workouts, 'workout')}, ${plural(c.folders, 'folder')}.`;
+			// Full re-pull: imported records keep their original (older) timestamps,
+			// so a plain incremental sync would skip them on an already-synced device.
+			try {
+				await resync();
+			} catch {
+				/* offline — they'll sync on reconnect */
+			}
+		} catch {
+			importError = 'Could not read that file — expected a Granite JSON export.';
+		} finally {
+			importing = false;
+		}
+	}
+
 	function fmtDate(ms: number): string {
 		return new Date(ms).toLocaleDateString(undefined, {
 			year: 'numeric',
@@ -169,13 +212,34 @@
 	<section class="block">
 		<h2>Your data</h2>
 		<div class="card">
-			<p class="muted desc">Download everything — routines, workouts, exercises — as a JSON file.</p>
+			<p class="muted desc">
+				Export everything — routines, workouts, exercises — as a JSON file, or import a previous
+				Granite export. Importing merges by id (last write wins).
+			</p>
 			{#if exportError}<p class="error">{exportError}</p>{/if}
+			{#if importError}<p class="error">{importError}</p>{/if}
+			{#if importMessage}<p class="success">{importMessage}</p>{/if}
 			<div class="actions">
 				<Button variant="outline" onclick={exportData} disabled={exporting} testid="btn-export">
 					{exporting ? 'Exporting…' : 'Export JSON'}
 				</Button>
+				<Button
+					variant="outline"
+					onclick={() => fileInput.click()}
+					disabled={importing}
+					testid="btn-import"
+				>
+					{importing ? 'Importing…' : 'Import JSON'}
+				</Button>
 			</div>
+			<input
+				bind:this={fileInput}
+				type="file"
+				accept="application/json,.json"
+				onchange={onImportFile}
+				class="visually-hidden"
+				data-testid="field-import"
+			/>
 		</div>
 	</section>
 
@@ -294,7 +358,25 @@
 		text-align: right;
 	}
 	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 		margin-top: 0.85rem;
+	}
+	.success {
+		color: var(--success);
+		font-size: 0.85rem;
+		margin: 0.25rem 0 0;
+	}
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		border: 0;
 	}
 	.list {
 		display: flex;
