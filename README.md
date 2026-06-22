@@ -4,6 +4,7 @@
 > A clean gym logger you run yourself.
 
 [![CI](https://github.com/MorrisMorrison/granite/actions/workflows/ci.yml/badge.svg)](https://github.com/MorrisMorrison/granite/actions/workflows/ci.yml)
+[![coverage](https://codecov.io/gh/MorrisMorrison/granite/graph/badge.svg)](https://codecov.io/gh/MorrisMorrison/granite)
 [![Docs](https://img.shields.io/badge/docs-live-2563eb)](https://morrismorrison.github.io/granite/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-2563eb.svg)](LICENSE)
 

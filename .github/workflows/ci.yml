@@ -40,6 +40,9 @@ jobs:
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile
       - run: corepack pnpm -r build
+        env:
+          # Lets the Codecov Vite plugin upload mobile bundle stats during the build.
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - run: corepack pnpm -r --if-present check
       - run: corepack pnpm -r test
       - run: corepack pnpm -C apps/mobile test:coverage
