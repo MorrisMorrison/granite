@@ -3,9 +3,20 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 )
+
+// registerAuthRoutes wires the authentication endpoints.
+func (s *Server) registerAuthRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "register", Method: http.MethodPost, Path: "/api/v1/auth/register", Summary: "Register a new account", Tags: []string{"Auth"}, DefaultStatus: http.StatusCreated}, s.handleRegister)
+	huma.Register(a, huma.Operation{OperationID: "login", Method: http.MethodPost, Path: "/api/v1/auth/login", Summary: "Log in", Tags: []string{"Auth"}}, s.handleLogin)
+	huma.Register(a, huma.Operation{OperationID: "refresh", Method: http.MethodPost, Path: "/api/v1/auth/refresh", Summary: "Rotate tokens", Tags: []string{"Auth"}}, s.handleRefresh)
+	huma.Register(a, huma.Operation{OperationID: "logout", Method: http.MethodPost, Path: "/api/v1/auth/logout", Summary: "Log out", Tags: []string{"Auth"}, DefaultStatus: http.StatusNoContent}, s.handleLogout)
+}
 
 // userResponse is the API representation of a user (settings as arbitrary JSON).
 type userResponse struct {

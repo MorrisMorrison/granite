@@ -3,9 +3,21 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 )
+
+// registerExerciseRoutes wires the exercise-library endpoints.
+func (s *Server) registerExerciseRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "listExercises", Method: http.MethodGet, Path: "/api/v1/exercises", Summary: "List exercises (yours + built-in)", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleListExercises)
+	huma.Register(a, huma.Operation{OperationID: "createExercise", Method: http.MethodPost, Path: "/api/v1/exercises", Summary: "Create a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateExercise)
+	huma.Register(a, huma.Operation{OperationID: "getExercise", Method: http.MethodGet, Path: "/api/v1/exercises/{id}", Summary: "Get an exercise", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleGetExercise)
+	huma.Register(a, huma.Operation{OperationID: "updateExercise", Method: http.MethodPatch, Path: "/api/v1/exercises/{id}", Summary: "Update a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleUpdateExercise)
+	huma.Register(a, huma.Operation{OperationID: "deleteExercise", Method: http.MethodDelete, Path: "/api/v1/exercises/{id}", Summary: "Delete a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteExercise)
+}
 
 // exerciseResponse is the API representation (secondary muscles as a string array).
 type exerciseResponse struct {

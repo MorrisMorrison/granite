@@ -108,56 +108,17 @@ func (s *Server) setupAPI() {
 	s.api.UseMiddleware(newAuthMiddleware(s.api, s.tokens, s.auth))
 }
 
+// registerRoutes wires every API operation. Each domain owns its own route table
+// in its *_handlers.go file (registerXRoutes); this just calls them in order so
+// server.go stays a thin wiring layer.
 func (s *Server) registerRoutes() {
 	a := s.api
-
-	// Auth
-	huma.Register(a, huma.Operation{OperationID: "register", Method: http.MethodPost, Path: "/api/v1/auth/register", Summary: "Register a new account", Tags: []string{"Auth"}, DefaultStatus: http.StatusCreated}, s.handleRegister)
-	huma.Register(a, huma.Operation{OperationID: "login", Method: http.MethodPost, Path: "/api/v1/auth/login", Summary: "Log in", Tags: []string{"Auth"}}, s.handleLogin)
-	huma.Register(a, huma.Operation{OperationID: "refresh", Method: http.MethodPost, Path: "/api/v1/auth/refresh", Summary: "Rotate tokens", Tags: []string{"Auth"}}, s.handleRefresh)
-	huma.Register(a, huma.Operation{OperationID: "logout", Method: http.MethodPost, Path: "/api/v1/auth/logout", Summary: "Log out", Tags: []string{"Auth"}, DefaultStatus: http.StatusNoContent}, s.handleLogout)
-
-	// User
-	huma.Register(a, huma.Operation{OperationID: "getMe", Method: http.MethodGet, Path: "/api/v1/me", Summary: "Get the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleGetMe)
-	huma.Register(a, huma.Operation{OperationID: "updateMe", Method: http.MethodPatch, Path: "/api/v1/me", Summary: "Update the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleUpdateMe)
-
-	// Personal API tokens (managed from an interactive session; see token_handlers.go)
-	huma.Register(a, huma.Operation{OperationID: "listApiTokens", Method: http.MethodGet, Path: "/api/v1/tokens", Summary: "List your API tokens", Tags: []string{"Tokens"}, Security: bearerSecurity}, s.handleListTokens)
-	huma.Register(a, huma.Operation{OperationID: "createApiToken", Method: http.MethodPost, Path: "/api/v1/tokens", Summary: "Create an API token", Tags: []string{"Tokens"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateToken)
-	huma.Register(a, huma.Operation{OperationID: "revokeApiToken", Method: http.MethodDelete, Path: "/api/v1/tokens/{id}", Summary: "Revoke an API token", Tags: []string{"Tokens"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleRevokeToken)
-
-	// Exercises
-	huma.Register(a, huma.Operation{OperationID: "listExercises", Method: http.MethodGet, Path: "/api/v1/exercises", Summary: "List exercises (yours + built-in)", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleListExercises)
-	huma.Register(a, huma.Operation{OperationID: "createExercise", Method: http.MethodPost, Path: "/api/v1/exercises", Summary: "Create a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateExercise)
-	huma.Register(a, huma.Operation{OperationID: "getExercise", Method: http.MethodGet, Path: "/api/v1/exercises/{id}", Summary: "Get an exercise", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleGetExercise)
-	huma.Register(a, huma.Operation{OperationID: "updateExercise", Method: http.MethodPatch, Path: "/api/v1/exercises/{id}", Summary: "Update a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity}, s.handleUpdateExercise)
-	huma.Register(a, huma.Operation{OperationID: "deleteExercise", Method: http.MethodDelete, Path: "/api/v1/exercises/{id}", Summary: "Delete a custom exercise", Tags: []string{"Exercises"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteExercise)
-
-	// Routine folders
-	huma.Register(a, huma.Operation{OperationID: "listRoutineFolders", Method: http.MethodGet, Path: "/api/v1/routine-folders", Summary: "List routine folders", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleListFolders)
-	huma.Register(a, huma.Operation{OperationID: "createRoutineFolder", Method: http.MethodPost, Path: "/api/v1/routine-folders", Summary: "Create a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateFolder)
-	huma.Register(a, huma.Operation{OperationID: "updateRoutineFolder", Method: http.MethodPatch, Path: "/api/v1/routine-folders/{id}", Summary: "Update a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleUpdateFolder)
-	huma.Register(a, huma.Operation{OperationID: "deleteRoutineFolder", Method: http.MethodDelete, Path: "/api/v1/routine-folders/{id}", Summary: "Delete a routine folder", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteFolder)
-
-	// Routines
-	huma.Register(a, huma.Operation{OperationID: "listRoutines", Method: http.MethodGet, Path: "/api/v1/routines", Summary: "List routines (metadata)", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleListRoutines)
-	huma.Register(a, huma.Operation{OperationID: "createRoutine", Method: http.MethodPost, Path: "/api/v1/routines", Summary: "Create a routine", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateRoutine)
-	huma.Register(a, huma.Operation{OperationID: "getRoutine", Method: http.MethodGet, Path: "/api/v1/routines/{id}", Summary: "Get a routine (full)", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleGetRoutine)
-	huma.Register(a, huma.Operation{OperationID: "updateRoutine", Method: http.MethodPatch, Path: "/api/v1/routines/{id}", Summary: "Update a routine", Tags: []string{"Routines"}, Security: bearerSecurity}, s.handleUpdateRoutine)
-	huma.Register(a, huma.Operation{OperationID: "deleteRoutine", Method: http.MethodDelete, Path: "/api/v1/routines/{id}", Summary: "Delete a routine", Tags: []string{"Routines"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteRoutine)
-
-	// Workouts
-	huma.Register(a, huma.Operation{OperationID: "listWorkouts", Method: http.MethodGet, Path: "/api/v1/workouts", Summary: "List workouts (metadata)", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleListWorkouts)
-	huma.Register(a, huma.Operation{OperationID: "createWorkout", Method: http.MethodPost, Path: "/api/v1/workouts", Summary: "Log a workout", Tags: []string{"Workouts"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateWorkout)
-	huma.Register(a, huma.Operation{OperationID: "getWorkout", Method: http.MethodGet, Path: "/api/v1/workouts/{id}", Summary: "Get a workout (full)", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleGetWorkout)
-	huma.Register(a, huma.Operation{OperationID: "updateWorkout", Method: http.MethodPatch, Path: "/api/v1/workouts/{id}", Summary: "Update a workout", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleUpdateWorkout)
-	huma.Register(a, huma.Operation{OperationID: "deleteWorkout", Method: http.MethodDelete, Path: "/api/v1/workouts/{id}", Summary: "Delete a workout", Tags: []string{"Workouts"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteWorkout)
-
-	// Sync (offline-first delta sync)
-	huma.Register(a, huma.Operation{OperationID: "syncPull", Method: http.MethodPost, Path: "/api/v1/sync/pull", Summary: "Pull changes since a cursor", Tags: []string{"Sync"}, Security: bearerSecurity, Metadata: map[string]any{metaReadOnly: true}}, s.handleSyncPull)
-	huma.Register(a, huma.Operation{OperationID: "syncPush", Method: http.MethodPost, Path: "/api/v1/sync/push", Summary: "Push local changes", Tags: []string{"Sync"}, Security: bearerSecurity}, s.handleSyncPush)
-
-	// Export / import (own your data)
-	huma.Register(a, huma.Operation{OperationID: "exportData", Method: http.MethodGet, Path: "/api/v1/export", Summary: "Export all of your data", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleExport)
-	huma.Register(a, huma.Operation{OperationID: "importData", Method: http.MethodPost, Path: "/api/v1/import", Summary: "Import a previously exported dump (upsert by id, idempotent)", Tags: []string{"Export"}, Security: bearerSecurity}, s.handleImport)
+	s.registerAuthRoutes(a)
+	s.registerUserRoutes(a)
+	s.registerTokenRoutes(a)
+	s.registerExerciseRoutes(a)
+	s.registerRoutineRoutes(a)
+	s.registerWorkoutRoutes(a)
+	s.registerSyncRoutes(a)
+	s.registerExportRoutes(a)
 }

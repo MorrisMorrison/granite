@@ -3,7 +3,16 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 )
+
+// registerUserRoutes wires the current-user endpoints.
+func (s *Server) registerUserRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "getMe", Method: http.MethodGet, Path: "/api/v1/me", Summary: "Get the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleGetMe)
+	huma.Register(a, huma.Operation{OperationID: "updateMe", Method: http.MethodPatch, Path: "/api/v1/me", Summary: "Update the current user", Tags: []string{"User"}, Security: bearerSecurity}, s.handleUpdateMe)
+}
 
 type meOutput struct {
 	Body userResponse

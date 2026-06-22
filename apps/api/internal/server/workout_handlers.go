@@ -2,9 +2,21 @@ package server
 
 import (
 	"context"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/workout"
 )
+
+// registerWorkoutRoutes wires the workout-logging endpoints.
+func (s *Server) registerWorkoutRoutes(a huma.API) {
+	huma.Register(a, huma.Operation{OperationID: "listWorkouts", Method: http.MethodGet, Path: "/api/v1/workouts", Summary: "List workouts (metadata)", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleListWorkouts)
+	huma.Register(a, huma.Operation{OperationID: "createWorkout", Method: http.MethodPost, Path: "/api/v1/workouts", Summary: "Log a workout", Tags: []string{"Workouts"}, Security: bearerSecurity, DefaultStatus: http.StatusCreated}, s.handleCreateWorkout)
+	huma.Register(a, huma.Operation{OperationID: "getWorkout", Method: http.MethodGet, Path: "/api/v1/workouts/{id}", Summary: "Get a workout (full)", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleGetWorkout)
+	huma.Register(a, huma.Operation{OperationID: "updateWorkout", Method: http.MethodPatch, Path: "/api/v1/workouts/{id}", Summary: "Update a workout", Tags: []string{"Workouts"}, Security: bearerSecurity}, s.handleUpdateWorkout)
+	huma.Register(a, huma.Operation{OperationID: "deleteWorkout", Method: http.MethodDelete, Path: "/api/v1/workouts/{id}", Summary: "Delete a workout", Tags: []string{"Workouts"}, Security: bearerSecurity, DefaultStatus: http.StatusNoContent}, s.handleDeleteWorkout)
+}
 
 type listWorkoutsOutput struct {
 	Body struct {
