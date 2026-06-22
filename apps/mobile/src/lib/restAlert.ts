@@ -16,6 +16,7 @@ export function restAlert(): void {
 	}
 }
 
+/* v8 ignore start -- Web Audio; not runnable under jsdom/node, exercised manually */
 function beep(): void {
 	if (typeof window === 'undefined') return;
 	const Ctx =
@@ -33,3 +34,4 @@ function beep(): void {
 	osc.stop(ctx.currentTime + 0.2);
 	osc.addEventListener('ended', () => void ctx.close());
 }
+/* v8 ignore stop */
