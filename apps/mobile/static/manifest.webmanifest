@@ -1,0 +1,16 @@
+{
+	"name": "Granite",
+	"short_name": "Granite",
+	"description": "Offline-first workout tracker. Own your training data.",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "portrait",
+	"background_color": "#0e1114",
+	"theme_color": "#2563eb",
+	"icons": [
+		{ "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+		{ "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+		{ "src": "/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+	]
+}
