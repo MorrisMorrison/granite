@@ -10,16 +10,21 @@ coverage:
       default:
         informational: true
 
-# Per-app flags. carryforward keeps a flag's last value on commits where that
-# app's job didn't upload (e.g. a PR touching only the other app).
+# Go's coverage profile lists files by full import path; strip the module prefix
+# so they map onto the repo tree (apps/api/...). The mobile lcov is relative to
+# apps/mobile and the uploader prefixes it from the report dir, so it's already
+# correct.
+fixes:
+  - 'github.com/MorrisMorrison/granite/apps/api/::apps/api/'
+
+# Per-app flags. No path filter: each flag is scoped by its own CI upload (the
+# api job uploads the Go profile, the web job the mobile lcov), so they never
+# overlap. carryforward keeps a flag's last value on commits that didn't re-upload
+# it (e.g. a PR touching only the other app).
 flags:
   api:
-    paths:
-      - apps/api
     carryforward: true
   mobile:
-    paths:
-      - apps/mobile
     carryforward: true
 
 # Dashboard breakdown that mirrors the flags.
