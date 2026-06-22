@@ -11,9 +11,13 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+	// The suite drives a real Go binary + SQLite, so first paint / bootstrap can
+	// occasionally exceed Playwright's 5s default. Give assertions more headroom.
+	expect: { timeout: 10_000 },
 	use: {
 		baseURL: BASE,
-		// We're not testing offline here; block the SW so caching can't make runs flaky.
+		// Offline behaviour is exercised via context.setOffline (no offline page
+		// reloads), so the service worker stays blocked to keep caching deterministic.
 		serviceWorkers: 'block',
 		trace: 'on-first-retry'
 	},
