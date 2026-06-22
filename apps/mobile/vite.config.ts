@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { codecovVitePlugin } from '@codecov/vite-plugin';
 
 export default defineConfig({
 	plugins: [
@@ -10,6 +11,13 @@ export default defineConfig({
 				runes: ({ filename }) => filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter({ fallback: 'index.html' })
+		}),
+		// Codecov bundle analysis — uploads bundle stats on build when a token is
+		// present (CI). No-op locally, so dev/build without the token is unaffected.
+		codecovVitePlugin({
+			enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
+			bundleName: 'granite-mobile',
+			uploadToken: process.env.CODECOV_TOKEN
 		})
 	],
 	test: {
