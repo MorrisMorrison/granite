@@ -1,5 +1,7 @@
 # apps/mobile — Granite client (SvelteKit)
 
+[![mobile coverage](https://codecov.io/gh/MorrisMorrison/granite/graph/badge.svg?flag=mobile)](https://codecov.io/gh/MorrisMorrison/granite)
+
 The client: a **SvelteKit** app built static (`adapter-static`, SPA via `ssr = false` + an
 `index.html` fallback), so the same build runs as an installable **PWA**, as the web app embedded in
 the Go binary, and (later) inside a Capacitor webview. It's **offline-first**: all reads/writes hit a
