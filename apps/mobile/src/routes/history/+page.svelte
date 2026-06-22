@@ -56,10 +56,10 @@
 	{:else}
 		<div class="list">
 			{#each workouts as w (w.id)}
-				<div class="card item" data-testid="workout-row">
+				<a class="card item" href="/history/{w.id}" data-testid="workout-row">
 					<div class="name">{w.title || 'Workout'}</div>
 					<div class="muted meta">{fmtDate(w.start_time)}{duration(w)}</div>
-				</div>
+				</a>
 			{/each}
 		</div>
 	{/if}
@@ -72,7 +72,13 @@
 		gap: 0.5rem;
 	}
 	.item {
+		display: block;
 		padding: 0.85rem 1rem;
+		color: var(--text);
+		text-decoration: none;
+	}
+	.item:hover {
+		border-color: var(--border-strong);
 	}
 	.name {
 		font-weight: 600;

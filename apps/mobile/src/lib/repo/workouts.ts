@@ -1,6 +1,7 @@
 import { localStore } from '$lib/local/store';
 import { syncNow } from '$lib/sync';
 import type { Change } from '@granite/shared';
+import { listExercises } from './exercises';
 
 export interface WorkoutSummary {
 	id: string;
@@ -23,6 +24,62 @@ export async function listWorkouts(): Promise<WorkoutSummary[]> {
 			};
 		})
 		.sort((a, b) => b.start_time - a.start_time);
+}
+
+export interface WorkoutSetDetail {
+	set_type: string;
+	weight: number | null; // kg, as stored
+	reps: number | null;
+	is_completed: boolean;
+}
+export interface WorkoutExerciseDetail {
+	exercise_id: string;
+	name: string;
+	sets: WorkoutSetDetail[];
+}
+export interface WorkoutDetail {
+	id: string;
+	title: string;
+	notes: string;
+	start_time: number;
+	end_time: number | null;
+	exercises: WorkoutExerciseDetail[];
+}
+
+/** One logged workout (with its exercises + sets) from the local store, exercise
+ *  names joined from the local library. Null if missing/deleted. Offline-ok. */
+export async function getWorkout(id: string): Promise<WorkoutDetail | null> {
+	const rec = await localStore.get('workout', id);
+	if (!rec || rec.deleted) return null;
+	const lib = await listExercises();
+	const nameOf = (exId: string) => lib.find((e) => e.id === exId)?.name ?? 'Exercise';
+	const d = rec.data as {
+		title?: string;
+		notes?: string;
+		start_time?: number;
+		end_time?: number | null;
+		exercises?: {
+			exercise_id: string;
+			sets?: { set_type?: string; weight?: number | null; reps?: number | null; is_completed?: boolean }[];
+		}[];
+	};
+	return {
+		id,
+		title: d.title ?? '',
+		notes: d.notes ?? '',
+		start_time: d.start_time ?? 0,
+		end_time: d.end_time ?? null,
+		exercises: (d.exercises ?? []).map((ex) => ({
+			exercise_id: ex.exercise_id,
+			name: nameOf(ex.exercise_id),
+			sets: (ex.sets ?? []).map((s) => ({
+				set_type: s.set_type ?? 'normal',
+				weight: s.weight ?? null,
+				reps: s.reps ?? null,
+				is_completed: s.is_completed ?? false
+			}))
+		}))
+	};
 }
 
 export interface LogSetInput {

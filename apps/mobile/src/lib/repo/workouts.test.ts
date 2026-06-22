@@ -19,7 +19,7 @@ vi.mock('$lib/local/store', () => ({
 const { syncNow } = vi.hoisted(() => ({ syncNow: vi.fn(() => Promise.resolve()) }));
 vi.mock('$lib/sync', () => ({ syncNow }));
 
-import { listWorkouts, logWorkout } from './workouts';
+import { getWorkout, listWorkouts, logWorkout } from './workouts';
 
 let n = 0;
 beforeEach(() => {
@@ -83,5 +83,40 @@ describe('listWorkouts', () => {
 
 	it('is empty with no workouts logged', async () => {
 		expect(await listWorkouts()).toEqual([]);
+	});
+});
+
+describe('getWorkout', () => {
+	it('returns the full workout with exercise names joined from the library', async () => {
+		await backing.applyRemote([
+			{ entity: 'exercise', id: 'ex1', updated_at: 1, deleted: false, data: { name: 'Bench' } }
+		]);
+		const id = await logWorkout({
+			title: 'Push',
+			start_time: 1,
+			end_time: 2,
+			exercises: [
+				{ exercise_id: 'ex1', sets: [{ set_type: 'normal', weight: 60, reps: 5, is_completed: true }] }
+			]
+		});
+
+		const wd = await getWorkout(id);
+		expect(wd).toMatchObject({ id, title: 'Push' });
+		expect(wd!.exercises[0]).toMatchObject({ exercise_id: 'ex1', name: 'Bench' });
+		expect(wd!.exercises[0].sets[0]).toMatchObject({ weight: 60, reps: 5, is_completed: true });
+	});
+
+	it('falls back to a placeholder name when the exercise is unknown', async () => {
+		const id = await logWorkout({
+			start_time: 1,
+			end_time: null,
+			exercises: [{ exercise_id: 'gone', sets: [] }]
+		});
+		const wd = await getWorkout(id);
+		expect(wd!.exercises[0].name).toBe('Exercise');
+	});
+
+	it('returns null for a missing workout', async () => {
+		expect(await getWorkout('nope')).toBeNull();
 	});
 });
