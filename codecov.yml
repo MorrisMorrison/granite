@@ -18,13 +18,16 @@ fixes:
   - 'github.com/MorrisMorrison/granite/apps/api/::apps/api/'
 
 # Exclude code that isn't meaningfully unit-tested so the % reflects business
-# logic: app entrypoints (main), generated sqlc, and SQL migrations. (The api job
-# runs with -coverpkg=./... so cross-package coverage — e.g. the sync package
-# exercised by the server tests — is credited rather than showing as 0%.)
+# logic: app entrypoints (main), generated sqlc, SQL migrations, the logger
+# setup, and the embedded-SPA file-server glue. (The api job runs with
+# -coverpkg=./... so cross-package coverage — e.g. the sync package exercised by
+# the server tests — is credited rather than showing as 0%.)
 ignore:
   - 'apps/api/cmd/**'
   - 'apps/api/internal/db/sqlc/**'
   - 'apps/api/internal/db/migrations/**'
+  - 'apps/api/internal/logging/**'
+  - 'apps/api/internal/webui/**'
 
 # Per-app flags. No path filter: each flag is scoped by its own CI upload (the
 # api job uploads the Go profile, the web job the mobile lcov), so they never
