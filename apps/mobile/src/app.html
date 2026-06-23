@@ -4,9 +4,12 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
-		<link rel="manifest" href="/manifest.webmanifest" />
+		<!-- use-credentials so the manifest fetch carries the auth cookie behind a
+		     forward-auth proxy (otherwise it 401s and PWA install metadata is lost). -->
+		<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
 		<meta name="theme-color" content="#2563eb" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<meta name="apple-mobile-web-app-title" content="Granite" />
