@@ -43,6 +43,10 @@ pnpm dev:web
 Then open <http://localhost:5173> and register an account. The dev API uses a throwaway secret and
 open registration — **local use only**.
 
+The dev scripts set **`GRANITE_ENV=dev`**, which makes the server **auto-seed the demo account**
+(`demo@granite.local` / `demodata`) with routines and a few weeks of history on startup — no need to run
+`seed-demo` by hand. It's idempotent, and only happens in dev (`GRANITE_ENV` defaults to `prod`).
+
 ## Build & test (Makefile)
 
 ```sh

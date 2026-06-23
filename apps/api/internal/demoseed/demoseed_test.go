@@ -1,4 +1,4 @@
-package main
+package demoseed
 
 import (
 	"context"
@@ -20,7 +20,7 @@ func TestSeedDemoIdempotent(t *testing.T) {
 	defer func() { _ = database.Close() }()
 	ctx := context.Background()
 
-	created, err := seed(database)
+	created, err := Seed(database)
 	if err != nil {
 		t.Fatalf("seed: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestSeedDemoIdempotent(t *testing.T) {
 	}
 
 	q := sqlc.New(database)
-	u, err := q.GetUserByEmail(ctx, demoEmail)
+	u, err := q.GetUserByEmail(ctx, Email)
 	if err != nil {
 		t.Fatalf("demo user not found after seed: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestSeedDemoIdempotent(t *testing.T) {
 	}
 
 	// Re-seeding is a no-op (no duplicates).
-	created2, err := seed(database)
+	created2, err := Seed(database)
 	if err != nil {
 		t.Fatalf("re-seed: %v", err)
 	}

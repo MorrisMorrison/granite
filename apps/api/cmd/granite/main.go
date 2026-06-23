@@ -16,6 +16,7 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/config"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/demoseed"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/logging"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
@@ -46,6 +47,16 @@ func main() {
 		log.Fatalf("seed built-in exercises: %v", err)
 	} else if n > 0 {
 		slog.Info("seeded built-in exercises", "count", n)
+	}
+
+	// Dev convenience: populate the demo account so it's there without running
+	// seed-demo by hand. Never in prod (the default).
+	if cfg.IsDev() {
+		if created, err := demoseed.Seed(database); err != nil {
+			log.Fatalf("seed demo data: %v", err)
+		} else if created {
+			slog.Info("seeded demo account (dev)", "email", demoseed.Email)
+		}
 	}
 
 	tokens := auth.NewTokenManager(cfg.JWTSecret)

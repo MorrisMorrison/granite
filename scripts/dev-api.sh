@@ -6,6 +6,7 @@ export GRANITE_JWT_SECRET="granite-local-dev-secret-0123456789abcdef"
 export GRANITE_ALLOW_REGISTRATION=true
 export GRANITE_BASE_URL="http://localhost:5173"
 export GRANITE_DB_PATH="dev.db"
+export GRANITE_ENV=dev   # auto-seeds the demo account (demo@granite.local / demodata)
 export PORT=8080
 export GOTOOLCHAIN=auto
 cd "$(dirname "$0")/../apps/api"
