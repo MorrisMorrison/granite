@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { version } from '$app/environment';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { api } from '$lib/api/client';
@@ -173,6 +174,10 @@
 			<div class="row">
 				<span class="muted">Server</span>
 				<span class="mono">{getServerUrl()}</span>
+			</div>
+			<div class="row">
+				<span class="muted">Version</span>
+				<span class="mono" data-testid="app-version">{version}</span>
 			</div>
 		</div>
 	</section>
