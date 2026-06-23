@@ -5,6 +5,7 @@
 	import { syncNow } from '$lib/sync';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
+	import { setLabel } from '$lib/sets';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 
 	const id = page.params.id!;
@@ -101,8 +102,13 @@
 						<span>Set</span><span>Type</span><span>{unit}</span><span>Reps</span><span>✓</span>
 					</div>
 					{#each ex.sets as s, i (i)}
-						<div class="set-row" class:done={s.is_completed} data-testid="wd-set">
-							<span>{i + 1}</span>
+						<div
+							class="set-row"
+							class:done={s.is_completed}
+							class:warmup={s.set_type === 'warmup'}
+							data-testid="wd-set"
+						>
+							<span class="set-no">{setLabel(ex.sets, i)}</span>
 							<span>{s.set_type}</span>
 							<span>{w(s.weight)}</span>
 							<span>{s.reps ?? '—'}</span>
@@ -159,6 +165,13 @@
 	}
 	.set-row.done {
 		opacity: 0.75;
+	}
+	.set-no {
+		font-variant-numeric: tabular-nums;
+	}
+	.set-row.warmup .set-no {
+		color: var(--warning);
+		font-weight: 600;
 	}
 	.notes p {
 		margin: 0.25rem 0 0;

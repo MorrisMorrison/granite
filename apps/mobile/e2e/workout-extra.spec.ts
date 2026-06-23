@@ -27,6 +27,20 @@ test('opens a logged workout detail from history', async ({ page }) => {
 	await expect(detail).toContainText('60'); // its weight
 });
 
+test('labels warm-up sets distinctly from work sets in the logger', async ({ page }) => {
+	await register(page);
+	await page.getByTestId('btn-start-workout').click();
+	await page.getByTestId('picker-exercise').first().click();
+	await expect(page.getByTestId('set-row')).toBeVisible();
+
+	// First set defaults to a work set → numbered "1".
+	await expect(page.getByTestId('set-label').first()).toHaveText('1');
+
+	// Switching its type to warm-up relabels it "W".
+	await page.getByTestId('set-type').first().selectOption('warmup');
+	await expect(page.getByTestId('set-label').first()).toHaveText('W');
+});
+
 test('shows the previous session values as set placeholders', async ({ page }) => {
 	await register(page);
 
