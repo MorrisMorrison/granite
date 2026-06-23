@@ -30,13 +30,18 @@ describe('createRoutine + getRoutine', () => {
 			notes: '',
 			folder_id: null,
 			exercises: [
-				{ exercise_id: 'sq', rest_seconds: 90, sets: [{ set_type: 'normal', target_weight: 100, target_reps: 5 }] }
+				{
+					exercise_id: 'sq',
+					rest_seconds: 90,
+					notes: 'brace hard, sit back',
+					sets: [{ set_type: 'normal', target_weight: 100, target_reps: 5 }]
+				}
 			]
 		});
 
 		const r = await getRoutine(id);
 		expect(r).toMatchObject({ id, title: 'Legs', notes: '', folder_id: null });
-		expect(r!.exercises[0]).toMatchObject({ exercise_id: 'sq', rest_seconds: 90 });
+		expect(r!.exercises[0]).toMatchObject({ exercise_id: 'sq', rest_seconds: 90, notes: 'brace hard, sit back' });
 		expect(r!.exercises[0].sets[0]).toMatchObject({ set_type: 'normal', target_weight: 100, target_reps: 5 });
 	});
 

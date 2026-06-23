@@ -24,6 +24,7 @@
 		uid: string;
 		exercise_id: string;
 		name: string;
+		notes?: string; // carried from the routine, shown as a cue
 		sets: DraftSet[];
 		prev?: { weight: number | null; reps: number | null }[]; // last session's sets (kg)
 	}
@@ -194,6 +195,7 @@
 			uid: crypto.randomUUID(),
 			exercise_id: ex.exercise_id,
 			name: nameOf(ex.exercise_id),
+			notes: ex.notes,
 			sets: ex.sets.map((s) => ({
 				uid: crypto.randomUUID(),
 				set_type: s.set_type,
@@ -223,6 +225,7 @@
 				<strong>{ex.name}</strong>
 				<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
 			</div>
+			{#if ex.notes}<p class="ex-note muted">{ex.notes}</p>{/if}
 			<div class="set-head muted">
 				<span>Set</span><span>Type</span><span>Weight ({unit})</span><span>Reps</span><span>✓</span><span></span>
 			</div>
@@ -321,6 +324,11 @@
 	}
 	.ex {
 		margin-bottom: 1rem;
+	}
+	.ex-note {
+		margin: -0.25rem 0 0.6rem;
+		font-size: 0.82rem;
+		white-space: pre-wrap;
 	}
 	.ex-head {
 		display: flex;
