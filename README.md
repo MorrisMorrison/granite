@@ -51,7 +51,8 @@ Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and [`deploy
 
 ## Documentation
 
-📖 **Documentation site: <https://morrismorrison.github.io/granite/>** (generated from `docs/`).
+📖 **Documentation site: <https://morrismorrison.github.io/granite/>** (generated from `docs/`), including the
+full **[REST API reference](https://morrismorrison.github.io/granite/api/)** (rendered from the OpenAPI spec).
 
 Or browse the source: design docs, architecture, and ADRs live in **[`docs/`](docs/README.md)**. 
 

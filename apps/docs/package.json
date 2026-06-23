@@ -12,7 +12,8 @@
 	},
 	"dependencies": {
 		"@astrojs/starlight": "^0.40.0",
-		"astro": "^6.4.8"
+		"astro": "^6.4.8",
+		"starlight-openapi": "^0.25.3"
 	},
 	"devDependencies": {
 		"astro-mermaid": "^2.0.4",
