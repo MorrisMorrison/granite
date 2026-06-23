@@ -6,7 +6,8 @@ import {
 	platesPerSide,
 	repTargets,
 	roundToLoadable,
-	warmupSets
+	warmupSets,
+	warmupTargetSets
 } from './calc';
 
 describe('platesPerSide', () => {
@@ -88,5 +89,33 @@ describe('warmupSets', () => {
 
 	it('returns nothing for a bar-or-lighter working weight', () => {
 		expect(warmupSets(20, 'kg')).toEqual([]);
+	});
+});
+
+describe('warmupTargetSets', () => {
+	it('derives warm-up sets from the heaviest work set', () => {
+		const work = [
+			{ set_type: 'normal', target_weight: 100 },
+			{ set_type: 'normal', target_weight: 140 }
+		];
+		const warm = warmupTargetSets(work, 'kg');
+		expect(warm.length).toBeGreaterThan(0);
+		expect(warm.every((w) => w.set_type === 'warmup')).toBe(true);
+		// all warm-up weights are below the top work weight
+		expect(warm.every((w) => w.target_weight < 140)).toBe(true);
+	});
+
+	it('ignores existing warm-up sets when finding the top', () => {
+		const work = [
+			{ set_type: 'warmup', target_weight: 200 },
+			{ set_type: 'normal', target_weight: 60 }
+		];
+		const warm = warmupTargetSets(work, 'kg');
+		expect(warm.every((w) => w.target_weight < 60)).toBe(true);
+	});
+
+	it('returns nothing when no work set has a weight', () => {
+		expect(warmupTargetSets([{ set_type: 'normal', target_weight: null }], 'kg')).toEqual([]);
+		expect(warmupTargetSets([], 'kg')).toEqual([]);
 	});
 });

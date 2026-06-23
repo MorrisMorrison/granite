@@ -94,3 +94,30 @@ export function warmupSets(working: number, unit: WeightUnit): WarmupSet[] {
 	// Drop any consecutive duplicates rounding may produce on light loads.
 	return sets.filter((s, i) => i === 0 || s.weight !== sets[i - 1].weight);
 }
+
+export interface WarmupTargetSet {
+	set_type: 'warmup';
+	target_weight: number;
+	target_reps: number;
+}
+
+/**
+ * Warm-up sets for a routine exercise, derived from its heaviest **work** set's
+ * target weight (warm-up sets are ignored when finding the top). Empty if no work
+ * set has a positive weight. Weights are in the same (display) unit as the inputs.
+ */
+export function warmupTargetSets(
+	workSets: { set_type: string; target_weight: number | null }[],
+	unit: WeightUnit
+): WarmupTargetSet[] {
+	const weights = workSets
+		.filter((s) => s.set_type !== 'warmup')
+		.map((s) => s.target_weight ?? 0);
+	const top = weights.length ? Math.max(...weights) : 0;
+	if (top <= 0) return [];
+	return warmupSets(top, unit).map((w) => ({
+		set_type: 'warmup',
+		target_weight: w.weight,
+		target_reps: w.reps
+	}));
+}

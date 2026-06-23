@@ -18,6 +18,24 @@ test('edits a routine title', async ({ page }) => {
 	await expect(page.getByTestId('routine-row').filter({ hasText: 'Leg Day A' })).toBeVisible();
 });
 
+test('auto-adds warm-up sets from the heaviest working set', async ({ page }) => {
+	await register(page);
+	await page.goto('/routines');
+	await page.getByTestId('btn-new-routine').click();
+	await page.getByTestId('field-routine-title').fill('Warmup Test');
+	await page.getByTestId('btn-add-exercise').click();
+	await page.getByTestId('picker-exercise').first().click();
+
+	// One work set at 100; before warm-ups it's labelled "1".
+	await page.getByTestId('field-target-weight').first().fill('100');
+	await expect(page.getByTestId('rf-set-label').first()).toHaveText('1');
+
+	await page.getByTestId('btn-warmups').click();
+	// Warm-ups get prepended → the first row is now a "W".
+	await expect(page.getByTestId('rf-set-label').first()).toHaveText('W');
+	expect(await page.getByTestId('rf-set').count()).toBeGreaterThan(1);
+});
+
 test('saves per-exercise notes in a routine', async ({ page }) => {
 	await register(page);
 	await page.goto('/routines');
