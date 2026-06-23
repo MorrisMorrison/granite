@@ -11,6 +11,9 @@ COPY apps/mobile/package.json apps/mobile/
 RUN pnpm install --frozen-lockfile
 COPY packages/ packages/
 COPY apps/mobile/ apps/mobile/
+# Build identity for the Settings "Version" line (no .git in the image).
+ARG GIT_SHA=dev
+ENV PUBLIC_GIT_SHA=$GIT_SHA
 RUN pnpm --filter mobile build
 
 # Stage 2 — build the Go binary with the web build embedded (CGO-free static)
