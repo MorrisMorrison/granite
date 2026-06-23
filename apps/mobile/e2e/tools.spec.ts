@@ -17,7 +17,9 @@ test('calculators: plate breakdown, 1RM, and warm-ups', async ({ page }) => {
 	await page.getByTestId('field-1rm-reps').fill('5');
 	await expect(page.getByTestId('rm-result')).toContainText('1RM');
 
-	// Warm-ups appear for a working weight.
+	// Warm-ups appear for a working weight (count scales with load).
 	await page.getByTestId('field-warmup-weight').fill('100');
-	await expect(page.getByTestId('warmup-result').getByRole('listitem')).toHaveCount(3);
+	const warmups = page.getByTestId('warmup-result').getByRole('listitem');
+	await expect(warmups.first()).toBeVisible();
+	expect(await warmups.count()).toBeGreaterThanOrEqual(3);
 });

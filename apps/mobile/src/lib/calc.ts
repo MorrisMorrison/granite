@@ -69,15 +69,28 @@ export interface WarmupSet {
 }
 
 /** A warm-up ramp toward a working weight, each rounded to a loadable weight. */
+// Biggest jump allowed between consecutive warm-up sets (≈ one plate pair).
+const WARMUP_MAX_GAP: Record<WeightUnit, number> = { kg: 20, lb: 45 };
+
+/**
+ * Warm-up ramp from ~40% to ~85% of the working weight, with reps stepping down
+ * 5→1. The number of sets scales with the load: enough are inserted so no gap
+ * between consecutive sets exceeds WARMUP_MAX_GAP — heavy lifts get more, smaller
+ * jumps (e.g. 140kg → 5 sets instead of 3 big ones). All weights are loadable.
+ */
 export function warmupSets(working: number, unit: WeightUnit): WarmupSet[] {
-	const steps = [
-		{ pct: 0.4, reps: 5 },
-		{ pct: 0.6, reps: 3 },
-		{ pct: 0.8, reps: 2 }
-	];
-	return steps.map((s) => ({
-		pct: s.pct,
-		reps: s.reps,
-		weight: roundToLoadable(working * s.pct, unit)
-	}));
+	const bar = BAR[unit];
+	if (working <= bar) return []; // nothing meaningful to ramp
+	const first = Math.max(bar, roundToLoadable(working * 0.4, unit));
+	const top = roundToLoadable(working * 0.85, unit);
+	if (top <= first) return [{ pct: first / working, weight: first, reps: 5 }];
+
+	const intervals = Math.max(1, Math.ceil((top - first) / WARMUP_MAX_GAP[unit]));
+	const sets: WarmupSet[] = [];
+	for (let i = 0; i <= intervals; i++) {
+		const weight = roundToLoadable(first + ((top - first) * i) / intervals, unit);
+		sets.push({ pct: Math.round((weight / working) * 100) / 100, weight, reps: Math.max(1, 5 - i) });
+	}
+	// Drop any consecutive duplicates rounding may produce on light loads.
+	return sets.filter((s, i) => i === 0 || s.weight !== sets[i - 1].weight);
 }
