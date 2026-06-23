@@ -8,6 +8,7 @@
 	import { lastPerformance } from '$lib/repo/stats';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { restAlert } from '$lib/restAlert';
+	import { SET_TYPES, setLabel } from '$lib/sets';
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
@@ -34,7 +35,7 @@
 	let fromRoutineId: string | undefined = $state(undefined);
 	const startTime = Date.now();
 
-	const setTypes = ['normal', 'warmup', 'drop', 'failure'];
+	const setTypes = SET_TYPES;
 	const unit = $derived(prefs.current.weightUnit);
 
 	// --- exercise picker ---
@@ -226,9 +227,14 @@
 				<span>Set</span><span>Type</span><span>Weight ({unit})</span><span>Reps</span><span>✓</span><span></span>
 			</div>
 			{#each ex.sets as s, i (s.uid)}
-				<div class="set-row" class:done={s.is_completed} data-testid="set-row">
-					<span>{i + 1}</span>
-					<select bind:value={s.set_type}>
+				<div
+					class="set-row"
+					class:done={s.is_completed}
+					class:warmup={s.set_type === 'warmup'}
+					data-testid="set-row"
+				>
+					<span class="set-no" data-testid="set-label">{setLabel(ex.sets, i)}</span>
+					<select bind:value={s.set_type} data-testid="set-type">
 						{#each setTypes as t}<option value={t}>{t}</option>{/each}
 					</select>
 					<input
@@ -338,6 +344,15 @@
 	}
 	.set-row.done {
 		opacity: 0.7;
+	}
+	.set-no {
+		text-align: center;
+		color: var(--muted);
+		font-variant-numeric: tabular-nums;
+	}
+	.set-row.warmup .set-no {
+		color: var(--warning);
+		font-weight: 600;
 	}
 	.set-row input[type='number'] {
 		padding: 0.4rem;

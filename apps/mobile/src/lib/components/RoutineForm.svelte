@@ -4,6 +4,7 @@
 	import { listFolders, type FolderRow } from '$lib/repo/folders';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { displayToKg, kgToDisplay } from '$lib/units';
+	import { SET_TYPES, setLabel } from '$lib/sets';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 
@@ -74,7 +75,7 @@
 	let saving = $state(false);
 	let error = $state('');
 
-	const setTypes = ['normal', 'warmup', 'drop', 'failure'];
+	const setTypes = SET_TYPES;
 
 	let library = $state<{ id: string; name: string; primary_muscle: string }[]>([]);
 	let pickerOpen = $state(false);
@@ -173,8 +174,8 @@
 			<span>Set</span><span>Type</span><span>Target {unit}</span><span>Target reps</span><span></span>
 		</div>
 		{#each ex.sets as s, i (s.uid)}
-			<div class="set-row">
-				<span>{i + 1}</span>
+			<div class="set-row" class:warmup={s.set_type === 'warmup'}>
+				<span class="set-no">{setLabel(ex.sets, i)}</span>
 				<select bind:value={s.set_type}>
 					{#each setTypes as t}<option value={t}>{t}</option>{/each}
 				</select>
@@ -278,6 +279,15 @@
 	}
 	.set-row input {
 		padding: 0.4rem;
+	}
+	.set-no {
+		text-align: center;
+		color: var(--muted);
+		font-variant-numeric: tabular-nums;
+	}
+	.set-row.warmup .set-no {
+		color: var(--warning);
+		font-weight: 600;
 	}
 	select {
 		padding: 0.4rem;
