@@ -19,11 +19,13 @@
 		uid: string;
 		exercise_id: string;
 		rest_seconds: number;
+		notes: string;
 		sets: DraftSet[];
 	}
 	interface InitialExercise {
 		exercise_id: string;
 		rest_seconds: number;
+		notes?: string;
 		sets: { set_type: string; target_weight: number | null; target_reps: number | null }[];
 	}
 
@@ -34,6 +36,7 @@
 		exercises: {
 			exercise_id: string;
 			rest_seconds: number;
+			notes: string;
 			sets: { set_type: string; target_weight?: number; target_reps?: number }[];
 		}[];
 	}
@@ -65,6 +68,7 @@
 			uid: crypto.randomUUID(),
 			exercise_id: e.exercise_id,
 			rest_seconds: e.rest_seconds,
+			notes: e.notes ?? '',
 			sets: e.sets.map((s) => ({
 				uid: crypto.randomUUID(),
 				set_type: s.set_type,
@@ -104,6 +108,7 @@
 			uid: crypto.randomUUID(),
 			exercise_id: ex.id,
 			rest_seconds: 90,
+			notes: '',
 			sets: [blankSet()]
 		});
 		pickerOpen = false;
@@ -133,6 +138,7 @@
 				exercises: exercises.map((ex) => ({
 					exercise_id: ex.exercise_id,
 					rest_seconds: ex.rest_seconds ?? 0,
+					notes: ex.notes.trim(),
 					sets: ex.sets.map((s) => ({
 						set_type: s.set_type,
 						target_weight: displayToKg(s.target_weight, unit) ?? undefined,
@@ -171,6 +177,12 @@
 			<span>Rest</span>
 			<RestInput bind:value={ex.rest_seconds} testid="field-rest" />
 		</div>
+		<input
+			class="ex-notes"
+			placeholder="Notes (e.g. tempo, cues, setup)"
+			bind:value={ex.notes}
+			data-testid="field-exercise-notes"
+		/>
 		<div class="set-head muted">
 			<span>Set</span><span>Type</span><span>Target {unit}</span><span>Target reps</span><span></span>
 		</div>
@@ -264,6 +276,11 @@
 		font-size: 0.8rem;
 		color: var(--muted);
 		margin: 0 0 0.5rem;
+	}
+	.ex-notes {
+		width: 100%;
+		margin: 0 0 0.6rem;
+		font-size: 0.85rem;
 	}
 	.set-head,
 	.set-row {

@@ -18,6 +18,22 @@ test('edits a routine title', async ({ page }) => {
 	await expect(page.getByTestId('routine-row').filter({ hasText: 'Leg Day A' })).toBeVisible();
 });
 
+test('saves per-exercise notes in a routine', async ({ page }) => {
+	await register(page);
+	await page.goto('/routines');
+	await page.getByTestId('btn-new-routine').click();
+	await page.getByTestId('field-routine-title').fill('Notes Test');
+	await page.getByTestId('btn-add-exercise').click();
+	await page.getByTestId('picker-exercise').first().click();
+	await page.getByTestId('field-exercise-notes').fill('paused reps, 3s eccentric');
+	await page.getByTestId('btn-save-routine').click();
+	await expect(page).toHaveURL(/\/routines$/);
+
+	// Reopen the routine to edit — the note persisted.
+	await page.getByRole('link', { name: 'Notes Test' }).click();
+	await expect(page.getByTestId('field-exercise-notes')).toHaveValue('paused reps, 3s eccentric');
+});
+
 test('edits exercise rest as minutes + seconds', async ({ page }) => {
 	await register(page);
 	await page.goto('/routines');

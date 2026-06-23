@@ -16,6 +16,7 @@ export interface RoutineSetTarget {
 export interface RoutineExerciseDetail {
 	exercise_id: string;
 	rest_seconds: number;
+	notes: string;
 	sets: RoutineSetTarget[];
 }
 export interface RoutineDetail {
@@ -58,6 +59,7 @@ export async function getRoutine(id: string): Promise<RoutineDetail | null> {
 		exercises?: {
 			exercise_id: string;
 			rest_seconds?: number;
+			notes?: string;
 			sets?: { set_type: string; target_weight?: number | null; target_reps?: number | null }[];
 		}[];
 	};
@@ -69,6 +71,7 @@ export async function getRoutine(id: string): Promise<RoutineDetail | null> {
 		exercises: (d.exercises ?? []).map((ex) => ({
 			exercise_id: ex.exercise_id,
 			rest_seconds: ex.rest_seconds ?? 0,
+			notes: ex.notes ?? '',
 			sets: (ex.sets ?? []).map((s) => ({
 				set_type: s.set_type,
 				target_weight: s.target_weight ?? null,
@@ -86,6 +89,7 @@ export interface RoutineSetInput {
 export interface RoutineExerciseInput {
 	exercise_id: string;
 	rest_seconds: number;
+	notes?: string;
 	sets: RoutineSetInput[];
 }
 export interface RoutineInput {
@@ -134,7 +138,7 @@ async function writeRoutine(
 			id: crypto.randomUUID(),
 			exercise_id: ex.exercise_id,
 			order_index: i,
-			notes: '',
+			notes: ex.notes ?? '',
 			rest_seconds: ex.rest_seconds,
 			superset_group: null,
 			sets: ex.sets.map((s, j) => ({
