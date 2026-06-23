@@ -60,6 +60,7 @@ var builtinExercises = []builtin{
 	{"Leg Press", "weight_reps", "Quadriceps", `["Glutes"]`, "Machine"},
 	{"Leg Extension", "weight_reps", "Quadriceps", `[]`, "Machine"},
 	{"Romanian Deadlift", "weight_reps", "Hamstrings", `["Glutes","Lower Back"]`, "Barbell"},
+	{"Good Morning", "weight_reps", "Hamstrings", `["Glutes","Lower Back"]`, "Barbell"},
 	{"Stiff-Leg Deadlift", "weight_reps", "Hamstrings", `["Glutes"]`, "Barbell"},
 	{"Leg Curl", "weight_reps", "Hamstrings", `[]`, "Machine"},
 	{"Seated Leg Curl", "weight_reps", "Hamstrings", `[]`, "Machine"},

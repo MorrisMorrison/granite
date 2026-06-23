@@ -5,6 +5,8 @@
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { api } from '$lib/api/client';
 	import { resync } from '$lib/sync';
+	import { listExercises } from '$lib/repo/exercises';
+	import { buildHevyImport } from '$lib/hevy';
 	import { getServerUrl } from '$lib/config';
 	import type { paths } from '@granite/shared';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -42,6 +44,9 @@
 	let importError = $state('');
 	let importMessage = $state('');
 	let fileInput: HTMLInputElement;
+
+	let hevyImporting = $state(false);
+	let hevyInput: HTMLInputElement;
 
 	async function loadTokens() {
 		tokensLoading = true;
@@ -150,6 +155,47 @@
 		}
 	}
 
+	async function onHevyFile(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		input.value = '';
+		if (!file) return;
+		hevyImporting = true;
+		importError = '';
+		importMessage = '';
+		try {
+			const text = await file.text();
+			const library = await listExercises();
+			const { envelope, workoutCount, customExercises } = buildHevyImport(
+				text,
+				library.map((e) => ({ id: e.id, name: e.name }))
+			);
+			if (workoutCount === 0) {
+				importError = 'No workouts found — is this a Hevy CSV export?';
+				return;
+			}
+			const { data, error } = await api().POST('/api/v1/import', { body: envelope as ImportBody });
+			if (error || !data) {
+				importError = 'Import failed — are you online?';
+				return;
+			}
+			const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+			const extra = customExercises.length
+				? ` (${plural(customExercises.length, 'new exercise')} added)`
+				: '';
+			importMessage = `Imported ${plural(workoutCount, 'workout')}${extra}.`;
+			try {
+				await resync();
+			} catch {
+				/* offline — they'll sync on reconnect */
+			}
+		} catch {
+			importError = 'Could not read that file — expected a Hevy CSV export.';
+		} finally {
+			hevyImporting = false;
+		}
+	}
+
 	function fmtDate(ms: number): string {
 		return new Date(ms).toLocaleDateString(undefined, {
 			year: 'numeric',
@@ -219,7 +265,8 @@
 		<div class="card">
 			<p class="muted desc">
 				Export everything — routines, workouts, exercises — as a JSON file, or import a previous
-				Granite export. Importing merges by id (last write wins).
+				Granite export. Importing merges by id (last write wins). You can also import a workout-history
+				CSV from another tracker.
 			</p>
 			{#if exportError}<p class="error">{exportError}</p>{/if}
 			{#if importError}<p class="error">{importError}</p>{/if}
@@ -236,6 +283,14 @@
 				>
 					{importing ? 'Importing…' : 'Import JSON'}
 				</Button>
+				<Button
+					variant="outline"
+					onclick={() => hevyInput.click()}
+					disabled={hevyImporting}
+					testid="btn-import-hevy"
+				>
+					{hevyImporting ? 'Importing…' : 'Import from Hevy (CSV)'}
+				</Button>
 			</div>
 			<input
 				bind:this={fileInput}
@@ -244,6 +299,14 @@
 				onchange={onImportFile}
 				class="visually-hidden"
 				data-testid="field-import"
+			/>
+			<input
+				bind:this={hevyInput}
+				type="file"
+				accept="text/csv,.csv"
+				onchange={onHevyFile}
+				class="visually-hidden"
+				data-testid="field-import-hevy"
 			/>
 		</div>
 	</section>
