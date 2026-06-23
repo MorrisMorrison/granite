@@ -3,11 +3,11 @@
 Phased so each step is usable on its own. Offline-first is built in from the start (retrofitting it
 later is painful), but **sync** is deferred until after a single-device app works.
 
-> **Status (2026-06-21):** Phases 0–4 are essentially done — Granite is a working, self-hostable,
-> offline-first PWA with sync, personal API tokens, an MCP server, and a full UI pass, all under a
-> unit + end-to-end test net in CI. Remaining: some Phase 2 niceties (progress charts/PRs, units &
-> rest-default settings, "previous" values, rest notification), Phase 5 polish (keyboard nav, a
-> published API reference), and Phase 6 (native packaging + integrations).
+> **Status (2026-06-23):** Phases 0–5 are essentially done — Granite is a working, self-hostable,
+> offline-first PWA with sync, personal API tokens, an MCP server, a published API reference, and a
+> full UI pass (incl. in-app calculators), all under a unit + end-to-end test net in CI. Remaining:
+> Phase 6 nice-to-haves (bodyweight tracking, import from other trackers, Health/Watch sync,
+> OIDC/passkeys, advanced analytics) and optional sync hardening.
 
 ## Phase 0 — Planning ✅
 - [x] Decisions locked (stack, sync model, license, name).
@@ -26,11 +26,11 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [x] SvelteKit app scaffold (`adapter-static`); local data layer (IndexedDB, [ADR-0010](decisions/0010-web-local-store-indexeddb.md)).
 - [x] Exercises (library + built-ins), Routines (+ folders).
 - [x] **Workout logger** hot path: sets, rest timer.
-  - [ ] "previous" set values; rest-timer notification.
+  - [x] "previous" set values; rest-timer notification (vibrate + beep).
 - [x] History.
-  - [ ] Per-exercise progress chart + PRs.
+  - [x] Per-exercise progress chart + PRs (and a workout detail view).
 - [x] Settings (account, JSON export, API tokens).
-  - [ ] Units, default rest, and other preferences.
+  - [x] Units, default rest, and other preferences; exercise search; JSON import.
 - [x] Runs as an installable **PWA** (service worker, offline shell).
 - 🎯 *Milestone met: log a full real session offline, no account/server needed.*
 
@@ -52,7 +52,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 ## Phase 5 — Web + API/MCP for others
 - [x] **MCP server** (read tools + opt-in guarded writes) + personal API tokens (read/write scopes).
 - [x] Web app responsive / desktop layouts (UI overhaul — centered dialogs, etc.).
-  - [ ] Keyboard-first navigation pass.
+  - [x] Keyboard-first navigation pass.
 - [x] Publish the REST API reference — rendered from the OpenAPI spec on the docs site (`/api`).
 
 ## Phase 6 — Native & nice-to-haves
