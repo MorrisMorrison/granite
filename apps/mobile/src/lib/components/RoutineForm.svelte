@@ -5,6 +5,7 @@
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import { SET_TYPES, setLabel } from '$lib/sets';
+	import { warmupTargetSets } from '$lib/calc';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 	import RestInput from '$lib/components/ui/RestInput.svelte';
@@ -123,6 +124,26 @@
 		exercises = exercises.filter((e) => e.uid !== uid);
 	}
 
+	// True once the exercise has a work set with a weight to base warm-ups on.
+	function canWarmup(ex: DraftExercise): boolean {
+		return ex.sets.some((s) => s.set_type !== 'warmup' && (s.target_weight ?? 0) > 0);
+	}
+	// Replace this exercise's warm-up sets with a fresh ramp from its heaviest work set.
+	function addWarmups(ex: DraftExercise) {
+		const warm = warmupTargetSets(ex.sets, unit);
+		if (warm.length === 0) return;
+		const work = ex.sets.filter((s) => s.set_type !== 'warmup');
+		ex.sets = [
+			...warm.map((w) => ({
+				uid: crypto.randomUUID(),
+				set_type: w.set_type,
+				target_weight: w.target_weight,
+				target_reps: w.target_reps
+			})),
+			...work
+		];
+	}
+
 	async function save() {
 		if (!title.trim()) {
 			error = 'A title is required.';
@@ -187,18 +208,32 @@
 			<span>Set</span><span>Type</span><span>Target {unit}</span><span>Target reps</span><span></span>
 		</div>
 		{#each ex.sets as s, i (s.uid)}
-			<div class="set-row" class:warmup={s.set_type === 'warmup'}>
-				<span class="set-no">{setLabel(ex.sets, i)}</span>
+			<div class="set-row" class:warmup={s.set_type === 'warmup'} data-testid="rf-set">
+				<span class="set-no" data-testid="rf-set-label">{setLabel(ex.sets, i)}</span>
 				<select bind:value={s.set_type}>
 					{#each setTypes as t}<option value={t}>{t}</option>{/each}
 				</select>
-				<input type="number" inputmode="decimal" bind:value={s.target_weight} />
+				<input
+					type="number"
+					inputmode="decimal"
+					bind:value={s.target_weight}
+					data-testid="field-target-weight"
+				/>
 				<input type="number" inputmode="numeric" bind:value={s.target_reps} />
 				<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
 			</div>
 		{/each}
 		<div class="add-set">
 			<Button variant="ghost" size="sm" icon="plus" onclick={() => addSet(ex)}>Add set</Button>
+			<span title="Adds warm-up sets calculated from this exercise's heaviest set">
+				<Button
+					variant="ghost"
+					size="sm"
+					disabled={!canWarmup(ex)}
+					onclick={() => addWarmups(ex)}
+					testid="btn-warmups">Add warm-ups</Button
+				>
+			</span>
 		</div>
 	</section>
 {/each}
