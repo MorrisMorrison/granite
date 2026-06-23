@@ -7,6 +7,7 @@
 	import { SET_TYPES, setLabel } from '$lib/sets';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
+	import RestInput from '$lib/components/ui/RestInput.svelte';
 
 	interface DraftSet {
 		uid: string;
@@ -17,7 +18,7 @@
 	interface DraftExercise {
 		uid: string;
 		exercise_id: string;
-		rest_seconds: number | null;
+		rest_seconds: number;
 		sets: DraftSet[];
 	}
 	interface InitialExercise {
@@ -166,10 +167,10 @@
 			<strong>{nameFor(ex.exercise_id)}</strong>
 			<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
 		</div>
-		<label class="rest">
-			Rest (s)
-			<input type="number" inputmode="numeric" bind:value={ex.rest_seconds} />
-		</label>
+		<div class="rest">
+			<span>Rest</span>
+			<RestInput bind:value={ex.rest_seconds} testid="field-rest" />
+		</div>
 		<div class="set-head muted">
 			<span>Set</span><span>Type</span><span>Target {unit}</span><span>Target reps</span><span></span>
 		</div>
@@ -263,10 +264,6 @@
 		font-size: 0.8rem;
 		color: var(--muted);
 		margin: 0 0 0.5rem;
-	}
-	.rest input {
-		width: 4.5rem;
-		padding: 0.3rem;
 	}
 	.set-head,
 	.set-row {

@@ -18,6 +18,19 @@ test('edits a routine title', async ({ page }) => {
 	await expect(page.getByTestId('routine-row').filter({ hasText: 'Leg Day A' })).toBeVisible();
 });
 
+test('edits exercise rest as minutes + seconds', async ({ page }) => {
+	await register(page);
+	await page.goto('/routines');
+	await page.getByTestId('btn-new-routine').click();
+	await page.getByTestId('field-routine-title').fill('Rest Test');
+	await page.getByTestId('btn-add-exercise').click();
+	await page.getByTestId('picker-exercise').first().click();
+
+	// The default 90s rest renders as 1 min 30 s.
+	await expect(page.getByTestId('field-rest-min')).toHaveValue('1');
+	await expect(page.getByTestId('field-rest-sec')).toHaveValue('30');
+});
+
 test('renames then deletes a folder', async ({ page }) => {
 	await register(page);
 	await page.goto('/routines');
