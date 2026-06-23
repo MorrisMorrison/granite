@@ -10,6 +10,8 @@
 		exercises:
 			'<path d="M2 12l1 0" /><path d="M6 8v8" /><path d="M9 7v10" /><path d="M15 7v10" /><path d="M18 8v8" /><path d="M21 12l1 0" /><path d="M9 12l6 0" />',
 		play: '<path d="M7 4v16l13 -8z" />',
+		calculator:
+			'<path d="M4 3m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M8 7m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z" /><path d="M8 14l0 .01" /><path d="M12 14l0 .01" /><path d="M16 14l0 .01" /><path d="M8 17l0 .01" /><path d="M12 17l0 .01" /><path d="M16 17l0 .01" />',
 		plus: '<path d="M12 5l0 14" /><path d="M5 12l14 0" />',
 		check: '<path d="M5 12l5 5l10 -10" />',
 		x: '<path d="M18 6l-12 12" /><path d="M6 6l12 12" />',
