@@ -60,7 +60,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [ ] Body measurements / bodyweight tracking.
 - [ ] Import from other popular trackers — parse their CSV/JSON exports into Granite's data model so users can
       migrate their full history and switch over seamlessly (builds on the existing `import` endpoint).
-- [ ] Plate / 1RM / warmup calculators in UI.
+- [x] Plate / 1RM / warmup calculators in UI (`/tools`).
 - [ ] Apple Health / Google Fit; (later) Watch / Wear OS.
 - [ ] OIDC / passkeys.
 - [ ] Advanced analytics (volume per muscle group, etc.).

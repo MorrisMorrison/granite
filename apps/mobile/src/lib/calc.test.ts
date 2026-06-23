@@ -1,0 +1,71 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+	defaultBar,
+	estimate1RM,
+	platesPerSide,
+	repTargets,
+	roundToLoadable,
+	warmupSets
+} from './calc';
+
+describe('platesPerSide', () => {
+	it('breaks a kg load down greedily, per side', () => {
+		// 100kg on a 20kg bar → 40 per side → 25 + 15
+		expect(platesPerSide(100, 20, 'kg').plates).toEqual([25, 15]);
+	});
+
+	it('flags weights below the bar', () => {
+		expect(platesPerSide(15, 20, 'kg').belowBar).toBe(true);
+	});
+
+	it('reports leftover when not exactly loadable', () => {
+		// 21kg → 0.5 per side, no plate that small → 0.5 leftover
+		expect(platesPerSide(21, 20, 'kg').leftover).toBeCloseTo(0.5);
+	});
+
+	it('returns just the bar with no plates at bar weight', () => {
+		expect(platesPerSide(20, 20, 'kg')).toMatchObject({ plates: [], leftover: 0, belowBar: false });
+	});
+});
+
+describe('estimate1RM', () => {
+	it('returns the weight itself at 1 rep', () => {
+		expect(estimate1RM(100, 1)).toBe(100);
+	});
+	it('applies Epley above 1 rep', () => {
+		expect(estimate1RM(100, 5)).toBeCloseTo(116.7, 1);
+	});
+	it('guards invalid input', () => {
+		expect(estimate1RM(0, 5)).toBe(0);
+		expect(estimate1RM(100, 0)).toBe(0);
+	});
+});
+
+describe('repTargets', () => {
+	it('inverts a 1RM into per-rep estimates (heavier reps = lighter weight)', () => {
+		const t = repTargets(120);
+		expect(t.find((x) => x.reps === 1)?.weight).toBe(120);
+		expect(t.find((x) => x.reps === 10)?.weight).toBeLessThan(120);
+	});
+});
+
+describe('roundToLoadable', () => {
+	it('rounds to the nearest 2.5kg over the bar, and never below the bar', () => {
+		expect(roundToLoadable(61, 'kg')).toBe(60);
+		expect(roundToLoadable(15, 'kg')).toBe(20);
+	});
+	it('uses lb bar + increments', () => {
+		expect(defaultBar('lb')).toBe(45);
+		expect(roundToLoadable(103, 'lb')).toBe(105);
+	});
+});
+
+describe('warmupSets', () => {
+	it('ramps up to (but under) the working weight, on loadable weights', () => {
+		const w = warmupSets(100, 'kg');
+		expect(w).toHaveLength(3);
+		expect(w.every((s) => s.weight <= 100)).toBe(true);
+		expect(w[0].weight).toBeLessThan(w[2].weight);
+	});
+});
