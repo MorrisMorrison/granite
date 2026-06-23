@@ -62,10 +62,31 @@ describe('roundToLoadable', () => {
 });
 
 describe('warmupSets', () => {
-	it('ramps up to (but under) the working weight, on loadable weights', () => {
+	it('ramps ascending and stays under the working weight, reps starting at 5', () => {
 		const w = warmupSets(100, 'kg');
-		expect(w).toHaveLength(3);
-		expect(w.every((s) => s.weight <= 100)).toBe(true);
-		expect(w[0].weight).toBeLessThan(w[2].weight);
+		expect(w.length).toBeGreaterThanOrEqual(3);
+		expect(w[0].reps).toBe(5);
+		expect(w.every((s) => s.weight < 100)).toBe(true);
+		for (let i = 1; i < w.length; i++) expect(w[i].weight).toBeGreaterThan(w[i - 1].weight);
+	});
+
+	it('adds more sets for heavy loads so no gap exceeds 20kg', () => {
+		const heavy = warmupSets(140, 'kg');
+		const light = warmupSets(60, 'kg');
+		expect(heavy.length).toBeGreaterThan(light.length);
+		for (let i = 1; i < heavy.length; i++) {
+			expect(heavy[i].weight - heavy[i - 1].weight).toBeLessThanOrEqual(20);
+		}
+	});
+
+	it('keeps lb gaps within one plate pair (≤45lb)', () => {
+		const w = warmupSets(315, 'lb');
+		for (let i = 1; i < w.length; i++) {
+			expect(w[i].weight - w[i - 1].weight).toBeLessThanOrEqual(45);
+		}
+	});
+
+	it('returns nothing for a bar-or-lighter working weight', () => {
+		expect(warmupSets(20, 'kg')).toEqual([]);
 	});
 });
