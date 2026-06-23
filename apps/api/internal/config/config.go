@@ -19,7 +19,13 @@ type Config struct {
 	BaseURL           string
 	AllowRegistration bool
 	LogLevel          string
+	// Env is "prod" (default) or "dev". In dev the server auto-seeds the demo
+	// account on startup; see GRANITE_ENV in docs/DEVELOPMENT.md.
+	Env string
 }
+
+// IsDev reports whether the app is running in the development environment.
+func (c Config) IsDev() bool { return c.Env == "dev" }
 
 // Load reads configuration from the environment, applying defaults. It returns
 // an error if the JWT secret is missing or too weak.
@@ -34,6 +40,7 @@ func Load() (Config, error) {
 		// arbitrary signups unless this is explicitly enabled.
 		AllowRegistration: getbool("GRANITE_ALLOW_REGISTRATION", false),
 		LogLevel:          getenv("GRANITE_LOG_LEVEL", "info"),
+		Env:               getenv("GRANITE_ENV", "prod"),
 	}
 	if c.JWTSecret == "" {
 		return c, fmt.Errorf("GRANITE_JWT_SECRET is required")
