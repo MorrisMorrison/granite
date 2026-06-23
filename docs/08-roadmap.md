@@ -53,7 +53,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [x] **MCP server** (read tools + opt-in guarded writes) + personal API tokens (read/write scopes).
 - [x] Web app responsive / desktop layouts (UI overhaul — centered dialogs, etc.).
   - [ ] Keyboard-first navigation pass.
-- [ ] Publish the REST API reference (OpenAPI is generated + committed; a hosted reference is pending).
+- [x] Publish the REST API reference — rendered from the OpenAPI spec on the docs site (`/api`).
 
 ## Phase 6 — Native & nice-to-haves
 - [ ] Capacitor native wrappers → app-store/sideload builds (needs macOS for iOS).
