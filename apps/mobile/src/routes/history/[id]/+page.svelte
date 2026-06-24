@@ -7,6 +7,7 @@
 	import { kgToDisplay } from '$lib/units';
 	import { setLabel } from '$lib/sets';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 
 	const id = page.params.id!;
 	let workout = $state<WorkoutDetail | null>(null);
@@ -95,7 +96,15 @@
 			{#each workout.exercises as ex (ex.exercise_id)}
 				<section class="card ex" data-testid="wd-exercise">
 					<div class="ex-head">
-						<strong>{ex.name}</strong>
+						<a
+							class="ex-link"
+							href="/exercises/{ex.exercise_id}"
+							data-testid="wd-exercise-link"
+							title="View progress for {ex.name}"
+						>
+							<strong>{ex.name}</strong>
+							<Icon name="chevron-right" size={16} />
+						</a>
 						<span class="muted">{ex.sets.length} set{ex.sets.length === 1 ? '' : 's'}</span>
 					</div>
 					<div class="set-head muted">
@@ -147,6 +156,19 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.5rem;
+	}
+	.ex-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2rem;
+		color: var(--text);
+		text-decoration: none;
+	}
+	.ex-link:hover {
+		color: var(--accent);
+	}
+	.ex-link :global(svg) {
+		color: var(--muted);
 	}
 	.set-head,
 	.set-row {
