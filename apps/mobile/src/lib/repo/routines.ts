@@ -107,6 +107,28 @@ export async function createRoutine(input: RoutineInput): Promise<string> {
 	return id;
 }
 
+/** Deep-copy a routine into a new one ("… (copy)", same folder). Returns the new
+ *  id, or null if the source is gone. Works offline. */
+export async function duplicateRoutine(id: string): Promise<string | null> {
+	const r = await getRoutine(id);
+	if (!r) return null;
+	return createRoutine({
+		title: `${r.title} (copy)`,
+		notes: r.notes,
+		folder_id: r.folder_id,
+		exercises: r.exercises.map((ex) => ({
+			exercise_id: ex.exercise_id,
+			rest_seconds: ex.rest_seconds,
+			notes: ex.notes,
+			sets: ex.sets.map((s) => ({
+				set_type: s.set_type,
+				target_weight: s.target_weight,
+				target_reps: s.target_reps
+			}))
+		}))
+	});
+}
+
 /** Update a routine in place, preserving created_at/order. Folder comes from the input if set,
  *  otherwise the existing folder is kept. Works offline. */
 export async function updateRoutine(id: string, input: RoutineInput): Promise<void> {

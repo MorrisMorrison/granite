@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { listRoutines, setRoutineFolder, type RoutineRow } from '$lib/repo/routines';
+	import {
+		listRoutines,
+		setRoutineFolder,
+		duplicateRoutine,
+		type RoutineRow
+	} from '$lib/repo/routines';
 	import {
 		listFolders,
 		createFolder,
@@ -84,6 +89,11 @@
 	}
 	async function chooseFolder(folderId: string | null) {
 		if (moveSheet.routineId) await setRoutineFolder(moveSheet.routineId, folderId);
+		closeMoveSheet();
+		await load();
+	}
+	async function duplicate() {
+		if (moveSheet.routineId) await duplicateRoutine(moveSheet.routineId);
 		closeMoveSheet();
 		await load();
 	}
@@ -187,6 +197,13 @@
 </Sheet>
 
 <Sheet open={moveSheet.open} title={moveSheet.title ?? 'Routine'} onclose={closeMoveSheet}>
+	<ul class="movelist">
+		<li>
+			<button class="move-item" onclick={duplicate} data-testid="btn-duplicate-routine">
+				<Icon name="plus" size={16} /> Duplicate
+			</button>
+		</li>
+	</ul>
 	<div class="menu-label">Move to folder</div>
 	<ul class="movelist">
 		<li>
