@@ -1,6 +1,31 @@
 import { expect, test } from '@playwright/test';
 import { createRoutine, logWorkout, register } from './helpers';
 
+test('quick deload scales prefilled weights from a routine', async ({ page }) => {
+	await register(page);
+
+	// A routine with a 100 kg target set.
+	await page.goto('/routines');
+	await page.getByTestId('btn-new-routine').click();
+	await page.getByTestId('field-routine-title').fill('Deload Test');
+	await page.getByTestId('btn-add-exercise').click();
+	await page.getByTestId('picker-exercise').first().click();
+	await page.getByTestId('field-target-weight').first().fill('100');
+	await page.getByTestId('btn-save-routine').click();
+	await expect(page).toHaveURL(/\/routines$/);
+
+	// Start it → the set prefills at 100.
+	await page.getByTestId('btn-start-routine').first().click();
+	await expect(page).toHaveURL(/\/log\?routine=/);
+	await expect(page.getByTestId('input-weight').first()).toHaveValue('100');
+
+	// −10% → 90, then back to none → 100 (non-compounding, restores originals).
+	await page.getByTestId('field-deload').selectOption('10');
+	await expect(page.getByTestId('input-weight').first()).toHaveValue('90');
+	await page.getByTestId('field-deload').selectOption('0');
+	await expect(page.getByTestId('input-weight').first()).toHaveValue('100');
+});
+
 test('opens exercise stats by tapping an exercise in a workout', async ({ page }) => {
 	await register(page);
 	const name = await logWorkout(page);
