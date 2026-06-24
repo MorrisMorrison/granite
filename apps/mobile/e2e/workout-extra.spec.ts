@@ -1,6 +1,20 @@
 import { expect, test } from '@playwright/test';
 import { createRoutine, logWorkout, register } from './helpers';
 
+test('opens exercise stats by tapping an exercise in a workout', async ({ page }) => {
+	await register(page);
+	const name = await logWorkout(page);
+
+	// Open the workout detail from history.
+	await page.getByTestId('workout-row').first().click();
+	await expect(page).toHaveURL(/\/history\/.+/);
+
+	// Tap the exercise → its progress/stats page.
+	await page.getByTestId('wd-exercise-link').first().click();
+	await expect(page).toHaveURL(/\/exercises\/.+/);
+	await expect(page.getByRole('heading', { name })).toBeVisible();
+});
+
 test('starts a workout prefilled from a routine', async ({ page }) => {
 	await register(page);
 	await createRoutine(page, 'Push Day');
