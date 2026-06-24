@@ -89,14 +89,19 @@
 </div>
 
 <style>
+	/* Sits in a card so it matches the workout rows below it. */
 	.cal {
-		margin-bottom: 1rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		padding: 0.75rem 0.85rem;
+		margin-bottom: 0.6rem;
 	}
 	.cal-hd {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 0.4rem;
+		margin-bottom: 0.45rem;
 	}
 	.cal-title {
 		font-size: 0.85rem;
@@ -105,10 +110,10 @@
 	.nav {
 		background: transparent;
 		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		border-radius: var(--radius-sm);
 		color: var(--text);
-		width: 1.75rem;
-		height: 1.75rem;
+		width: 1.5rem;
+		height: 1.5rem;
 		line-height: 1;
 		cursor: pointer;
 	}
@@ -119,16 +124,16 @@
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
-		gap: 3px;
+		gap: 2px;
 		text-align: center;
 	}
 	.dow {
-		font-size: 0.7rem;
+		font-size: 0.68rem;
 		color: var(--muted);
-		padding-bottom: 2px;
+		padding-bottom: 1px;
 	}
 	.day {
-		aspect-ratio: 1;
+		min-height: 1.85rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -136,7 +141,7 @@
 		border: none;
 		background: transparent;
 		color: var(--muted);
-		border-radius: var(--radius);
+		border-radius: var(--radius-sm);
 		padding: 0;
 	}
 	.day:disabled {
