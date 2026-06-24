@@ -37,6 +37,18 @@ test('auto-adds warm-up sets from the heaviest working set', async ({ page }) =>
 	expect(await page.getByTestId('rf-set').count()).toBeGreaterThan(1);
 });
 
+test('duplicates a routine', async ({ page }) => {
+	await register(page);
+	await createRoutine(page, 'Leg Day');
+
+	await page.getByTestId('btn-routine-menu').first().click();
+	await page.getByTestId('btn-duplicate-routine').click();
+
+	await expect(page.getByTestId('routine-row').filter({ hasText: 'Leg Day (copy)' })).toBeVisible();
+	// Original kept + copy added → two rows.
+	await expect(page.getByTestId('routine-row')).toHaveCount(2);
+});
+
 test('saves per-exercise notes in a routine', async ({ page }) => {
 	await register(page);
 	await page.goto('/routines');

@@ -16,7 +16,14 @@ vi.mock('$lib/local/store', () => ({
 }));
 vi.mock('$lib/sync', () => ({ syncNow: vi.fn(() => Promise.resolve({} as never)) }));
 
-import { createRoutine, getRoutine, listRoutines, setRoutineFolder, updateRoutine } from './routines';
+import {
+	createRoutine,
+	duplicateRoutine,
+	getRoutine,
+	listRoutines,
+	setRoutineFolder,
+	updateRoutine
+} from './routines';
 
 let n = 0;
 beforeEach(() => {
@@ -47,6 +54,40 @@ describe('createRoutine + getRoutine', () => {
 
 	it('returns null for a missing routine', async () => {
 		expect(await getRoutine('nope')).toBeNull();
+	});
+
+	it('duplicates a routine with its exercises and sets', async () => {
+		const id = await createRoutine({
+			title: 'Leg Day',
+			notes: 'heavy',
+			folder_id: null,
+			exercises: [
+				{
+					exercise_id: 'sq',
+					rest_seconds: 120,
+					notes: 'brace',
+					sets: [{ set_type: 'normal', target_weight: 100, target_reps: 5 }]
+				}
+			]
+		});
+
+		const copyId = await duplicateRoutine(id);
+		expect(copyId).toBeTruthy();
+		expect(copyId).not.toBe(id);
+
+		const copy = await getRoutine(copyId!);
+		expect(copy!.title).toBe('Leg Day (copy)');
+		expect(copy!.notes).toBe('heavy');
+		expect(copy!.exercises[0]).toMatchObject({ exercise_id: 'sq', rest_seconds: 120, notes: 'brace' });
+		expect(copy!.exercises[0].sets[0]).toMatchObject({
+			set_type: 'normal',
+			target_weight: 100,
+			target_reps: 5
+		});
+	});
+
+	it('returns null when duplicating a missing routine', async () => {
+		expect(await duplicateRoutine('nope')).toBeNull();
 	});
 });
 
