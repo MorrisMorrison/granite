@@ -1,6 +1,21 @@
 import { expect, test } from '@playwright/test';
 import { createRoutine, logWorkout, register } from './helpers';
 
+test('captures session notes and shows them in history', async ({ page }) => {
+	await register(page);
+	await page.getByTestId('btn-start-workout').click();
+	await page.getByTestId('picker-exercise').first().click();
+	await page.getByTestId('input-weight').fill('60');
+	await page.getByTestId('input-reps').fill('5');
+	await page.getByTestId('set-complete').check();
+	await page.getByTestId('field-workout-notes').fill('felt strong, RPE 8');
+	await page.getByTestId('btn-finish-workout').click();
+	await expect(page).toHaveURL(/\/history$/);
+
+	await page.getByTestId('workout-row').first().click();
+	await expect(page.getByText('felt strong, RPE 8')).toBeVisible();
+});
+
 test('quick deload scales prefilled weights from a routine', async ({ page }) => {
 	await register(page);
 

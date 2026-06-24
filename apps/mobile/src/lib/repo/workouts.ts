@@ -94,6 +94,7 @@ export interface LogExerciseInput {
 }
 export interface LogWorkoutInput {
 	title?: string;
+	notes?: string;
 	routine_id?: string | null;
 	start_time: number;
 	end_time: number | null;
@@ -112,7 +113,7 @@ export async function logWorkout(input: LogWorkoutInput): Promise<string> {
 	const data = {
 		routine_id: input.routine_id ?? null,
 		title: input.title ?? '',
-		notes: '',
+		notes: input.notes ?? '',
 		start_time: input.start_time,
 		end_time: input.end_time,
 		created_at: now,

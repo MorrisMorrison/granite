@@ -31,6 +31,7 @@
 	}
 
 	let title = $state('');
+	let notes = $state('');
 	let exercises = $state<DraftExercise[]>([]);
 	let saving = $state(false);
 	let error = $state('');
@@ -183,6 +184,7 @@
 			await logWorkout({
 				routine_id: fromRoutineId ?? null,
 				title: title || undefined,
+				notes: notes.trim() || undefined,
 				start_time: startTime,
 				end_time: Date.now(),
 				exercises: exercises.map((ex) => ({
@@ -308,6 +310,16 @@
 		Add exercise
 	</Button>
 
+	{#if exercises.length > 0}
+		<textarea
+			class="session-notes"
+			placeholder="Session notes (how it felt, RPE, aches…)"
+			rows="2"
+			bind:value={notes}
+			data-testid="field-workout-notes"
+		></textarea>
+	{/if}
+
 	<Sheet open={pickerOpen} title="Add exercise" onclose={() => (pickerOpen = false)}>
 		{#if !libraryLoaded}
 			<p class="muted">Loading…</p>
@@ -366,6 +378,17 @@
 	}
 	.deload .hint {
 		font-size: 0.75rem;
+	}
+	.session-notes {
+		width: 100%;
+		margin-top: 1rem;
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		color: var(--text);
+		padding: 0.5rem 0.75rem;
+		resize: vertical;
+		font-size: 0.9rem;
 	}
 	.ex {
 		margin-bottom: 1rem;
