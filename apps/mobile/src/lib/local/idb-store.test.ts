@@ -64,6 +64,20 @@ describe('IdbSyncStore', () => {
 		expect(await s.getCursor()).toBe(3000);
 	});
 
+	it('clear() wipes records, outbox, and the cursor', async () => {
+		const s = freshStore();
+		await s.localWrite(ex('e1', 1000, 'Squat'));
+		await s.setCursor(1000);
+		expect(await s.get('exercise', 'e1')).toBeTruthy();
+
+		await s.clear();
+
+		expect(await s.get('exercise', 'e1')).toBeUndefined();
+		expect(await s.getPending()).toHaveLength(0);
+		expect(await s.getCursor()).toBe(0);
+		expect(await s.list('exercise')).toHaveLength(0);
+	});
+
 	it('round-trips through the sync engine against a server', async () => {
 		const server = new FakeServer();
 		const a = freshStore();

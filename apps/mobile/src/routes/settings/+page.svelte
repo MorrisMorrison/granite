@@ -4,7 +4,7 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { api } from '$lib/api/client';
-	import { resync } from '$lib/sync';
+	import { resync, syncNow, resetLocalData } from '$lib/sync';
 	import { buildHevyImport } from '$lib/hevy';
 	import { getServerUrl } from '$lib/config';
 	import type { paths } from '@granite/shared';
@@ -46,6 +46,9 @@
 
 	let hevyImporting = $state(false);
 	let hevyInput: HTMLInputElement;
+
+	let resetting = $state(false);
+	let resetError = $state('');
 
 	async function loadTokens() {
 		tokensLoading = true;
@@ -203,6 +206,27 @@
 		}
 	}
 
+	// Wipe this device's local copy and re-pull from the server. Fixes a stale cache
+	// (e.g. duplicates after the server DB was reset) without needing browser tools.
+	async function onResetLocal() {
+		if (
+			!confirm(
+				'Clear this device’s local copy and re-download everything from the server? Any changes not yet synced will be lost.'
+			)
+		)
+			return;
+		resetting = true;
+		resetError = '';
+		try {
+			await resetLocalData();
+			await syncNow();
+			location.reload();
+		} catch {
+			resetError = 'Reset failed — check your connection and try again.';
+			resetting = false;
+		}
+	}
+
 	function fmtDate(ms: number): string {
 		return new Date(ms).toLocaleDateString(undefined, {
 			year: 'numeric',
@@ -315,6 +339,23 @@
 				class="visually-hidden"
 				data-testid="field-import-hevy"
 			/>
+		</div>
+		<div class="card" style="margin-top: 0.75rem;">
+			<p class="muted desc">
+				Reset this device’s local copy and re-download from the server. Use this if you see duplicate
+				or stale data after a server change.
+			</p>
+			{#if resetError}<p class="error">{resetError}</p>{/if}
+			<div class="actions">
+				<Button
+					variant="outline"
+					onclick={onResetLocal}
+					disabled={resetting}
+					testid="btn-reset-local"
+				>
+					{resetting ? 'Resetting…' : 'Reset local data'}
+				</Button>
+			</div>
 		</div>
 	</section>
 

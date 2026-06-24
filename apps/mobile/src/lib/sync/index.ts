@@ -29,3 +29,12 @@ export async function resync(): Promise<SyncResult> {
 	await localStore.setCursor(0);
 	return syncNow();
 }
+
+/**
+ * Wipe all device-local data (records, outbox, cursor). Used on logout and the
+ * manual "reset local data" action so a stale cache can be re-pulled clean — pair
+ * it with syncNow() to immediately repopulate from the server.
+ */
+export async function resetLocalData(): Promise<void> {
+	await localStore.clear();
+}

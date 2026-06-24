@@ -11,7 +11,10 @@ vi.mock('$lib/api/tokens', () => ({ tokens: tokensMock }));
 // Bootstrap side effects are exercised elsewhere; here they just need to be inert.
 vi.mock('$lib/repo/exercises', () => ({ refreshExerciseLibrary: vi.fn(() => Promise.resolve()) }));
 vi.mock('$lib/stores/prefs.svelte', () => ({ prefs: { load: vi.fn(() => Promise.resolve()) } }));
-vi.mock('$lib/sync', () => ({ syncNow: vi.fn(() => Promise.resolve()) }));
+vi.mock('$lib/sync', () => ({
+	syncNow: vi.fn(() => Promise.resolve()),
+	resetLocalData: vi.fn(() => Promise.resolve())
+}));
 
 import { auth } from './auth.svelte';
 

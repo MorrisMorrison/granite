@@ -2,7 +2,7 @@ import { api } from '$lib/api/client';
 import { tokens } from '$lib/api/tokens';
 import { refreshExerciseLibrary } from '$lib/repo/exercises';
 import { prefs } from '$lib/stores/prefs.svelte';
-import { syncNow } from '$lib/sync';
+import { resetLocalData, syncNow } from '$lib/sync';
 
 export interface CurrentUser {
 	id: string;
@@ -93,6 +93,9 @@ class Auth {
 			}
 		}
 		this.clearSession();
+		// Wipe device-local data so the next account (or a reset server) starts clean
+		// instead of inheriting this session's cached records.
+		await resetLocalData();
 	}
 
 	private setUser(u: CurrentUser): void {

@@ -93,4 +93,16 @@ export class IdbSyncStore implements SyncStore {
 		const all = (await db.getAll(RECORDS)) as Change[];
 		return all.filter((c) => c.entity === entity && !c.deleted);
 	}
+
+	/** Wipe all device-local state — records, outbox, and the pull cursor. Used on
+	 * logout and the manual "reset local data" action so a stale cache (e.g. after a
+	 * server reset) can be re-pulled clean. */
+	async clear(): Promise<void> {
+		const db = await this.dbp;
+		const tx = db.transaction([RECORDS, OUTBOX, META], 'readwrite');
+		await tx.objectStore(RECORDS).clear();
+		await tx.objectStore(OUTBOX).clear();
+		await tx.objectStore(META).clear();
+		await tx.done;
+	}
 }
