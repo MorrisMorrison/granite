@@ -9,6 +9,7 @@
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { restAlert } from '$lib/restAlert';
 	import { SET_TYPES, setLabel } from '$lib/sets';
+	import { roundToLoadable } from '$lib/calc';
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
@@ -38,6 +39,26 @@
 
 	const setTypes = SET_TYPES;
 	const unit = $derived(prefs.current.weightUnit);
+
+	// --- quick deload (only when started from a routine) ---
+	// Knock a % off every prefilled weight at the start of a session. Always applied
+	// relative to the routine's original targets (snapshotted once), so re-picking a
+	// different % doesn't compound and 0% restores the originals.
+	let deloadPct = $state(0);
+	let deloadBase: Record<string, number | null> | null = null;
+	function applyDeload() {
+		if (deloadBase === null) {
+			deloadBase = {};
+			for (const ex of exercises) for (const s of ex.sets) deloadBase[s.uid] = s.weight;
+		}
+		const factor = 1 - deloadPct / 100;
+		for (const ex of exercises) {
+			for (const s of ex.sets) {
+				const base = deloadBase[s.uid];
+				if (base != null && base > 0) s.weight = roundToLoadable(base * factor, unit);
+			}
+		}
+	}
 
 	// --- exercise picker ---
 	let pickerOpen = $state(false);
@@ -219,6 +240,20 @@
 <main class="container" style="padding-bottom: 6rem;">
 	<input class="title" placeholder="Workout title (optional)" bind:value={title} />
 
+	{#if fromRoutineId}
+		<label class="deload" data-testid="deload">
+			<span>Deload</span>
+			<select bind:value={deloadPct} onchange={applyDeload} data-testid="field-deload">
+				<option value={0}>None</option>
+				<option value={5}>−5%</option>
+				<option value={10}>−10%</option>
+				<option value={15}>−15%</option>
+				<option value={20}>−20%</option>
+			</select>
+			<span class="muted hint">scales every weight</span>
+		</label>
+	{/if}
+
 	{#each exercises as ex (ex.uid)}
 		<section class="card ex">
 			<div class="ex-head">
@@ -321,6 +356,16 @@
 		border-bottom: 1px solid var(--border);
 		border-radius: 0;
 		padding-left: 0;
+	}
+	.deload {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+		font-size: 0.85rem;
+	}
+	.deload .hint {
+		font-size: 0.75rem;
 	}
 	.ex {
 		margin-bottom: 1rem;
