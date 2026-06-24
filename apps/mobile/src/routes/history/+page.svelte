@@ -2,12 +2,30 @@
 	import { onMount } from 'svelte';
 	import { listWorkouts, type WorkoutSummary } from '$lib/repo/workouts';
 	import { syncNow } from '$lib/sync';
+	import { startOfDay } from '$lib/calendar';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Calendar from '$lib/components/ui/Calendar.svelte';
 
 	let workouts = $state<WorkoutSummary[]>([]);
 	let loading = $state(true);
+	let selectedDay = $state<number | null>(null);
+
+	const dates = $derived(workouts.map((w) => w.start_time));
+	const shown = $derived(
+		selectedDay == null
+			? workouts
+			: workouts.filter((w) => startOfDay(w.start_time) === selectedDay)
+	);
+
+	function fmtDay(ms: number): string {
+		return new Date(ms).toLocaleDateString(undefined, {
+			weekday: 'long',
+			month: 'long',
+			day: 'numeric'
+		});
+	}
 
 	onMount(async () => {
 		workouts = await listWorkouts();
@@ -54,8 +72,17 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
+		<Calendar {dates} selected={selectedDay} onselect={(d) => (selectedDay = d)} />
+
+		{#if selectedDay != null}
+			<div class="filterbar">
+				<span class="muted">Showing {fmtDay(selectedDay)}</span>
+				<button class="link" onclick={() => (selectedDay = null)} data-testid="clear-day">Clear</button>
+			</div>
+		{/if}
+
 		<div class="list">
-			{#each workouts as w (w.id)}
+			{#each shown as w (w.id)}
 				<a class="card item" href="/history/{w.id}" data-testid="workout-row">
 					<div class="name">{w.title || 'Workout'}</div>
 					<div class="muted meta">{fmtDate(w.start_time)}{duration(w)}</div>
@@ -66,6 +93,13 @@
 </main>
 
 <style>
+	.filterbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.82rem;
+		margin-bottom: 0.6rem;
+	}
 	.list {
 		display: flex;
 		flex-direction: column;
