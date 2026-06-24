@@ -9,13 +9,14 @@ export default defineConfig({
 	fullyParallel: false,
 	workers: 1,
 	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 1 : 0,
+	retries: process.env.CI ? 2 : 0,
 	reporter: process.env.CI
 		? [['list'], ['html', { open: 'never' }], ['junit', { outputFile: 'junit.xml' }]]
 		: 'list',
-	// The suite drives a real Go binary + SQLite, so first paint / bootstrap can
-	// occasionally exceed Playwright's 5s default. Give assertions more headroom.
-	expect: { timeout: 10_000 },
+	// The suite drives a real Go binary + SQLite on a shared, lane-contended CI
+	// runner, so first paint / bootstrap can occasionally run long. Give assertions
+	// generous headroom (and more CI retries) so contention doesn't fail real work.
+	expect: { timeout: 20_000 },
 	use: {
 		baseURL: BASE,
 		// Offline behaviour is exercised via context.setOffline (no offline page
