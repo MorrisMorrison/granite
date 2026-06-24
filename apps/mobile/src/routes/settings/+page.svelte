@@ -5,7 +5,6 @@
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { api } from '$lib/api/client';
 	import { resync } from '$lib/sync';
-	import { listExercises } from '$lib/repo/exercises';
 	import { buildHevyImport } from '$lib/hevy';
 	import { getServerUrl } from '$lib/config';
 	import type { paths } from '@granite/shared';
@@ -165,10 +164,18 @@
 		importMessage = '';
 		try {
 			const text = await file.text();
-			const library = await listExercises();
+			// Map against the *server's* live library, not the local cache: the import
+			// is online anyway, and the workouts reference exercise ids that must exist
+			// on the server. A stale local cache (e.g. after a server reseed) would map
+			// to ids the server no longer has → FK errors.
+			const { data: lib, error: libErr } = await api().GET('/api/v1/exercises');
+			if (libErr || !lib) {
+				importError = 'Could not load your exercise library — are you online?';
+				return;
+			}
 			const { envelope, workoutCount, customExercises } = buildHevyImport(
 				text,
-				library.map((e) => ({ id: e.id, name: e.name }))
+				(lib.exercises ?? []).map((e) => ({ id: e.id, name: e.name }))
 			);
 			if (workoutCount === 0) {
 				importError = 'No workouts found — is this a Hevy CSV export?';
