@@ -6,13 +6,38 @@ import { localStore } from '$lib/local/store';
 let running: Promise<SyncResult> | null = null;
 
 /**
+ * Detect a reset/recreated server DB and wipe the local cache before syncing, so
+ * a server reset doesn't leave the client with orphaned/duplicate records. The
+ * server's instance id changes when its DB is recreated; we compare it to the
+ * last-seen value. Best-effort: any error (offline, old server without the
+ * endpoint) is swallowed so a normal sync still proceeds.
+ */
+async function reconcileServerInstance(): Promise<void> {
+	try {
+		const { data } = await api().GET('/api/v1/server-info');
+		const serverId = data?.instance_id;
+		if (!serverId) return;
+		const seen = await localStore.getServerId();
+		if (seen && seen !== serverId) {
+			await localStore.clear(); // different DB → drop the stale cache + cursor
+		}
+		await localStore.setServerId(serverId);
+	} catch {
+		/* offline or endpoint unavailable — skip and let the normal sync run */
+	}
+}
+
+/**
  * Run one sync cycle (push local changes, pull remote) against the configured
  * server, deduping concurrent calls. Callers that are offline should catch the
  * rejection and carry on against local data.
  */
 export function syncNow(): Promise<SyncResult> {
 	if (!running) {
-		running = sync(localStore, createSyncApi(api())).finally(() => {
+		running = (async () => {
+			await reconcileServerInstance();
+			return sync(localStore, createSyncApi(api()));
+		})().finally(() => {
 			running = null;
 		});
 	}

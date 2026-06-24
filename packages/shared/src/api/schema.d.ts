@@ -234,6 +234,23 @@ export interface paths {
         patch: operations["updateRoutine"];
         trace?: never;
     };
+    "/api/v1/server-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server instance info (lets clients detect a reset DB) */
+        get: operations["serverInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sync/pull": {
         parameters: {
             query?: never;
@@ -696,6 +713,15 @@ export interface components {
             /** Format: int64 */
             order_index?: number;
             title: string;
+        };
+        ServerInfoOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/ServerInfoOutputBody.json
+             */
+            readonly $schema?: string;
+            instance_id: string;
         };
         Set: {
             id: string;
@@ -1578,6 +1604,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Routine"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    serverInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerInfoOutputBody"];
                 };
             };
             /** @description Error */

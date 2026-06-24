@@ -6,6 +6,7 @@ const RECORDS = 'records';
 const OUTBOX = 'outbox';
 const META = 'meta';
 const CURSOR_KEY = 'cursor';
+const SERVER_ID_KEY = 'server_instance_id';
 
 const key = (c: { entity: string; id: string }) => `${c.entity}:${c.id}`;
 
@@ -36,6 +37,18 @@ export class IdbSyncStore implements SyncStore {
 	async setCursor(cursor: number): Promise<void> {
 		const db = await this.dbp;
 		await db.put(META, cursor, CURSOR_KEY);
+	}
+
+	/** The server instance id this store was last reconciled against (undefined until
+	 * the first successful server-info check). Cleared by clear(). */
+	async getServerId(): Promise<string | undefined> {
+		const db = await this.dbp;
+		return (await db.get(META, SERVER_ID_KEY)) as string | undefined;
+	}
+
+	async setServerId(id: string): Promise<void> {
+		const db = await this.dbp;
+		await db.put(META, id, SERVER_ID_KEY);
 	}
 
 	async getPending(): Promise<Change[]> {
