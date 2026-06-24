@@ -727,6 +727,21 @@ components:
       required:
         - title
       type: object
+    ServerInfoOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ServerInfoOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        instance_id:
+          type: string
+      required:
+        - instance_id
+      type: object
     Set:
       additionalProperties: false
       properties:
@@ -1690,6 +1705,27 @@ paths:
       summary: Update a routine
       tags:
         - Routines
+  /api/v1/server-info:
+    get:
+      operationId: serverInfo
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerInfoOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - bearer: []
+      summary: Server instance info (lets clients detect a reset DB)
+      tags:
+        - Server
   /api/v1/sync/pull:
     post:
       operationId: syncPull

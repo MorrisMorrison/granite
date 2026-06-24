@@ -121,4 +121,5 @@ func (s *Server) registerRoutes() {
 	s.registerWorkoutRoutes(a)
 	s.registerSyncRoutes(a)
 	s.registerExportRoutes(a)
+	s.registerServerInfoRoutes(a)
 }

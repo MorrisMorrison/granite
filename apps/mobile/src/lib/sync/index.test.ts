@@ -2,20 +2,34 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // syncNow wires the shared sync engine to the app's store + API client. We mock
 // those collaborators and assert the deduping behaviour syncNow adds on top.
-const { syncFn, createSyncApi, setCursor } = vi.hoisted(() => ({
-	syncFn: vi.fn(),
-	createSyncApi: vi.fn(() => ({})),
-	setCursor: vi.fn(() => Promise.resolve())
-}));
+const { syncFn, createSyncApi, setCursor, getMock, getServerId, setServerId, clear } = vi.hoisted(
+	() => ({
+		syncFn: vi.fn(),
+		createSyncApi: vi.fn(() => ({})),
+		setCursor: vi.fn(() => Promise.resolve()),
+		getMock: vi.fn(),
+		getServerId: vi.fn(() => Promise.resolve<string | undefined>(undefined)),
+		setServerId: vi.fn(() => Promise.resolve()),
+		clear: vi.fn(() => Promise.resolve())
+	})
+);
 vi.mock('@granite/shared', () => ({ sync: syncFn, createSyncApi }));
-vi.mock('$lib/api/client', () => ({ api: vi.fn(() => ({})) }));
-vi.mock('$lib/local/store', () => ({ localStore: { setCursor } }));
+vi.mock('$lib/api/client', () => ({ api: vi.fn(() => ({ GET: getMock })) }));
+vi.mock('$lib/local/store', () => ({
+	localStore: { setCursor, getServerId, setServerId, clear }
+}));
 
 import { resync, syncNow } from './index';
 
 beforeEach(() => {
 	syncFn.mockReset();
 	setCursor.mockClear();
+	getMock.mockReset();
+	getMock.mockResolvedValue({ data: { instance_id: 'srv-1' } });
+	getServerId.mockReset();
+	getServerId.mockResolvedValue(undefined);
+	setServerId.mockClear();
+	clear.mockClear();
 });
 
 describe('syncNow', () => {
@@ -26,11 +40,11 @@ describe('syncNow', () => {
 		const p1 = syncNow();
 		const p2 = syncNow();
 
-		expect(p1).toBe(p2);
-		expect(syncFn).toHaveBeenCalledOnce();
+		expect(p1).toBe(p2); // same in-flight cycle (deduped synchronously)
 
 		resolve({ pushed: 0, pulled: 0 });
 		await p1;
+		expect(syncFn).toHaveBeenCalledOnce(); // only one underlying cycle ran
 	});
 
 	it('runs a fresh cycle after the previous one settles', async () => {
@@ -48,6 +62,40 @@ describe('syncNow', () => {
 
 		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
 		await expect(syncNow()).resolves.toBeDefined();
+	});
+});
+
+describe('reconcileServerInstance (via syncNow)', () => {
+	it('wipes local data when the server instance id changed', async () => {
+		getMock.mockResolvedValue({ data: { instance_id: 'srv-2' } });
+		getServerId.mockResolvedValue('srv-1'); // previously synced against a different DB
+		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
+
+		await syncNow();
+
+		expect(clear).toHaveBeenCalledOnce();
+		expect(setServerId).toHaveBeenCalledWith('srv-2');
+	});
+
+	it('does not wipe on first run or when the instance is unchanged', async () => {
+		getMock.mockResolvedValue({ data: { instance_id: 'srv-1' } });
+		getServerId.mockResolvedValue('srv-1');
+		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
+
+		await syncNow();
+
+		expect(clear).not.toHaveBeenCalled();
+		expect(setServerId).toHaveBeenCalledWith('srv-1');
+	});
+
+	it('still syncs when the server-info check fails (offline / old server)', async () => {
+		getMock.mockRejectedValue(new Error('offline'));
+		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
+
+		await syncNow();
+
+		expect(clear).not.toHaveBeenCalled();
+		expect(syncFn).toHaveBeenCalledOnce();
 	});
 });
 

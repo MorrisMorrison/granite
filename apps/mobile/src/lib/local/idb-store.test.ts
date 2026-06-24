@@ -64,10 +64,11 @@ describe('IdbSyncStore', () => {
 		expect(await s.getCursor()).toBe(3000);
 	});
 
-	it('clear() wipes records, outbox, and the cursor', async () => {
+	it('clear() wipes records, outbox, the cursor, and the server id', async () => {
 		const s = freshStore();
 		await s.localWrite(ex('e1', 1000, 'Squat'));
 		await s.setCursor(1000);
+		await s.setServerId('srv-1');
 		expect(await s.get('exercise', 'e1')).toBeTruthy();
 
 		await s.clear();
@@ -76,6 +77,14 @@ describe('IdbSyncStore', () => {
 		expect(await s.getPending()).toHaveLength(0);
 		expect(await s.getCursor()).toBe(0);
 		expect(await s.list('exercise')).toHaveLength(0);
+		expect(await s.getServerId()).toBeUndefined();
+	});
+
+	it('persists the server instance id', async () => {
+		const s = freshStore();
+		expect(await s.getServerId()).toBeUndefined();
+		await s.setServerId('srv-abc');
+		expect(await s.getServerId()).toBe('srv-abc');
 	});
 
 	it('round-trips through the sync engine against a server', async () => {
