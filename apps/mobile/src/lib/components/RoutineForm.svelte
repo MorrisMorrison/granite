@@ -209,7 +209,7 @@
 		</div>
 		{#each ex.sets as s, i (s.uid)}
 			<div class="set-row" class:warmup={s.set_type === 'warmup'} data-testid="rf-set">
-				<span class="set-no" data-testid="rf-set-label">{setLabel(ex.sets, i)}</span>
+				<span class="set-no" data-testid="rf-set-label">{s.set_type === 'warmup' ? '' : setLabel(ex.sets, i)}</span>
 				<select bind:value={s.set_type}>
 					{#each setTypes as t}<option value={t}>{t}</option>{/each}
 				</select>
@@ -325,6 +325,9 @@
 		align-items: center;
 		font-size: 0.85rem;
 		margin-bottom: 0.35rem;
+		/* Reserve the rail width on every row so warm-up and work sets stay aligned. */
+		border-left: 2px solid transparent;
+		padding-left: 0.5rem;
 	}
 	.set-row input {
 		padding: 0.4rem;
@@ -334,9 +337,11 @@
 		color: var(--muted);
 		font-variant-numeric: tabular-nums;
 	}
-	.set-row.warmup .set-no {
-		color: var(--warning);
-		font-weight: 600;
+	/* Warm-ups read as a de-emphasized ramp leading into the work sets: an accent
+	   rail + muted text, no badge. */
+	.set-row.warmup {
+		border-left-color: var(--accent);
+		color: var(--muted);
 	}
 	select {
 		padding: 0.4rem;

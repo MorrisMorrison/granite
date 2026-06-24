@@ -236,7 +236,7 @@
 					class:warmup={s.set_type === 'warmup'}
 					data-testid="set-row"
 				>
-					<span class="set-no" data-testid="set-label">{setLabel(ex.sets, i)}</span>
+					<span class="set-no" data-testid="set-label">{s.set_type === 'warmup' ? '' : setLabel(ex.sets, i)}</span>
 					<select bind:value={s.set_type} data-testid="set-type">
 						{#each setTypes as t}<option value={t}>{t}</option>{/each}
 					</select>
@@ -343,6 +343,9 @@
 		gap: 0.4rem;
 		align-items: center;
 		font-size: 0.85rem;
+		/* Reserve the rail width on every row so warm-up and work sets stay aligned. */
+		border-left: 2px solid transparent;
+		padding-left: 0.5rem;
 	}
 	.set-head {
 		margin-bottom: 0.3rem;
@@ -358,9 +361,11 @@
 		color: var(--muted);
 		font-variant-numeric: tabular-nums;
 	}
-	.set-row.warmup .set-no {
-		color: var(--warning);
-		font-weight: 600;
+	/* Warm-ups read as a de-emphasized ramp leading into the work sets: an accent
+	   rail + muted text, no badge. Work sets keep full contrast. */
+	.set-row.warmup {
+		border-left-color: var(--accent);
+		color: var(--muted);
 	}
 	.set-row input[type='number'] {
 		padding: 0.4rem;

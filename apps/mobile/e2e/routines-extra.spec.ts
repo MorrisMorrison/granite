@@ -31,8 +31,9 @@ test('auto-adds warm-up sets from the heaviest working set', async ({ page }) =>
 	await expect(page.getByTestId('rf-set-label').first()).toHaveText('1');
 
 	await page.getByTestId('btn-warmups').click();
-	// Warm-ups get prepended → the first row is now a "W".
-	await expect(page.getByTestId('rf-set-label').first()).toHaveText('W');
+	// Warm-ups get prepended → the first row is now a warm-up (ramp rail), unnumbered.
+	await expect(page.getByTestId('rf-set').first()).toHaveClass(/warmup/);
+	await expect(page.getByTestId('rf-set-label').first()).toHaveText('');
 	expect(await page.getByTestId('rf-set').count()).toBeGreaterThan(1);
 });
 

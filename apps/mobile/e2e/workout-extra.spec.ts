@@ -36,9 +36,10 @@ test('labels warm-up sets distinctly from work sets in the logger', async ({ pag
 	// First set defaults to a work set → numbered "1".
 	await expect(page.getByTestId('set-label').first()).toHaveText('1');
 
-	// Switching its type to warm-up relabels it "W".
+	// Switching its type to warm-up marks the row as a ramp-rail set and drops the number.
 	await page.getByTestId('set-type').first().selectOption('warmup');
-	await expect(page.getByTestId('set-label').first()).toHaveText('W');
+	await expect(page.getByTestId('set-row').first()).toHaveClass(/warmup/);
+	await expect(page.getByTestId('set-label').first()).toHaveText('');
 });
 
 test('shows the previous session values as set placeholders', async ({ page }) => {
