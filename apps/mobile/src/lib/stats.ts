@@ -131,3 +131,50 @@ export function computeExerciseProgress(
 		total_sessions: sessions.length
 	};
 }
+
+/** At-a-glance training stats for the home screen, from workout start times. */
+export interface HomeStats {
+	total: number; // lifetime workouts
+	thisWeek: number; // workouts in the current (Mon-start) week
+	streakWeeks: number; // consecutive weeks with ≥1 workout (current week optional)
+	lastWorkoutAt: number | null; // most recent start_time, or null
+}
+
+// Local Monday-midnight for a timestamp (week boundary).
+function mondayOf(ts: number): number {
+	const d = new Date(ts);
+	d.setHours(0, 0, 0, 0);
+	const dow = (d.getDay() + 6) % 7; // Mon=0 … Sun=6
+	d.setDate(d.getDate() - dow);
+	return d.getTime();
+}
+function prevWeek(mondayMs: number): number {
+	const d = new Date(mondayMs);
+	d.setDate(d.getDate() - 7); // DST-safe: still lands on the previous Monday midnight
+	return d.getTime();
+}
+
+/**
+ * Summarize training cadence from workout start times. The streak counts back from
+ * the current week; an untrained current (in-progress) week doesn't break it — the
+ * count simply resumes from last week.
+ */
+export function computeHomeStats(workouts: { start_time: number }[], now: number): HomeStats {
+	const valid = workouts.filter((w) => w.start_time > 0);
+	const weeks = new Set(valid.map((w) => mondayOf(w.start_time)));
+	const thisMonday = mondayOf(now);
+
+	let cursor = weeks.has(thisMonday) ? thisMonday : prevWeek(thisMonday);
+	let streakWeeks = 0;
+	while (weeks.has(cursor)) {
+		streakWeeks++;
+		cursor = prevWeek(cursor);
+	}
+
+	return {
+		total: valid.length,
+		thisWeek: valid.filter((w) => mondayOf(w.start_time) === thisMonday).length,
+		streakWeeks,
+		lastWorkoutAt: valid.length ? Math.max(...valid.map((w) => w.start_time)) : null
+	};
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeExerciseProgress, computeLastPerformance } from './stats';
+import { computeExerciseProgress, computeHomeStats, computeLastPerformance } from './stats';
 
 const rec = (
 	id: string,
@@ -76,5 +76,46 @@ describe('computeLastPerformance', () => {
 			'squat'
 		);
 		expect(last?.sets).toEqual([{ weight: 50, reps: 5 }]);
+	});
+});
+
+describe('computeHomeStats', () => {
+	const DAY = 86400000;
+	// A fixed "now": Wed 2026-06-24 12:00 local.
+	const now = new Date(2026, 5, 24, 12, 0, 0).getTime();
+	const w = (t: number) => ({ start_time: t });
+
+	it('counts total, this week, and the last workout', () => {
+		const s = computeHomeStats(
+			[w(now), w(now - DAY), w(now - 21 * DAY)],
+			now
+		);
+		expect(s.total).toBe(3);
+		expect(s.thisWeek).toBe(2); // today + yesterday are in the same Mon-start week
+		expect(s.lastWorkoutAt).toBe(now);
+	});
+
+	it('counts consecutive week streaks', () => {
+		// One workout in each of the last 3 weeks (incl. this week).
+		const s = computeHomeStats([w(now), w(now - 7 * DAY), w(now - 14 * DAY)], now);
+		expect(s.streakWeeks).toBe(3);
+	});
+
+	it('does not break the streak for an untrained current week', () => {
+		// Nothing this week, but the previous two weeks were trained.
+		const s = computeHomeStats([w(now - 8 * DAY), w(now - 15 * DAY)], now);
+		expect(s.thisWeek).toBe(0);
+		expect(s.streakWeeks).toBe(2);
+	});
+
+	it('breaks the streak when a week is missed', () => {
+		// This week + a week three weeks ago (gap in between).
+		const s = computeHomeStats([w(now), w(now - 21 * DAY)], now);
+		expect(s.streakWeeks).toBe(1);
+	});
+
+	it('handles an empty history', () => {
+		const s = computeHomeStats([], now);
+		expect(s).toEqual({ total: 0, thisWeek: 0, streakWeeks: 0, lastWorkoutAt: null });
 	});
 });
