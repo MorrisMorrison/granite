@@ -90,6 +90,11 @@
 		</span>
 	</a>
 
+	<a class="bw-link" href="/insights" data-testid="insights-link">
+		<span class="muted">Insights</span>
+		<span class="bw-val">View →</span>
+	</a>
+
 	{#if routines.length > 0}
 		<section class="section">
 			<div class="section-head">
