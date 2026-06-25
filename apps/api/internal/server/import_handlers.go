@@ -26,6 +26,7 @@ type importInput struct {
 		RoutineFolders []routine.Folder   `json:"routine_folders"`
 		Routines       []routine.Routine  `json:"routines"`
 		Workouts       []workout.Workout  `json:"workouts"`
+		Bodyweight     []bodyweightRecord `json:"bodyweight"`
 	}
 }
 
@@ -82,6 +83,11 @@ func (s *Server) handleImport(ctx context.Context, in *importInput) (*importOutp
 	}
 	for _, w := range in.Body.Workouts {
 		if err := add(syncpkg.EntityWorkout, w.ID, w.UpdatedAt, w); err != nil {
+			return nil, toHumaErr(ctx, err)
+		}
+	}
+	for _, b := range in.Body.Bodyweight {
+		if err := add(syncpkg.EntityBodyweight, b.ID, b.UpdatedAt, b); err != nil {
 			return nil, toHumaErr(ctx, err)
 		}
 	}

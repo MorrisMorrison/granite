@@ -85,6 +85,12 @@ type workoutData struct {
 	Exercises []workoutExerciseData `json:"exercises"`
 }
 
+type bodyweightData struct {
+	Weight     float64 `json:"weight"`
+	RecordedAt int64   `json:"recorded_at"`
+	CreatedAt  int64   `json:"created_at"`
+}
+
 // --- child loading (for pull) -----------------------------------------------
 
 func (s *Service) loadRoutineChildren(ctx context.Context, routineID string) ([]routineExerciseData, error) {

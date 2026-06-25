@@ -20,6 +20,16 @@ func (s *Server) registerExportRoutes(a huma.API) {
 
 // exportOutput is a complete, re-importable dump of the user's data ("own your
 // data"). Built-in exercises are excluded (they ship with every instance).
+// bodyweightRecord is the export/import shape for a weigh-in (bodyweight isn't in
+// sqlc; handled with raw SQL).
+type bodyweightRecord struct {
+	ID         string  `json:"id"`
+	Weight     float64 `json:"weight"`
+	RecordedAt int64   `json:"recorded_at"`
+	CreatedAt  int64   `json:"created_at"`
+	UpdatedAt  int64   `json:"updated_at"`
+}
+
 type exportOutput struct {
 	Body struct {
 		Version        int                `json:"version"`
@@ -29,6 +39,7 @@ type exportOutput struct {
 		RoutineFolders []routine.Folder   `json:"routine_folders"`
 		Routines       []routine.Routine  `json:"routines"`
 		Workouts       []workout.Workout  `json:"workouts"`
+		Bodyweight     []bodyweightRecord `json:"bodyweight"`
 	}
 }
 
@@ -77,6 +88,25 @@ func (s *Server) handleExport(ctx context.Context, _ *struct{}) (*exportOutput, 
 	out.Body.Workouts = workouts
 	if out.Body.Workouts == nil {
 		out.Body.Workouts = []workout.Workout{}
+	}
+
+	out.Body.Bodyweight = []bodyweightRecord{}
+	rows, err := s.db.QueryContext(ctx,
+		"SELECT id, weight, recorded_at, created_at, updated_at FROM bodyweight WHERE user_id = ? AND deleted_at IS NULL ORDER BY recorded_at",
+		uid)
+	if err != nil {
+		return nil, toHumaErr(ctx, err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var r bodyweightRecord
+		if err := rows.Scan(&r.ID, &r.Weight, &r.RecordedAt, &r.CreatedAt, &r.UpdatedAt); err != nil {
+			return nil, toHumaErr(ctx, err)
+		}
+		out.Body.Bodyweight = append(out.Body.Bodyweight, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, toHumaErr(ctx, err)
 	}
 	return out, nil
 }

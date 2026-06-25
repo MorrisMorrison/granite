@@ -225,3 +225,41 @@ func orID(id string) string {
 	}
 	return id
 }
+
+// applyBodyweight upserts a bodyweight weigh-in. Raw SQL (bodyweight isn't in
+// sqlc) but mirrors the LWW + ownership semantics of the other entities.
+func (s *Service) applyBodyweight(ctx context.Context, userID string, c Change) (bool, error) {
+	var ownerID string
+	var existingUpdated int64
+	err := s.db.QueryRowContext(ctx, "SELECT user_id, updated_at FROM bodyweight WHERE id = ?", c.ID).
+		Scan(&ownerID, &existingUpdated)
+	switch {
+	case err == nil:
+		if ownerID != userID {
+			return false, nil // can't clobber another account's record
+		}
+		if c.UpdatedAt < existingUpdated {
+			return false, nil // older than what we have
+		}
+	case errors.Is(err, sql.ErrNoRows):
+	default:
+		return false, err
+	}
+
+	var d bodyweightData
+	if err := json.Unmarshal(c.Data, &d); err != nil {
+		return false, err
+	}
+	if _, err := s.db.ExecContext(ctx, `
+		INSERT INTO bodyweight (id, user_id, weight, recorded_at, created_at, updated_at, deleted_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			weight = excluded.weight,
+			recorded_at = excluded.recorded_at,
+			updated_at = excluded.updated_at,
+			deleted_at = excluded.deleted_at`,
+		c.ID, userID, d.Weight, d.RecordedAt, nz(d.CreatedAt, c.UpdatedAt), c.UpdatedAt, deletedAt(c)); err != nil {
+		return false, err
+	}
+	return true, nil
+}

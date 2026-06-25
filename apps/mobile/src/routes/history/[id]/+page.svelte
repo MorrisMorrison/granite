@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { getWorkout, type WorkoutDetail } from '$lib/repo/workouts';
+	import { nearestBodyweight } from '$lib/repo/bodyweight';
 	import { syncNow } from '$lib/sync';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
@@ -11,10 +12,15 @@
 
 	const id = page.params.id!;
 	let workout = $state<WorkoutDetail | null>(null);
+	let bodyweight = $state<number | null>(null);
 	let loading = $state(true);
 
 	async function load() {
 		workout = await getWorkout(id);
+		if (workout) {
+			const bw = await nearestBodyweight(workout.start_time);
+			bodyweight = bw ? bw.weight : null;
+		}
 	}
 
 	onMount(async () => {
@@ -88,6 +94,11 @@
 					? ''
 					: 's'} · {totalVolume} {unit} volume
 			</p>
+			{#if bodyweight != null}
+				<p class="muted summary" data-testid="wd-bodyweight">
+					Bodyweight {kgToDisplay(bodyweight, unit)} {unit}
+				</p>
+			{/if}
 
 			{#if workout.exercises.length === 0}
 				<p class="muted">No exercises were logged in this session.</p>
