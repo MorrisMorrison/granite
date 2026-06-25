@@ -8,9 +8,11 @@
 [![Docs](https://img.shields.io/badge/docs-live-2563eb)](https://morrismorrison.github.io/granite/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-2563eb.svg)](LICENSE)
 
-**Status:** 🟢 In active development, **in the open**. A working offline-first PWA — Today, History,
-Exercises (with progress charts + PRs), Routines (with folders), the in-gym logger, and Settings —
-backed by a Go API with auth, sync, JSON export/import, and personal API tokens.
+**Status:** 🟢 In active development, **in the open**. A full-featured offline-first PWA — the in-gym
+logger (rest timer, warm-ups, quick deload, notes), Routines (folders, duplicate), History (month
+calendar + workout detail), Exercises (progress charts + PRs), Bodyweight tracking, training Insights
+(sets per muscle, weekly volume), in-app calculators, and Settings — backed by a Go API with auth,
+sync, JSON + other-tracker (CSV) import, an MCP server, and personal API tokens.
 
 ## What it is
 

@@ -3,11 +3,13 @@
 Phased so each step is usable on its own. Offline-first is built in from the start (retrofitting it
 later is painful), but **sync** is deferred until after a single-device app works.
 
-> **Status (2026-06-23):** Phases 0–5 are essentially done — Granite is a working, self-hostable,
-> offline-first PWA with sync, personal API tokens, an MCP server, a published API reference, and a
-> full UI pass (incl. in-app calculators), all under a unit + end-to-end test net in CI. Remaining:
-> Phase 6 nice-to-haves (bodyweight tracking, import from other trackers, Health/Watch sync,
-> OIDC/passkeys, advanced analytics) and optional sync hardening.
+> **Status (2026-06-25):** Phases 0–5 are done, and a good chunk of Phase 6 has shipped too —
+> bodyweight tracking, import from other trackers, and advanced analytics (Insights) are all live,
+> alongside a stack of in-app enhancements: history calendar, Today + Insights stats, quick deload,
+> session notes, per-exercise notes, duplicate routine, auto cache-reset on a server reset, and a
+> full UI consistency pass (shared list rows, page headers, icon buttons). Remaining Phase 6: native
+> Capacitor builds, Apple Health / Google Fit (+ Watch/Wear OS), and OIDC / passkeys; plus optional
+> sync hardening. All under a unit + end-to-end test net in CI.
 
 ## Phase 0 — Planning ✅
 - [x] Decisions locked (stack, sync model, license, name).
@@ -57,13 +59,15 @@ later is painful), but **sync** is deferred until after a single-device app work
 
 ## Phase 6 — Native & nice-to-haves
 - [ ] Capacitor native wrappers → app-store/sideload builds (needs macOS for iOS).
-- [ ] Body measurements / bodyweight tracking.
-- [ ] Import from other popular trackers — parse their CSV/JSON exports into Granite's data model so users can
-      migrate their full history and switch over seamlessly (builds on the existing `import` endpoint).
+- [x] Bodyweight tracking — standalone synced weigh-in log (weight only; trend chart + shown on each
+      workout in history). Deliberately minimal — no other body measurements.
+- [x] Import from other trackers — Hevy CSV import (name-aliased to built-ins, custom for the rest),
+      via the existing `/api/v1/import`.
 - [x] Plate / 1RM / warmup calculators in UI (`/tools`).
+- [x] Advanced analytics — an opt-in Insights screen: working sets per muscle group this week +
+      weekly volume (tonnage) trend.
 - [ ] Apple Health / Google Fit; (later) Watch / Wear OS.
 - [ ] OIDC / passkeys.
-- [ ] Advanced analytics (volume per muscle group, etc.).
 
 ## Cross-cutting
 - [x] **UI modernization & polish** — dark, deep-blue, shadcn-inspired component library + design
