@@ -40,6 +40,10 @@ Everything is judged against that.
 
 ## Out of scope for MVP (but planned — see roadmap)
 
+> Most of these have since shipped post-MVP (MCP server, web/API polish, in-app calculators,
+> bodyweight tracking, import from other trackers, advanced analytics). See the roadmap for current
+> status; the list below reflects the original MVP cut.
+
 - Web app polish (the web build exists from day one but mobile is the priority surface).
 - Public REST API hardening + docs for third parties, and the **MCP server**.
 - Body measurements & bodyweight tracking.

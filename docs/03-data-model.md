@@ -80,9 +80,10 @@ equipment, instructions, is_archived, + sync meta`
 `id, workout_exercise_id, order_index, set_type, weight, reps, rpe, duration, distance, is_completed,
 + sync meta`
 
-### `body_measurement` _(post-MVP)_
-`id, user_id, type, value, unit, measured_at, + sync meta`
-- `type`: `bodyweight | body_fat | waist | …`.
+### `bodyweight` (a weigh-in)
+`id, user_id, weight (kg), recorded_at, + sync meta`
+- A standalone synced log — deliberately weight-only (no other body measurements). Surfaced as a
+  trend on the Bodyweight screen and annotated onto each workout in history (the nearest weigh-in).
 
 ## Derived data (not stored, or cached)
 
