@@ -8,6 +8,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	let routines = $state<RoutineRow[]>([]);
 	let stats = $state<HomeStats | null>(null);
@@ -41,13 +42,13 @@
 	const name = $derived(
 		(auth.user?.display_name?.trim() || auth.user?.email?.split('@')[0] || '').trim()
 	);
+	const greeting = $derived(`Ready to train${name ? `, ${name}` : ''}?`);
 </script>
 
 <svelte:head><title>Granite</title></svelte:head>
 
 <main class="container">
-	<h1>Today</h1>
-	<p class="muted greeting">Ready to train{name ? `, ${name}` : ''}?</p>
+	<PageHeader title="Today" subtitle={greeting} />
 
 	{#if stats && stats.total > 0}
 		<section class="stats" data-testid="home-stats">
@@ -98,10 +99,6 @@
 </main>
 
 <style>
-	.greeting {
-		margin-top: -0.5rem;
-		margin-bottom: 1.25rem;
-	}
 	.stats {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
