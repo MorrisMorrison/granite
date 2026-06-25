@@ -67,6 +67,7 @@ export interface HevyImportEnvelope {
 	routine_folders: [];
 	routines: [];
 	workouts: DumpWorkout[];
+	bodyweight: [];
 }
 
 export interface HevyImportResult {
@@ -182,7 +183,7 @@ export function buildHevyImport(
 	const rows = parseCsv(csv);
 	if (rows.length < 2) {
 		return {
-			envelope: { exercises: [], routine_folders: [], routines: [], workouts: [] },
+			envelope: { exercises: [], routine_folders: [], routines: [], workouts: [], bodyweight: [] },
 			workoutCount: 0,
 			setCount: 0,
 			matchedExercises: [],
@@ -324,7 +325,8 @@ export function buildHevyImport(
 			exercises: [...customById.values()],
 			routine_folders: [],
 			routines: [],
-			workouts: [...workouts.values()]
+			workouts: [...workouts.values()],
+			bodyweight: []
 		},
 		workoutCount: workouts.size,
 		setCount,

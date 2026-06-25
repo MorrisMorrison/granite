@@ -402,6 +402,17 @@ export interface components {
             refresh: string;
             user: components["schemas"]["UserResponse"];
         };
+        BodyweightRecord: {
+            /** Format: int64 */
+            created_at: number;
+            id: string;
+            /** Format: int64 */
+            recorded_at: number;
+            /** Format: int64 */
+            updated_at: number;
+            /** Format: double */
+            weight: number;
+        };
         CreateTokenInputBody: {
             /**
              * Format: uri
@@ -531,6 +542,7 @@ export interface components {
              * @example https://example.com/schemas/ExportOutputBody.json
              */
             readonly $schema?: string;
+            bodyweight: components["schemas"]["BodyweightRecord"][] | null;
             exercises: components["schemas"]["ExerciseResponse"][] | null;
             /** Format: int64 */
             exported_at: number;
@@ -575,6 +587,7 @@ export interface components {
              * @example https://example.com/schemas/ImportInputBody.json
              */
             readonly $schema?: string;
+            bodyweight: components["schemas"]["BodyweightRecord"][] | null;
             exercises: components["schemas"]["ExerciseResponse"][] | null;
             /** Format: int64 */
             exported_at?: number;

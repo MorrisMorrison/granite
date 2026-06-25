@@ -88,6 +88,30 @@ components:
         - access
         - refresh
       type: object
+    BodyweightRecord:
+      additionalProperties: false
+      properties:
+        created_at:
+          format: int64
+          type: integer
+        id:
+          type: string
+        recorded_at:
+          format: int64
+          type: integer
+        updated_at:
+          format: int64
+          type: integer
+        weight:
+          format: double
+          type: number
+      required:
+        - id
+        - weight
+        - recorded_at
+        - created_at
+        - updated_at
+      type: object
     CreateTokenInputBody:
       additionalProperties: false
       properties:
@@ -330,6 +354,12 @@ components:
           format: uri
           readOnly: true
           type: string
+        bodyweight:
+          items:
+            $ref: "#/components/schemas/BodyweightRecord"
+          type:
+            - array
+            - "null"
         exercises:
           items:
             $ref: "#/components/schemas/ExerciseResponse"
@@ -370,6 +400,7 @@ components:
         - routine_folders
         - routines
         - workouts
+        - bodyweight
       type: object
     Folder:
       additionalProperties: false
@@ -429,6 +460,12 @@ components:
           format: uri
           readOnly: true
           type: string
+        bodyweight:
+          items:
+            $ref: "#/components/schemas/BodyweightRecord"
+          type:
+            - array
+            - "null"
         exercises:
           items:
             $ref: "#/components/schemas/ExerciseResponse"
@@ -465,6 +502,7 @@ components:
         - routine_folders
         - routines
         - workouts
+        - bodyweight
       type: object
     ImportOutputBody:
       additionalProperties: false

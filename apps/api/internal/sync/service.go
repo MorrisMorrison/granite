@@ -22,9 +22,16 @@ const (
 	EntityRoutineFolder = "routine_folder"
 	EntityRoutine       = "routine"
 	EntityWorkout       = "workout"
+	EntityBodyweight    = "bodyweight"
 )
 
-var entityOrder = []string{EntityExercise, EntityRoutineFolder, EntityRoutine, EntityWorkout}
+var entityOrder = []string{
+	EntityExercise,
+	EntityRoutineFolder,
+	EntityRoutine,
+	EntityWorkout,
+	EntityBodyweight,
+}
 
 // Change is one record's state in the sync stream.
 type Change struct {
@@ -107,6 +114,29 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 		add(Change{Entity: EntityWorkout, ID: w.ID, UpdatedAt: w.UpdatedAt, Deleted: w.DeletedAt.Valid, Data: mustJSON(d)})
 	}
 
+	// Bodyweight (raw SQL — not in sqlc; mirrors the entity pattern above).
+	bwRows, err := s.db.QueryContext(ctx,
+		`SELECT id, weight, recorded_at, created_at, updated_at, deleted_at FROM bodyweight WHERE user_id = ? AND updated_at > ?`,
+		userID, since)
+	if err != nil {
+		return nil, since, err
+	}
+	defer bwRows.Close()
+	for bwRows.Next() {
+		var id string
+		var weight float64
+		var recordedAt, createdAt, updatedAt int64
+		var deletedAt sql.NullInt64
+		if err := bwRows.Scan(&id, &weight, &recordedAt, &createdAt, &updatedAt, &deletedAt); err != nil {
+			return nil, since, err
+		}
+		add(Change{Entity: EntityBodyweight, ID: id, UpdatedAt: updatedAt, Deleted: deletedAt.Valid,
+			Data: mustJSON(bodyweightData{Weight: weight, RecordedAt: recordedAt, CreatedAt: createdAt})})
+	}
+	if err := bwRows.Err(); err != nil {
+		return nil, since, err
+	}
+
 	if changes == nil {
 		changes = []Change{}
 	}
@@ -145,6 +175,8 @@ func (s *Service) apply(ctx context.Context, userID string, c Change) (bool, err
 		return s.applyRoutine(ctx, userID, c)
 	case EntityWorkout:
 		return s.applyWorkout(ctx, userID, c)
+	case EntityBodyweight:
+		return s.applyBodyweight(ctx, userID, c)
 	default:
 		return false, nil
 	}
