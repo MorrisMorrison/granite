@@ -7,7 +7,7 @@
 	import { syncNow } from '$lib/sync';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	let routines = $state<RoutineRow[]>([]);
@@ -82,14 +82,13 @@
 				{#each routines.slice(0, 4) as r (r.id)}
 					<ListRow href={`/routines/${r.id}`} title={r.title} testid="today-routine-row">
 						{#snippet trailing()}
-							<a
-								class="row-play"
+							<IconButton
+								name="play"
+								size={18}
+								label={`Start ${r.title}`}
 								href={`/log?routine=${r.id}`}
-								aria-label={`Start ${r.title}`}
-								data-testid="today-start-routine"
-							>
-								<Icon name="play" size={18} />
-							</a>
+								testid="today-start-routine"
+							/>
 						{/snippet}
 					</ListRow>
 				{/each}

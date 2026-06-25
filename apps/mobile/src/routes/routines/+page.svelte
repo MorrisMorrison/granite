@@ -15,6 +15,7 @@
 	} from '$lib/repo/folders';
 	import { syncNow } from '$lib/sync';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -105,22 +106,19 @@
 {#snippet routineRow(r: RoutineRow)}
 	<ListRow href={`/routines/${r.id}`} title={r.title} testid="routine-row">
 		{#snippet trailing()}
-			<button
-				class="ic"
+			<IconButton
+				name="dots-vertical"
+				label="Routine actions"
 				onclick={() => openMove(r)}
-				aria-label="Routine actions"
-				data-testid="btn-routine-menu"
-			>
-				<Icon name="dots-vertical" size={16} />
-			</button>
-			<a
-				class="row-play"
+				testid="btn-routine-menu"
+			/>
+			<IconButton
+				name="play"
+				size={18}
+				label={`Start ${r.title}`}
 				href={`/log?routine=${r.id}`}
-				aria-label={`Start ${r.title}`}
-				data-testid="btn-start-routine"
-			>
-				<Icon name="play" size={18} />
-			</a>
+				testid="btn-start-routine"
+			/>
 		{/snippet}
 	</ListRow>
 {/snippet}
@@ -160,12 +158,8 @@
 						<span class="count">{groups.m.get(f.id)?.length ?? 0}</span>
 					</button>
 					<div class="folder-actions">
-						<button class="ic" onclick={() => openRenameFolder(f)} aria-label="Rename folder">
-							<Icon name="edit" size={16} />
-						</button>
-						<button class="ic" onclick={() => removeFolder(f)} aria-label="Delete folder">
-							<Icon name="trash" size={16} />
-						</button>
+						<IconButton name="edit" label="Rename folder" onclick={() => openRenameFolder(f)} />
+						<IconButton name="trash" label="Delete folder" onclick={() => removeFolder(f)} />
 					</div>
 				</div>
 				{#if !collapsed[f.id]}
@@ -281,21 +275,6 @@
 		display: flex;
 		gap: 0.1rem;
 		flex-shrink: 0;
-	}
-	.ic {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		background: none;
-		border: none;
-		color: var(--muted);
-		cursor: pointer;
-		padding: 6px;
-		border-radius: var(--radius-md);
-	}
-	.ic:hover {
-		background: var(--elevated);
-		color: var(--text);
 	}
 	.list {
 		display: flex;

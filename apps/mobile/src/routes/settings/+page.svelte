@@ -12,7 +12,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 
 	interface TokenRow {
 		id: string;
@@ -397,9 +397,12 @@
 								{#if t.last_used_at}· last used {fmtDate(t.last_used_at)}{:else}· never used{/if}
 							</div>
 						</div>
-						<button class="ic" onclick={() => revoke(t)} aria-label="Revoke token" data-testid="btn-revoke-token">
-							<Icon name="trash" size={16} />
-						</button>
+						<IconButton
+							name="trash"
+							label="Revoke token"
+							onclick={() => revoke(t)}
+							testid="btn-revoke-token"
+						/>
 					</div>
 				{/each}
 			</div>
@@ -518,20 +521,6 @@
 	.token-meta {
 		font-size: 0.8rem;
 		margin-top: 2px;
-	}
-	.ic {
-		display: inline-flex;
-		background: none;
-		border: none;
-		color: var(--muted);
-		cursor: pointer;
-		padding: 6px;
-		border-radius: var(--radius-md);
-		flex-shrink: 0;
-	}
-	.ic:hover {
-		background: var(--elevated);
-		color: var(--text);
 	}
 	.mono {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
