@@ -14,6 +14,7 @@
 		type FolderRow
 	} from '$lib/repo/folders';
 	import { syncNow } from '$lib/sync';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -102,15 +103,26 @@
 <svelte:head><title>Routines · Granite</title></svelte:head>
 
 {#snippet routineRow(r: RoutineRow)}
-	<div class="rrow" data-testid="routine-row">
-		<a class="rrow-title" href="/routines/{r.id}">{r.title}</a>
-		<button class="ic" onclick={() => openMove(r)} aria-label="Routine actions" data-testid="btn-routine-menu">
-			<Icon name="dots-vertical" size={16} />
-		</button>
-		<Button href={`/log?routine=${r.id}`} variant="secondary" size="sm" testid="btn-start-routine">
-			Start
-		</Button>
-	</div>
+	<ListRow href={`/routines/${r.id}`} title={r.title} testid="routine-row">
+		{#snippet trailing()}
+			<button
+				class="ic"
+				onclick={() => openMove(r)}
+				aria-label="Routine actions"
+				data-testid="btn-routine-menu"
+			>
+				<Icon name="dots-vertical" size={16} />
+			</button>
+			<a
+				class="row-play"
+				href={`/log?routine=${r.id}`}
+				aria-label={`Start ${r.title}`}
+				data-testid="btn-start-routine"
+			>
+				<Icon name="play" size={18} />
+			</a>
+		{/snippet}
+	</ListRow>
 {/snippet}
 
 <main class="container">
@@ -298,28 +310,6 @@
 		color: var(--muted);
 		font-size: 0.85rem;
 		margin: 0 0 0.5rem;
-	}
-	.rrow {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: 0.85rem 1rem;
-	}
-	.rrow-title {
-		flex: 1;
-		min-width: 0;
-		font-weight: 600;
-		color: var(--text);
-		text-decoration: none;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.rrow-title:hover {
-		color: var(--accent);
 	}
 	.folder-input {
 		width: 100%;

@@ -79,8 +79,17 @@
 			</div>
 			<div class="list">
 				{#each routines.slice(0, 4) as r (r.id)}
-					<ListRow href={`/log?routine=${r.id}`} title={r.title} testid="today-routine-row">
-						{#snippet trailing()}<Icon name="play" size={18} />{/snippet}
+					<ListRow href={`/routines/${r.id}`} title={r.title} testid="today-routine-row">
+						{#snippet trailing()}
+							<a
+								class="row-play"
+								href={`/log?routine=${r.id}`}
+								aria-label={`Start ${r.title}`}
+								data-testid="today-start-routine"
+							>
+								<Icon name="play" size={18} />
+							</a>
+						{/snippet}
 					</ListRow>
 				{/each}
 			</div>

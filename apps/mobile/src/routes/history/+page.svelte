@@ -7,6 +7,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Calendar from '$lib/components/ui/Calendar.svelte';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
 
 	let workouts = $state<WorkoutSummary[]>([]);
 	let loading = $state(true);
@@ -83,10 +84,12 @@
 
 		<div class="list">
 			{#each shown as w (w.id)}
-				<a class="card item" href="/history/{w.id}" data-testid="workout-row">
-					<div class="name">{w.title || 'Workout'}</div>
-					<div class="muted meta">{fmtDate(w.start_time)}{duration(w)}</div>
-				</a>
+				<ListRow
+					href={`/history/${w.id}`}
+					title={w.title || 'Workout'}
+					subtitle={`${fmtDate(w.start_time)}${duration(w)}`}
+					testid="workout-row"
+				/>
 			{/each}
 		</div>
 	{/if}
@@ -104,21 +107,5 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-	}
-	.item {
-		display: block;
-		padding: 0.85rem 1rem;
-		color: var(--text);
-		text-decoration: none;
-	}
-	.item:hover {
-		border-color: var(--border-strong);
-	}
-	.name {
-		font-weight: 600;
-	}
-	.meta {
-		font-size: 0.82rem;
-		margin-top: 2px;
 	}
 </style>

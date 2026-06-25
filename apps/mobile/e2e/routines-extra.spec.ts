@@ -5,8 +5,8 @@ test('edits a routine title', async ({ page }) => {
 	await register(page);
 	await createRoutine(page, 'Leg Day');
 
-	// The routine title links to its editor.
-	await page.getByRole('link', { name: 'Leg Day' }).click();
+	// The routine row links to its editor (exact name avoids the "Start Leg Day" action link).
+	await page.getByRole('link', { name: 'Leg Day', exact: true }).click();
 	await expect(page).toHaveURL(/\/routines\/[^/]+$/);
 
 	const titleField = page.getByTestId('field-routine-title');
@@ -61,7 +61,7 @@ test('saves per-exercise notes in a routine', async ({ page }) => {
 	await expect(page).toHaveURL(/\/routines$/);
 
 	// Reopen the routine to edit — the note persisted.
-	await page.getByRole('link', { name: 'Notes Test' }).click();
+	await page.getByRole('link', { name: 'Notes Test', exact: true }).click();
 	await expect(page.getByTestId('field-exercise-notes')).toHaveValue('paused reps, 3s eccentric');
 });
 
