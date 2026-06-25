@@ -20,4 +20,11 @@ describe('PageHeader', () => {
 		const { container } = render(PageHeader, { props: { title: 'X' } });
 		expect(container.querySelector('.ph-action')).toBeNull();
 	});
+
+	it('renders a subtitle when provided', () => {
+		const { getByText } = render(PageHeader, {
+			props: { title: 'Today', subtitle: 'Ready to train?' }
+		});
+		expect(getByText('Ready to train?')).toBeTruthy();
+	});
 });
