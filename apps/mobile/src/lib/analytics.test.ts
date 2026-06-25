@@ -33,6 +33,17 @@ describe('setsPerMuscleThisWeek', () => {
 	it('is empty with no training this week', () => {
 		expect(setsPerMuscleThisWeek([wk(now - 21 * DAY, [])], muscleOf, now)).toEqual([]);
 	});
+
+	it('skips warm-up-only exercises and labels unknown muscles "Other"', () => {
+		const workouts = [
+			wk(now, [
+				{ exercise_id: 'xx', sets: [set('warmup', 40, 5)] }, // only warm-up → skipped
+				{ exercise_id: 'unk', sets: [set('normal', 50, 5)] } // unknown muscle → Other
+			])
+		];
+		const res = setsPerMuscleThisWeek(workouts, (id) => (id === 'unk' ? '' : 'Legs'), now);
+		expect(res).toEqual([{ muscle: 'Other', sets: 1 }]);
+	});
 });
 
 describe('weeklyVolume', () => {
@@ -46,5 +57,14 @@ describe('weeklyVolume', () => {
 		expect(res[3].volume).toBe(500); // this week
 		expect(res[2].volume).toBe(400); // last week
 		expect(res[0].volume).toBe(0); // padded empty week
+	});
+
+	it('treats null weight/reps as zero volume', () => {
+		const res = weeklyVolume(
+			[wk(now, [{ exercise_id: 'x', sets: [set('normal', null, 5), set('normal', 100, null)] }])],
+			now,
+			1
+		);
+		expect(res[0].volume).toBe(0);
 	});
 });
