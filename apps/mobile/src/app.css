@@ -90,20 +90,6 @@ a {
 	padding: 1rem 1.1rem;
 }
 
-/* Icon action sitting at the end of a list row (e.g. start-routine play). */
-.row-play {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0.4rem;
-	margin: -0.3rem;
-	border-radius: var(--radius-sm);
-	color: var(--muted);
-}
-.row-play:hover {
-	background: var(--surface-2);
-	color: var(--text);
-}
 
 input,
 select,
