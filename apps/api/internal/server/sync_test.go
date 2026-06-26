@@ -91,16 +91,22 @@ func TestSyncFullRoundTrip(t *testing.T) {
 	if len(res.Applied) != 4 {
 		t.Fatalf("applied = %v, want 4", res.Applied)
 	}
-	if res.Cursor != 1200 {
-		t.Fatalf("push cursor = %d, want 1200", res.Cursor)
+	// Push returns the user's current server_seq (4 writes → seq 4), a valid pull cursor.
+	if res.Cursor != 4 {
+		t.Fatalf("push cursor = %d, want 4", res.Cursor)
 	}
 
 	got := pull(t, h, token, 0)
 	if len(got.Changes) != 4 {
 		t.Fatalf("pull returned %d changes, want 4", len(got.Changes))
 	}
-	if got.Cursor != 1200 {
-		t.Fatalf("pull cursor = %d, want 1200", got.Cursor)
+	// Cursor is a per-user server_seq, not a timestamp: 4 writes → seq 4.
+	if got.Cursor != 4 {
+		t.Fatalf("pull cursor = %d, want 4", got.Cursor)
+	}
+	// A re-pull from that cursor returns nothing (strict >, no boundary re-delivery).
+	if again := pull(t, h, token, got.Cursor); len(again.Changes) != 0 {
+		t.Fatalf("re-pull from cursor returned %d changes, want 0", len(again.Changes))
 	}
 
 	// FK-dependency order: exercise, folder, routine, workout.
@@ -127,7 +133,7 @@ func TestSyncFullRoundTrip(t *testing.T) {
 	}
 }
 
-// Incremental pull returns only changes at/after the cursor.
+// Incremental pull returns only changes after the cursor (strict >, by server_seq).
 func TestSyncIncrementalCursor(t *testing.T) {
 	h, _ := newTestServer(t)
 	token := registerUser(t, h, "sync@inc.com")
@@ -137,9 +143,49 @@ func TestSyncIncrementalCursor(t *testing.T) {
 	cursor := first.Cursor
 
 	push(t, h, token, change("exercise", "ex-new", 2000, false, map[string]any{"name": "New", "primary_muscle": "y"}))
-	second := pull(t, h, token, cursor+1)
+	second := pull(t, h, token, cursor)
 	if len(second.Changes) != 1 || second.Changes[0].ID != "ex-new" {
 		t.Fatalf("incremental pull = %v, want just ex-new", second.Changes)
+	}
+}
+
+// The headline reason for the server_seq cursor: a record written AFTER the cursor
+// but carrying an OLD updated_at (e.g. an imported workout from months ago) is still
+// delivered incrementally. A timestamp cursor would have skipped it (its updated_at
+// is below the cursor); a seq cursor catches it because the write got a fresh seq.
+func TestSyncBackdatedWriteNotSkipped(t *testing.T) {
+	h, _ := newTestServer(t)
+	token := registerUser(t, h, "sync@backdate.com")
+
+	// A recent record establishes a cursor at a high updated_at.
+	push(t, h, token, change("exercise", "ex-recent", 9000, false, map[string]any{"name": "Recent", "primary_muscle": "x"}))
+	cursor := pull(t, h, token, 0).Cursor
+
+	// Now import a record with a much older updated_at than the cursor's timestamp.
+	push(t, h, token, change("exercise", "ex-imported", 1000, false, map[string]any{"name": "Imported", "primary_muscle": "y"}))
+
+	got := pull(t, h, token, cursor)
+	if len(got.Changes) != 1 || got.Changes[0].ID != "ex-imported" {
+		t.Fatalf("incremental pull after backdated write = %v, want just ex-imported", got.Changes)
+	}
+}
+
+// Editing an existing record bumps its server_seq (via the AFTER UPDATE trigger) so
+// the edit propagates on the next incremental pull.
+func TestSyncUpdateBumpsSeq(t *testing.T) {
+	h, _ := newTestServer(t)
+	token := registerUser(t, h, "sync@update.com")
+
+	push(t, h, token, change("exercise", "ex-1", 1000, false, map[string]any{"name": "Squat", "primary_muscle": "quads"}))
+	cursor := pull(t, h, token, 0).Cursor
+
+	push(t, h, token, change("exercise", "ex-1", 2000, false, map[string]any{"name": "Back Squat", "primary_muscle": "quads"}))
+	got := pull(t, h, token, cursor)
+	if len(got.Changes) != 1 || got.Changes[0].ID != "ex-1" {
+		t.Fatalf("incremental pull after edit = %v, want just ex-1", got.Changes)
+	}
+	if name := got.Changes[0].Data["name"]; name != "Back Squat" {
+		t.Fatalf("edited name = %v, want Back Squat", name)
 	}
 }
 

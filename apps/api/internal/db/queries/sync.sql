@@ -1,7 +1,10 @@
 -- Sync: changed-since reads (include soft-deleted for tombstones) + LWW upserts.
+-- Reads use a per-user monotonic server_seq cursor (see migration 00009): pull is
+-- `server_seq > cursor`, ordered by server_seq. server_seq itself is assigned by
+-- triggers on every write (see the migration), so no write path can forget it.
 
 -- name: ChangedExercises :many
-SELECT * FROM exercises WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id;
+SELECT * FROM exercises WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
 
 -- name: GetExerciseForSync :one
 SELECT * FROM exercises WHERE id = ? LIMIT 1;
@@ -15,7 +18,7 @@ ON CONFLICT(id) DO UPDATE SET
     is_archived = excluded.is_archived, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
 
 -- name: ChangedRoutineFolders :many
-SELECT * FROM routine_folders WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id;
+SELECT * FROM routine_folders WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
 
 -- name: GetRoutineFolderForSync :one
 SELECT * FROM routine_folders WHERE id = ? LIMIT 1;
@@ -27,7 +30,7 @@ ON CONFLICT(id) DO UPDATE SET
     name = excluded.name, order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
 
 -- name: ChangedRoutines :many
-SELECT * FROM routines WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id;
+SELECT * FROM routines WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
 
 -- name: GetRoutineForSync :one
 SELECT * FROM routines WHERE id = ? LIMIT 1;
@@ -40,7 +43,7 @@ ON CONFLICT(id) DO UPDATE SET
     order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
 
 -- name: ChangedWorkouts :many
-SELECT * FROM workouts WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id;
+SELECT * FROM workouts WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
 
 -- name: GetWorkoutForSync :one
 SELECT * FROM workouts WHERE id = ? LIMIT 1;

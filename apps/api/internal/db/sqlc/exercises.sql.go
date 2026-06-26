@@ -60,7 +60,7 @@ INSERT INTO exercises (
     id, user_id, name, exercise_type, primary_muscle, secondary_muscles,
     equipment, instructions, is_archived, created_at, updated_at
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at
+RETURNING id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at, server_seq
 `
 
 type CreateExerciseParams struct {
@@ -105,12 +105,13 @@ func (q *Queries) CreateExercise(ctx context.Context, arg CreateExerciseParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const getExercise = `-- name: GetExercise :one
-SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at FROM exercises
+SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at, server_seq FROM exercises
 WHERE id = ? AND deleted_at IS NULL
 LIMIT 1
 `
@@ -131,12 +132,13 @@ func (q *Queries) GetExercise(ctx context.Context, id string) (Exercise, error) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const listExercises = `-- name: ListExercises :many
-SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at FROM exercises
+SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at, server_seq FROM exercises
 WHERE (user_id = ? OR user_id IS NULL) AND deleted_at IS NULL
 ORDER BY name
 `
@@ -163,6 +165,7 @@ func (q *Queries) ListExercises(ctx context.Context, userID sql.NullString) ([]E
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -208,7 +211,7 @@ UPDATE exercises
 SET name = ?, exercise_type = ?, primary_muscle = ?, secondary_muscles = ?,
     equipment = ?, instructions = ?, is_archived = ?, updated_at = ?
 WHERE id = ? AND user_id = ? AND deleted_at IS NULL
-RETURNING id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at
+RETURNING id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at, server_seq
 `
 
 type UpdateExerciseParams struct {
@@ -251,6 +254,7 @@ func (q *Queries) UpdateExercise(ctx context.Context, arg UpdateExerciseParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }

@@ -28,7 +28,7 @@ type apiChange struct {
 
 type syncPullInput struct {
 	Body struct {
-		Since int64 `json:"since" doc:"Cursor from a previous pull/push (epoch ms); 0 for a full sync."`
+		Since int64 `json:"since" doc:"Cursor from a previous pull/push (opaque server sequence); 0 for a full sync."`
 	}
 }
 
@@ -68,13 +68,18 @@ func (s *Server) handleSyncPush(ctx context.Context, in *syncPushInput) (*syncPu
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
 	}
-	applied, err := s.sync.Push(ctx, userIDFromCtx(ctx), changes)
+	userID := userIDFromCtx(ctx)
+	applied, err := s.sync.Push(ctx, userID, changes)
+	if err != nil {
+		return nil, toHumaErr(ctx, err)
+	}
+	cursor, err := s.sync.CurrentSeq(ctx, userID)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
 	}
 	out := &syncPushOutput{}
 	out.Body.Applied = applied
-	out.Body.Cursor = maxUpdatedAt(changes)
+	out.Body.Cursor = cursor
 	return out, nil
 }
 
@@ -106,12 +111,3 @@ func fromAPIChanges(cs []apiChange) ([]syncpkg.Change, error) {
 	return out, nil
 }
 
-func maxUpdatedAt(cs []syncpkg.Change) int64 {
-	var max int64
-	for _, c := range cs {
-		if c.UpdatedAt > max {
-			max = c.UpdatedAt
-		}
-	}
-	return max
-}

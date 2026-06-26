@@ -12,7 +12,7 @@ import (
 
 const createRoutine = `-- name: CreateRoutine :one
 INSERT INTO routines (id, user_id, folder_id, title, notes, order_index, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at
+VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq
 `
 
 type CreateRoutineParams struct {
@@ -48,6 +48,7 @@ func (q *Queries) CreateRoutine(ctx context.Context, arg CreateRoutineParams) (R
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
@@ -98,7 +99,7 @@ func (q *Queries) CreateRoutineExercise(ctx context.Context, arg CreateRoutineEx
 
 const createRoutineFolder = `-- name: CreateRoutineFolder :one
 INSERT INTO routine_folders (id, user_id, name, order_index, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?) RETURNING id, user_id, name, order_index, created_at, updated_at, deleted_at
+VALUES (?, ?, ?, ?, ?, ?) RETURNING id, user_id, name, order_index, created_at, updated_at, deleted_at, server_seq
 `
 
 type CreateRoutineFolderParams struct {
@@ -128,6 +129,7 @@ func (q *Queries) CreateRoutineFolder(ctx context.Context, arg CreateRoutineFold
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
@@ -189,7 +191,7 @@ func (q *Queries) DeleteRoutineExercisesByRoutine(ctx context.Context, routineID
 }
 
 const getRoutine = `-- name: GetRoutine :one
-SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at FROM routines WHERE id = ? AND deleted_at IS NULL LIMIT 1
+SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq FROM routines WHERE id = ? AND deleted_at IS NULL LIMIT 1
 `
 
 func (q *Queries) GetRoutine(ctx context.Context, id string) (Routine, error) {
@@ -205,12 +207,13 @@ func (q *Queries) GetRoutine(ctx context.Context, id string) (Routine, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const getRoutineFolder = `-- name: GetRoutineFolder :one
-SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at FROM routine_folders WHERE id = ? AND deleted_at IS NULL LIMIT 1
+SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at, server_seq FROM routine_folders WHERE id = ? AND deleted_at IS NULL LIMIT 1
 `
 
 func (q *Queries) GetRoutineFolder(ctx context.Context, id string) (RoutineFolder, error) {
@@ -224,6 +227,7 @@ func (q *Queries) GetRoutineFolder(ctx context.Context, id string) (RoutineFolde
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
@@ -269,7 +273,7 @@ func (q *Queries) ListRoutineExercises(ctx context.Context, routineID string) ([
 
 const listRoutineFolders = `-- name: ListRoutineFolders :many
 
-SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at FROM routine_folders WHERE user_id = ? AND deleted_at IS NULL ORDER BY order_index, name
+SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at, server_seq FROM routine_folders WHERE user_id = ? AND deleted_at IS NULL ORDER BY order_index, name
 `
 
 // Folders ---------------------------------------------------------------------
@@ -290,6 +294,7 @@ func (q *Queries) ListRoutineFolders(ctx context.Context, userID string) ([]Rout
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -346,7 +351,7 @@ func (q *Queries) ListRoutineSetsForRoutine(ctx context.Context, routineID strin
 
 const listRoutines = `-- name: ListRoutines :many
 
-SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at FROM routines WHERE user_id = ? AND deleted_at IS NULL ORDER BY order_index, title
+SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq FROM routines WHERE user_id = ? AND deleted_at IS NULL ORDER BY order_index, title
 `
 
 // Routines --------------------------------------------------------------------
@@ -369,6 +374,7 @@ func (q *Queries) ListRoutines(ctx context.Context, userID string) ([]Routine, e
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -435,7 +441,7 @@ func (q *Queries) SoftDeleteRoutineFolder(ctx context.Context, arg SoftDeleteRou
 
 const updateRoutineFolder = `-- name: UpdateRoutineFolder :one
 UPDATE routine_folders SET name = ?, order_index = ?, updated_at = ?
-WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING id, user_id, name, order_index, created_at, updated_at, deleted_at
+WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING id, user_id, name, order_index, created_at, updated_at, deleted_at, server_seq
 `
 
 type UpdateRoutineFolderParams struct {
@@ -463,13 +469,14 @@ func (q *Queries) UpdateRoutineFolder(ctx context.Context, arg UpdateRoutineFold
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const updateRoutineMeta = `-- name: UpdateRoutineMeta :one
 UPDATE routines SET folder_id = ?, title = ?, notes = ?, order_index = ?, updated_at = ?
-WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at
+WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq
 `
 
 type UpdateRoutineMetaParams struct {
@@ -503,6 +510,7 @@ func (q *Queries) UpdateRoutineMeta(ctx context.Context, arg UpdateRoutineMetaPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }

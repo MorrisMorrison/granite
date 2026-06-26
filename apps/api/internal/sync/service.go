@@ -1,11 +1,13 @@
 // Package sync implements offline-first delta sync: clients pull changes since a
 // cursor and push their local changes, reconciled last-write-wins by updated_at.
 //
-// The cursor is a millisecond timestamp; pull is inclusive (>= cursor) and apply
-// is idempotent, so boundary records may be re-delivered harmlessly rather than
-// missed. Entities sync at aggregate granularity (a routine/workout travels with
-// its children). server_seq cursors + per-child-record sync are noted as future
-// hardening in ADR-0008.
+// The cursor is a per-user monotonic server_seq (assigned by DB triggers on every
+// write — see migration 00009); pull is strict (> cursor). This is clock-independent
+// and survives backdated writes (imports keep their old updated_at but get a fresh,
+// higher seq), so incremental pull never skips them. Apply is still idempotent and
+// last-write-wins by updated_at. Entities sync at aggregate granularity (a
+// routine/workout travels with its children); per-child-record sync remains a
+// future option noted in ADR-0008.
 package sync
 
 import (
@@ -52,19 +54,19 @@ func NewService(db *sql.DB, q *sqlc.Queries) *Service {
 	return &Service{db: db, q: q}
 }
 
-// Pull returns all of the user's changes with updated_at >= since, in FK-dependency
-// order, plus the new cursor (max updated_at seen, or since if nothing changed).
+// Pull returns all of the user's changes with server_seq > since, in FK-dependency
+// order, plus the new cursor (max server_seq seen, or since if nothing changed).
 func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Change, int64, error) {
 	var changes []Change
 	cursor := since
-	add := func(c Change) {
+	add := func(c Change, seq int64) {
 		changes = append(changes, c)
-		if c.UpdatedAt > cursor {
-			cursor = c.UpdatedAt
+		if seq > cursor {
+			cursor = seq
 		}
 	}
 
-	exs, err := s.q.ChangedExercises(ctx, sqlc.ChangedExercisesParams{UserID: sql.NullString{String: userID, Valid: true}, UpdatedAt: since})
+	exs, err := s.q.ChangedExercises(ctx, sqlc.ChangedExercisesParams{UserID: sql.NullString{String: userID, Valid: true}, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
@@ -73,20 +75,20 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 			Name: e.Name, ExerciseType: e.ExerciseType, PrimaryMuscle: e.PrimaryMuscle,
 			SecondaryMuscles: json.RawMessage(e.SecondaryMuscles), Equipment: e.Equipment,
 			Instructions: e.Instructions, IsArchived: e.IsArchived != 0, CreatedAt: e.CreatedAt,
-		})})
+		})}, e.ServerSeq)
 	}
 
-	folders, err := s.q.ChangedRoutineFolders(ctx, sqlc.ChangedRoutineFoldersParams{UserID: userID, UpdatedAt: since})
+	folders, err := s.q.ChangedRoutineFolders(ctx, sqlc.ChangedRoutineFoldersParams{UserID: userID, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
 	for _, f := range folders {
 		add(Change{Entity: EntityRoutineFolder, ID: f.ID, UpdatedAt: f.UpdatedAt, Deleted: f.DeletedAt.Valid, Data: mustJSON(folderData{
 			Name: f.Name, OrderIndex: f.OrderIndex, CreatedAt: f.CreatedAt,
-		})})
+		})}, f.ServerSeq)
 	}
 
-	routines, err := s.q.ChangedRoutines(ctx, sqlc.ChangedRoutinesParams{UserID: userID, UpdatedAt: since})
+	routines, err := s.q.ChangedRoutines(ctx, sqlc.ChangedRoutinesParams{UserID: userID, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
@@ -97,10 +99,10 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 				return nil, since, err
 			}
 		}
-		add(Change{Entity: EntityRoutine, ID: r.ID, UpdatedAt: r.UpdatedAt, Deleted: r.DeletedAt.Valid, Data: mustJSON(d)})
+		add(Change{Entity: EntityRoutine, ID: r.ID, UpdatedAt: r.UpdatedAt, Deleted: r.DeletedAt.Valid, Data: mustJSON(d)}, r.ServerSeq)
 	}
 
-	workouts, err := s.q.ChangedWorkouts(ctx, sqlc.ChangedWorkoutsParams{UserID: userID, UpdatedAt: since})
+	workouts, err := s.q.ChangedWorkouts(ctx, sqlc.ChangedWorkoutsParams{UserID: userID, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
@@ -111,12 +113,12 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 				return nil, since, err
 			}
 		}
-		add(Change{Entity: EntityWorkout, ID: w.ID, UpdatedAt: w.UpdatedAt, Deleted: w.DeletedAt.Valid, Data: mustJSON(d)})
+		add(Change{Entity: EntityWorkout, ID: w.ID, UpdatedAt: w.UpdatedAt, Deleted: w.DeletedAt.Valid, Data: mustJSON(d)}, w.ServerSeq)
 	}
 
 	// Bodyweight (raw SQL — not in sqlc; mirrors the entity pattern above).
 	bwRows, err := s.db.QueryContext(ctx,
-		`SELECT id, weight, recorded_at, created_at, updated_at, deleted_at FROM bodyweight WHERE user_id = ? AND updated_at > ?`,
+		`SELECT id, weight, recorded_at, created_at, updated_at, deleted_at, server_seq FROM bodyweight WHERE user_id = ? AND server_seq > ?`,
 		userID, since)
 	if err != nil {
 		return nil, since, err
@@ -125,13 +127,13 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 	for bwRows.Next() {
 		var id string
 		var weight float64
-		var recordedAt, createdAt, updatedAt int64
+		var recordedAt, createdAt, updatedAt, serverSeq int64
 		var deletedAt sql.NullInt64
-		if err := bwRows.Scan(&id, &weight, &recordedAt, &createdAt, &updatedAt, &deletedAt); err != nil {
+		if err := bwRows.Scan(&id, &weight, &recordedAt, &createdAt, &updatedAt, &deletedAt, &serverSeq); err != nil {
 			return nil, since, err
 		}
 		add(Change{Entity: EntityBodyweight, ID: id, UpdatedAt: updatedAt, Deleted: deletedAt.Valid,
-			Data: mustJSON(bodyweightData{Weight: weight, RecordedAt: recordedAt, CreatedAt: createdAt})})
+			Data: mustJSON(bodyweightData{Weight: weight, RecordedAt: recordedAt, CreatedAt: createdAt})}, serverSeq)
 	}
 	if err := bwRows.Err(); err != nil {
 		return nil, since, err
@@ -163,6 +165,15 @@ func (s *Service) Push(ctx context.Context, userID string, changes []Change) ([]
 		}
 	}
 	return applied, nil
+}
+
+// CurrentSeq returns the user's latest server_seq — the cursor to resume a pull
+// from after a push. Zero if the user has no synced rows yet.
+func (s *Service) CurrentSeq(ctx context.Context, userID string) (int64, error) {
+	var seq int64
+	err := s.db.QueryRowContext(ctx,
+		"SELECT COALESCE((SELECT last_seq FROM sync_state WHERE user_id = ?), 0)", userID).Scan(&seq)
+	return seq, err
 }
 
 func (s *Service) apply(ctx context.Context, userID string, c Change) (bool, error) {

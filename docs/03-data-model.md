@@ -21,8 +21,12 @@
 | `updated_at` | integer (ms epoch, UTC) | Last local modification. Drives last-write-wins + conflict resolution. |
 | `deleted_at` | integer, nullable | **Soft delete / tombstone.** Deletes must sync, so we never hard-delete syncable rows. |
 | `created_at` | integer | Audit. |
+| `server_seq` | integer | **Server-assigned pull cursor.** A per-user monotonic counter stamped by a DB trigger on every write. Pull is `server_seq > cursor` — clock-independent, and (unlike an `updated_at` cursor) never skips backdated/imported rows. Server-only; not set by clients. |
 
 UUIDv7 is time-ordered, which keeps index locality good and gives us a natural sort.
+
+The cursor a client persists is the max `server_seq` it has seen (an opaque integer). `updated_at`
+still decides *who wins* a conflict; `server_seq` only decides *what to send* on the next pull.
 
 ## Entities
 

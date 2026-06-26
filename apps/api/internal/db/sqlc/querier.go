@@ -11,6 +11,9 @@ import (
 
 type Querier interface {
 	// Sync: changed-since reads (include soft-deleted for tombstones) + LWW upserts.
+	// Reads use a per-user monotonic server_seq cursor (see migration 00009): pull is
+	// `server_seq > cursor`, ordered by server_seq. server_seq itself is assigned by
+	// triggers on every write (see the migration), so no write path can forget it.
 	ChangedExercises(ctx context.Context, arg ChangedExercisesParams) ([]Exercise, error)
 	ChangedRoutineFolders(ctx context.Context, arg ChangedRoutineFoldersParams) ([]RoutineFolder, error)
 	ChangedRoutines(ctx context.Context, arg ChangedRoutinesParams) ([]Routine, error)

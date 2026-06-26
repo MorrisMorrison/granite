@@ -20,6 +20,17 @@ type ApiToken struct {
 	Scopes     string        `json:"scopes"`
 }
 
+type Bodyweight struct {
+	ID         string        `json:"id"`
+	UserID     string        `json:"user_id"`
+	Weight     float64       `json:"weight"`
+	RecordedAt int64         `json:"recorded_at"`
+	CreatedAt  int64         `json:"created_at"`
+	UpdatedAt  int64         `json:"updated_at"`
+	DeletedAt  sql.NullInt64 `json:"deleted_at"`
+	ServerSeq  int64         `json:"server_seq"`
+}
+
 type Exercise struct {
 	ID               string         `json:"id"`
 	UserID           sql.NullString `json:"user_id"`
@@ -33,6 +44,7 @@ type Exercise struct {
 	CreatedAt        int64          `json:"created_at"`
 	UpdatedAt        int64          `json:"updated_at"`
 	DeletedAt        sql.NullInt64  `json:"deleted_at"`
+	ServerSeq        int64          `json:"server_seq"`
 }
 
 type RefreshToken struct {
@@ -54,6 +66,7 @@ type Routine struct {
 	CreatedAt  int64          `json:"created_at"`
 	UpdatedAt  int64          `json:"updated_at"`
 	DeletedAt  sql.NullInt64  `json:"deleted_at"`
+	ServerSeq  int64          `json:"server_seq"`
 }
 
 type RoutineExercise struct {
@@ -76,6 +89,7 @@ type RoutineFolder struct {
 	CreatedAt  int64         `json:"created_at"`
 	UpdatedAt  int64         `json:"updated_at"`
 	DeletedAt  sql.NullInt64 `json:"deleted_at"`
+	ServerSeq  int64         `json:"server_seq"`
 }
 
 type RoutineSet struct {
@@ -89,6 +103,16 @@ type RoutineSet struct {
 	TargetDuration    sql.NullInt64   `json:"target_duration"`
 	CreatedAt         int64           `json:"created_at"`
 	UpdatedAt         int64           `json:"updated_at"`
+}
+
+type ServerMetum struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type SyncState struct {
+	UserID  string `json:"user_id"`
+	LastSeq int64  `json:"last_seq"`
 }
 
 type User struct {
@@ -112,6 +136,7 @@ type Workout struct {
 	CreatedAt int64          `json:"created_at"`
 	UpdatedAt int64          `json:"updated_at"`
 	DeletedAt sql.NullInt64  `json:"deleted_at"`
+	ServerSeq int64          `json:"server_seq"`
 }
 
 type WorkoutExercise struct {
