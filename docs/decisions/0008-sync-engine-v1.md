@@ -2,6 +2,13 @@
 
 **Status:** Accepted · 2026-06-21 · refines [ADR-0003](0003-offline-first-sync.md)
 
+> **Update (2026-06-26):** Decision 2 below has been superseded — the cursor is now a per-user
+> monotonic **`server_seq`** (migration `00009`), assigned by DB triggers on every write and pulled
+> with a strict `server_seq > cursor`. This removed the only real weakness of the `updated_at` cursor:
+> backdated/imported rows (old `updated_at`, written after the cursor) are no longer skipped. Aggregate
+> granularity (Decision 1) and apply order (Decision 3) are unchanged. The rest of this ADR is kept as
+> the historical v1 record.
+
 ## Context
 ADR-0003 settled the *model* (offline-first, pull/push, last-write-wins, tombstones, UUID ids,
 `server_seq` cursor). This ADR records the concrete choices made building the **server** engine
@@ -41,5 +48,7 @@ violations.
   routine wins (the other device's edit to the other exercise is lost). Acceptable for the domain;
   per-record child sync is the escape hatch if it ever bites.
 - ➖ Same-millisecond boundary records can be re-delivered on the next pull (idempotent, so a no-op).
-- 🔜 **Future hardening (when multi-device pressure warrants):** switch the cursor to a per-user
-  `server_seq`; consider per-child-record versioning. Tracked in the roadmap.
+- ✅ **Hardening done (2026-06-26):** the cursor is now a per-user `server_seq` (see the update note at
+  the top) — clock-independent and safe for backdated/imported writes.
+- 🔜 **Future hardening (when multi-device pressure warrants):** per-child-record versioning. Tracked
+  in the roadmap.

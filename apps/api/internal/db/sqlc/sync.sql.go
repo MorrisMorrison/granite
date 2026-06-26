@@ -12,17 +12,20 @@ import (
 
 const changedExercises = `-- name: ChangedExercises :many
 
-SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at FROM exercises WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id
+SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at, server_seq FROM exercises WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id
 `
 
 type ChangedExercisesParams struct {
 	UserID    sql.NullString `json:"user_id"`
-	UpdatedAt int64          `json:"updated_at"`
+	ServerSeq int64          `json:"server_seq"`
 }
 
 // Sync: changed-since reads (include soft-deleted for tombstones) + LWW upserts.
+// Reads use a per-user monotonic server_seq cursor (see migration 00009): pull is
+// `server_seq > cursor`, ordered by server_seq. server_seq itself is assigned by
+// triggers on every write (see the migration), so no write path can forget it.
 func (q *Queries) ChangedExercises(ctx context.Context, arg ChangedExercisesParams) ([]Exercise, error) {
-	rows, err := q.db.QueryContext(ctx, changedExercises, arg.UserID, arg.UpdatedAt)
+	rows, err := q.db.QueryContext(ctx, changedExercises, arg.UserID, arg.ServerSeq)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +46,7 @@ func (q *Queries) ChangedExercises(ctx context.Context, arg ChangedExercisesPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -58,16 +62,16 @@ func (q *Queries) ChangedExercises(ctx context.Context, arg ChangedExercisesPara
 }
 
 const changedRoutineFolders = `-- name: ChangedRoutineFolders :many
-SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at FROM routine_folders WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id
+SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at, server_seq FROM routine_folders WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id
 `
 
 type ChangedRoutineFoldersParams struct {
 	UserID    string `json:"user_id"`
-	UpdatedAt int64  `json:"updated_at"`
+	ServerSeq int64  `json:"server_seq"`
 }
 
 func (q *Queries) ChangedRoutineFolders(ctx context.Context, arg ChangedRoutineFoldersParams) ([]RoutineFolder, error) {
-	rows, err := q.db.QueryContext(ctx, changedRoutineFolders, arg.UserID, arg.UpdatedAt)
+	rows, err := q.db.QueryContext(ctx, changedRoutineFolders, arg.UserID, arg.ServerSeq)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +87,7 @@ func (q *Queries) ChangedRoutineFolders(ctx context.Context, arg ChangedRoutineF
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -98,16 +103,16 @@ func (q *Queries) ChangedRoutineFolders(ctx context.Context, arg ChangedRoutineF
 }
 
 const changedRoutines = `-- name: ChangedRoutines :many
-SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at FROM routines WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id
+SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq FROM routines WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id
 `
 
 type ChangedRoutinesParams struct {
 	UserID    string `json:"user_id"`
-	UpdatedAt int64  `json:"updated_at"`
+	ServerSeq int64  `json:"server_seq"`
 }
 
 func (q *Queries) ChangedRoutines(ctx context.Context, arg ChangedRoutinesParams) ([]Routine, error) {
-	rows, err := q.db.QueryContext(ctx, changedRoutines, arg.UserID, arg.UpdatedAt)
+	rows, err := q.db.QueryContext(ctx, changedRoutines, arg.UserID, arg.ServerSeq)
 	if err != nil {
 		return nil, err
 	}
@@ -125,6 +130,7 @@ func (q *Queries) ChangedRoutines(ctx context.Context, arg ChangedRoutinesParams
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -140,16 +146,16 @@ func (q *Queries) ChangedRoutines(ctx context.Context, arg ChangedRoutinesParams
 }
 
 const changedWorkouts = `-- name: ChangedWorkouts :many
-SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at FROM workouts WHERE user_id = ? AND updated_at >= ? ORDER BY updated_at, id
+SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at, server_seq FROM workouts WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id
 `
 
 type ChangedWorkoutsParams struct {
 	UserID    string `json:"user_id"`
-	UpdatedAt int64  `json:"updated_at"`
+	ServerSeq int64  `json:"server_seq"`
 }
 
 func (q *Queries) ChangedWorkouts(ctx context.Context, arg ChangedWorkoutsParams) ([]Workout, error) {
-	rows, err := q.db.QueryContext(ctx, changedWorkouts, arg.UserID, arg.UpdatedAt)
+	rows, err := q.db.QueryContext(ctx, changedWorkouts, arg.UserID, arg.ServerSeq)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +174,7 @@ func (q *Queries) ChangedWorkouts(ctx context.Context, arg ChangedWorkoutsParams
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -183,7 +190,7 @@ func (q *Queries) ChangedWorkouts(ctx context.Context, arg ChangedWorkoutsParams
 }
 
 const getExerciseForSync = `-- name: GetExerciseForSync :one
-SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at FROM exercises WHERE id = ? LIMIT 1
+SELECT id, user_id, name, exercise_type, primary_muscle, secondary_muscles, equipment, instructions, is_archived, created_at, updated_at, deleted_at, server_seq FROM exercises WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetExerciseForSync(ctx context.Context, id string) (Exercise, error) {
@@ -202,12 +209,13 @@ func (q *Queries) GetExerciseForSync(ctx context.Context, id string) (Exercise, 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const getRoutineFolderForSync = `-- name: GetRoutineFolderForSync :one
-SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at FROM routine_folders WHERE id = ? LIMIT 1
+SELECT id, user_id, name, order_index, created_at, updated_at, deleted_at, server_seq FROM routine_folders WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetRoutineFolderForSync(ctx context.Context, id string) (RoutineFolder, error) {
@@ -221,12 +229,13 @@ func (q *Queries) GetRoutineFolderForSync(ctx context.Context, id string) (Routi
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const getRoutineForSync = `-- name: GetRoutineForSync :one
-SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at FROM routines WHERE id = ? LIMIT 1
+SELECT id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq FROM routines WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetRoutineForSync(ctx context.Context, id string) (Routine, error) {
@@ -242,12 +251,13 @@ func (q *Queries) GetRoutineForSync(ctx context.Context, id string) (Routine, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
 
 const getWorkoutForSync = `-- name: GetWorkoutForSync :one
-SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at FROM workouts WHERE id = ? LIMIT 1
+SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at, server_seq FROM workouts WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetWorkoutForSync(ctx context.Context, id string) (Workout, error) {
@@ -264,6 +274,7 @@ func (q *Queries) GetWorkoutForSync(ctx context.Context, id string) (Workout, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }

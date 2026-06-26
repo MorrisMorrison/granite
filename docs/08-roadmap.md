@@ -42,7 +42,9 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [x] Sync client (pull/push, pending outbox, LWW, tombstones) in `packages/shared`.
 - [x] Device-local store + app swapped to local-first.
 - [x] Self-hosted round-trip verified (offline cutover + the real-binary e2e suite).
-- [ ] *(Hardening, later)* per-user `server_seq` pull cursor; consider per-child-record sync.
+- [x] *(Hardening)* per-user `server_seq` pull cursor — monotonic, clock-independent, assigned by DB
+      triggers on every write so backdated/imported records aren't skipped (migration `00009`).
+- [ ] *(Hardening, later)* consider per-child-record sync (currently aggregate granularity).
 - 🎯 *Milestone met: usable as a daily workout logger.*
 
 ## Phase 4 — Self-hosting polish ✅

@@ -848,7 +848,7 @@ components:
           readOnly: true
           type: string
         since:
-          description: Cursor from a previous pull/push (epoch ms); 0 for a full sync.
+          description: Cursor from a previous pull/push (opaque server sequence); 0 for a full sync.
           format: int64
           type: integer
       required:

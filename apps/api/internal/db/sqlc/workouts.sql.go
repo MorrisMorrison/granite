@@ -12,7 +12,7 @@ import (
 
 const createWorkout = `-- name: CreateWorkout :one
 INSERT INTO workouts (id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at, server_seq
 `
 
 type CreateWorkoutParams struct {
@@ -51,6 +51,7 @@ func (q *Queries) CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (W
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
@@ -159,7 +160,7 @@ func (q *Queries) DeleteWorkoutExercisesByWorkout(ctx context.Context, workoutID
 }
 
 const getWorkout = `-- name: GetWorkout :one
-SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at FROM workouts WHERE id = ? AND deleted_at IS NULL LIMIT 1
+SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at, server_seq FROM workouts WHERE id = ? AND deleted_at IS NULL LIMIT 1
 `
 
 func (q *Queries) GetWorkout(ctx context.Context, id string) (Workout, error) {
@@ -176,6 +177,7 @@ func (q *Queries) GetWorkout(ctx context.Context, id string) (Workout, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }
@@ -259,7 +261,7 @@ func (q *Queries) ListWorkoutSetsForWorkout(ctx context.Context, workoutID strin
 }
 
 const listWorkouts = `-- name: ListWorkouts :many
-SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at FROM workouts WHERE user_id = ? AND deleted_at IS NULL ORDER BY start_time DESC
+SELECT id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at, server_seq FROM workouts WHERE user_id = ? AND deleted_at IS NULL ORDER BY start_time DESC
 `
 
 func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, error) {
@@ -282,6 +284,7 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.ServerSeq,
 		); err != nil {
 			return nil, err
 		}
@@ -323,7 +326,7 @@ func (q *Queries) SoftDeleteWorkout(ctx context.Context, arg SoftDeleteWorkoutPa
 
 const updateWorkoutMeta = `-- name: UpdateWorkoutMeta :one
 UPDATE workouts SET routine_id = ?, title = ?, notes = ?, start_time = ?, end_time = ?, updated_at = ?
-WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at
+WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING id, user_id, routine_id, title, notes, start_time, end_time, created_at, updated_at, deleted_at, server_seq
 `
 
 type UpdateWorkoutMetaParams struct {
@@ -360,6 +363,7 @@ func (q *Queries) UpdateWorkoutMeta(ctx context.Context, arg UpdateWorkoutMetaPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.ServerSeq,
 	)
 	return i, err
 }

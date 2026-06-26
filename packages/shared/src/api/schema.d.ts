@@ -770,7 +770,7 @@ export interface components {
             readonly $schema?: string;
             /**
              * Format: int64
-             * @description Cursor from a previous pull/push (epoch ms); 0 for a full sync.
+             * @description Cursor from a previous pull/push (opaque server sequence); 0 for a full sync.
              */
             since: number;
         };
