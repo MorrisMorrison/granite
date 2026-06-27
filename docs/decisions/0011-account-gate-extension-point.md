@@ -3,12 +3,12 @@
 **Status:** Accepted · 2026-06-27
 
 ## Context
-Registration and sync are always-allowed in the core server (gated only by the
-existing `GRANITE_ALLOW_REGISTRATION` flag). Some deployments need to enforce
-their own authorization policy on *who* may create an account or sync — an invite
-allowlist, an SSO/identity entitlement, or some other external check — without
-forking the project or patching handlers. We want one small, well-defined seam
-for that, and we want the default build to behave exactly as before.
+Registration and all writes are always-allowed in the core server (gated only by
+the existing `GRANITE_ALLOW_REGISTRATION` flag). Some deployments need to enforce
+their own authorization policy on *who* may create an account or mutate data — an
+invite allowlist, an SSO/identity entitlement, or some other external check —
+without forking the project or patching handlers. We want one small, well-defined
+seam for that, and we want the default build to behave exactly as before.
 
 ## Decision
 - A new public package `apps/api/gate` defines `AccountGate` with two methods:
