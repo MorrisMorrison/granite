@@ -117,6 +117,43 @@ jobs:
           flags: e2e
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  screenshots:
+    name: README screenshots
+    # Generates README screenshots from a demo-data instance and commits any
+    # changes back to main, so the README always reflects the current UI. Only on
+    # main (it writes to the repo); a GITHUB_TOKEN push doesn't retrigger CI, and
+    # the commit is tagged [skip ci] as belt-and-suspenders.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: corepack pnpm --filter mobile exec playwright install --with-deps chromium
+      - name: Capture screenshots
+        run: corepack pnpm --filter mobile screenshots
+      - name: Commit refreshed screenshots if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots
+          if git diff --staged --quiet; then
+            echo "screenshots unchanged"
+          else
+            git commit -m "chore: refresh README screenshots [skip ci]"
+            git push
+          fi
+
   openapi:
     name: OpenAPI client up-to-date
     runs-on: ubuntu-latest

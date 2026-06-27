@@ -27,6 +27,18 @@ mobile-first with a web app, a public REST API, and an MCP server.
 
 The reasoning behind each major choice lives in the [Architecture Decision Records](docs/decisions/).
 
+## Screenshots
+
+<!-- Auto-generated from a demo-data instance by the "README screenshots" CI job on
+     every push to main (see .github/workflows/ci.yml). Do not edit by hand. -->
+
+<p align="center">
+  <img src="docs/screenshots/today.png" width="220" alt="Today — stats and quick start" />
+  <img src="docs/screenshots/history.png" width="220" alt="History — calendar + sessions" />
+  <img src="docs/screenshots/insights.png" width="220" alt="Insights — sets per muscle + volume" />
+  <img src="docs/screenshots/routines.png" width="220" alt="Routines and folders" />
+</p>
+
 ## Run it yourself (self-hosting)
 
 Granite is a single Go binary that serves the API **and** the web app from one SQLite file — so hosting
