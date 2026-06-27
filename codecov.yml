@@ -18,12 +18,14 @@ fixes:
   - 'github.com/MorrisMorrison/granite/apps/api/::apps/api/'
 
 # Exclude code that isn't meaningfully unit-tested so the % reflects business
-# logic: app entrypoints (main), generated sqlc, SQL migrations, the logger
-# setup, and the embedded-SPA file-server glue. (The api job runs with
-# -coverpkg=./... so cross-package coverage — e.g. the sync package exercised by
-# the server tests — is credited rather than showing as 0%.)
+# logic: app entrypoints (main + the embeddable app.Run bootstrap — config/db/http
+# wiring, exercised by the e2e suite; its only logic, gateOrDefault, is unit-tested),
+# generated sqlc, SQL migrations, the logger setup, and the embedded-SPA file-server
+# glue. (The api job runs with -coverpkg=./... so cross-package coverage — e.g. the
+# sync package exercised by the server tests — is credited rather than showing as 0%.)
 ignore:
   - 'apps/api/cmd/**'
+  - 'apps/api/app/**'
   - 'apps/api/internal/db/sqlc/**'
   - 'apps/api/internal/db/migrations/**'
   - 'apps/api/internal/logging/**'
