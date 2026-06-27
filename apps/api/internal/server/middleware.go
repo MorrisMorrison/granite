@@ -10,6 +10,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/MorrisMorrison/granite/apps/api/gate"
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 )
 
@@ -59,7 +60,7 @@ func requestLogger(next http.Handler) http.Handler {
 
 // newAuthMiddleware is a huma middleware that enforces a Bearer access token for
 // operations declaring Security, and injects the user id into the context.
-func newAuthMiddleware(api huma.API, tokens *auth.TokenManager, svc *auth.Service) func(huma.Context, func(huma.Context)) {
+func newAuthMiddleware(api huma.API, tokens *auth.TokenManager, svc *auth.Service, g gate.AccountGate) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
 		if len(ctx.Operation().Security) == 0 {
 			next(ctx)
@@ -97,6 +98,19 @@ func newAuthMiddleware(api huma.API, tokens *auth.TokenManager, svc *auth.Servic
 		if !canWrite && isWriteOp(ctx.Operation()) {
 			_ = huma.WriteErr(api, ctx, http.StatusForbidden, "this API token is read-only")
 			return
+		}
+		// The account gate may forbid mutations (e.g. an external authorization
+		// policy / entitlement). Reads — including sync/pull (readOnly) — stay open.
+		if isWriteOp(ctx.Operation()) {
+			ok, err := g.CanWrite(ctx.Context(), userID)
+			if err != nil {
+				_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "authorization check failed")
+				return
+			}
+			if !ok {
+				_ = huma.WriteErr(api, ctx, http.StatusForbidden, "writes are not permitted for this account")
+				return
+			}
 		}
 		next(huma.WithValue(huma.WithValue(ctx, userIDKey, userID), authMethodKey, method))
 	}

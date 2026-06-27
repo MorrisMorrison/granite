@@ -122,7 +122,7 @@ func (s *Server) setupAPI() {
 		"bearer": {Type: "http", Scheme: "bearer", BearerFormat: "JWT"},
 	}
 	s.api = humachi.New(s.router, cfg)
-	s.api.UseMiddleware(newAuthMiddleware(s.api, s.tokens, s.auth))
+	s.api.UseMiddleware(newAuthMiddleware(s.api, s.tokens, s.auth, s.gate))
 }
 
 // registerRoutes wires every API operation. Each domain owns its own route table

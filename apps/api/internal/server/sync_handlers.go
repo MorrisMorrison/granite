@@ -7,7 +7,6 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
 )
 
@@ -41,13 +40,7 @@ type syncPullOutput struct {
 }
 
 func (s *Server) handleSyncPull(ctx context.Context, in *syncPullInput) (*syncPullOutput, error) {
-	userID := userIDFromCtx(ctx)
-	if ok, err := s.gate.CanSync(ctx, userID); err != nil {
-		return nil, toHumaErr(ctx, err)
-	} else if !ok {
-		return nil, toHumaErr(ctx, apperr.Forbidden("sync is not permitted for this account"))
-	}
-	changes, cursor, err := s.sync.Pull(ctx, userID, in.Body.Since)
+	changes, cursor, err := s.sync.Pull(ctx, userIDFromCtx(ctx), in.Body.Since)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
 	}
@@ -72,11 +65,6 @@ type syncPushOutput struct {
 
 func (s *Server) handleSyncPush(ctx context.Context, in *syncPushInput) (*syncPushOutput, error) {
 	userID := userIDFromCtx(ctx)
-	if ok, err := s.gate.CanSync(ctx, userID); err != nil {
-		return nil, toHumaErr(ctx, err)
-	} else if !ok {
-		return nil, toHumaErr(ctx, apperr.Forbidden("sync is not permitted for this account"))
-	}
 	changes, err := fromAPIChanges(in.Body.Changes)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)

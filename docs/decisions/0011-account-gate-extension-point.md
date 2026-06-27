@@ -12,14 +12,17 @@ for that, and we want the default build to behave exactly as before.
 
 ## Decision
 - A new public package `apps/api/gate` defines `AccountGate` with two methods:
-  `CanRegister(ctx, email)` and `CanSync(ctx, userID)`. The default
+  `CanRegister(ctx, email)` and `CanWrite(ctx, userID)`. The default
   implementation, `AllowAll`, permits everything.
-- The server holds an injectable gate (functional option `server.WithGate`,
-  defaulting to `AllowAll`) and consults it in exactly three handlers:
-  `POST /auth/register`, `POST /sync/pull`, `POST /sync/push`. A denied action
-  returns `403 Forbidden`. Login, refresh, export, account deletion, and read
-  endpoints are intentionally **not** gated, so a user can always reach and
-  export their own data.
+- Registration is unauthenticated, so the register handler consults `CanRegister`
+  directly. All other gating is centralized: the auth middleware consults
+  `CanWrite` on every *mutating* operation — those whose HTTP method writes and
+  that aren't marked `readOnly`. This single check covers sync push, bulk import,
+  and all CRUD writes, so no write path can bypass the gate. A denied action
+  returns `403 Forbidden`.
+- Reads stay open: every `GET`, plus `sync/pull` (a read over `POST`, flagged
+  `readOnly`) and `export`, are ungated. An unentitled account is therefore
+  effectively read-only and can always reach and export its own data.
 - A new public package `apps/api/app` exposes `Run(ctx, Options)`, encapsulating
   the bootstrap (config, DB, services, HTTP server, graceful shutdown). External
   programs embed Granite by calling `app.Run` with a custom gate, without
@@ -27,14 +30,16 @@ for that, and we want the default build to behave exactly as before.
 
 ## Alternatives considered
 - **Patch handlers in a fork.** Rejected — drifts from upstream, high maintenance.
+- **Per-handler gate checks.** Rejected — easy to forget a write path (import and
+  CRUD were missed in an early draft); the method-based middleware check guards new
+  write endpoints by default.
 - **A reverse-proxy/sidecar in front.** Works for coarse checks but can't cleanly
   gate signup (which lives inside the app) and duplicates identity handling.
-- **Generalize `GRANITE_ALLOW_REGISTRATION` into config flags.** Too rigid for
-  arbitrary external policies; an interface is the extensible seam.
 
 ## Consequences
 - ✅ Default build is unchanged (AllowAll); the seam is a no-op until injected.
+- ✅ Every mutating endpoint is gated in one place; new write routes are covered by
+  default (method-based), so the boundary can't silently regress.
 - ✅ Clean embedding API; external builds need no `internal/` access.
-- ✅ Small, testable surface (interface + three handler checks).
-- ➖ The gate runs per request on the gated endpoints; implementations must keep
-  `CanSync`/`CanRegister` cheap (cache external lookups).
+- ➖ The gate runs per request on mutating endpoints; implementations must keep
+  `CanWrite`/`CanRegister` cheap (cache external lookups).
