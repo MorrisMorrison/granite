@@ -27,3 +27,17 @@ func TestRegisterDeniedByGate(t *testing.T) {
 		t.Fatalf("register status = %d, want 403", rr.Code)
 	}
 }
+
+func TestSyncDeniedByGate(t *testing.T) {
+	h, _ := newTestServerWithGate(t, syncDenyGate{})
+	token := registerUser(t, h, "sync@gate.com") // allowed by syncDenyGate
+
+	pull := doReq(t, h, http.MethodPost, "/api/v1/sync/pull", token, map[string]any{"since": 0})
+	if pull.Code != http.StatusForbidden {
+		t.Fatalf("pull status = %d, want 403", pull.Code)
+	}
+	push := doReq(t, h, http.MethodPost, "/api/v1/sync/push", token, map[string]any{"changes": []any{}})
+	if push.Code != http.StatusForbidden {
+		t.Fatalf("push status = %d, want 403", push.Code)
+	}
+}
