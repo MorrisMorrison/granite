@@ -7,6 +7,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
+	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 )
 
@@ -60,6 +61,11 @@ type registerInput struct {
 }
 
 func (s *Server) handleRegister(ctx context.Context, in *registerInput) (*authOutput, error) {
+	if ok, err := s.gate.CanRegister(ctx, in.Body.Email); err != nil {
+		return nil, toHumaErr(ctx, err)
+	} else if !ok {
+		return nil, toHumaErr(ctx, apperr.Forbidden("registration is not permitted"))
+	}
 	user, pair, err := s.auth.Register(ctx, in.Body.Email, in.Body.Password, in.Body.DisplayName)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
