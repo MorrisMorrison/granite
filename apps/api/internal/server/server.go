@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
 
+	"github.com/MorrisMorrison/granite/apps/api/gate"
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
@@ -38,11 +39,27 @@ type Server struct {
 	tokens   *auth.TokenManager
 	db       *sql.DB
 	web      http.Handler
+	gate     gate.AccountGate
+}
+
+// Option configures a Server; options are applied after defaults in New.
+type Option func(*Server)
+
+// WithGate sets the account-authorization gate (default: gate.AllowAll).
+func WithGate(g gate.AccountGate) Option {
+	return func(s *Server) {
+		if g != nil {
+			s.gate = g
+		}
+	}
 }
 
 // New constructs a Server. allowedOrigins is the CORS allow-list.
-func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, syncSvc *syncpkg.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string) *Server {
-	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler()}
+func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, syncSvc *syncpkg.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string, opts ...Option) *Server {
+	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler(), gate: gate.AllowAll{}}
+	for _, opt := range opts {
+		opt(s)
+	}
 	s.setupRouter(allowedOrigins)
 	s.setupAPI()
 	s.registerRoutes()
