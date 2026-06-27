@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MorrisMorrison/granite/apps/api/gate"
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
@@ -34,6 +35,10 @@ type listResp struct {
 }
 
 func newTestServer(t *testing.T) (http.Handler, *sqlc.Queries) {
+	return newTestServerWithGate(t, gate.AllowAll{})
+}
+
+func newTestServerWithGate(t *testing.T, g gate.AccountGate) (http.Handler, *sqlc.Queries) {
 	t.Helper()
 	database, err := db.Open(filepath.Join(t.TempDir(), "test.db"))
 	if err != nil {
@@ -50,7 +55,7 @@ func newTestServer(t *testing.T) (http.Handler, *sqlc.Queries) {
 	routineSvc := routine.NewService(database, q)
 	workoutSvc := workout.NewService(database, q)
 	syncSvc := syncpkg.NewService(database, q)
-	return New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{"*"}).Handler(), q
+	return New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{"*"}, WithGate(g)).Handler(), q
 }
 
 func doReq(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {

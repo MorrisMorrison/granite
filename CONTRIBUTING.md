@@ -13,6 +13,13 @@ welcome.
   last-write-wins and well-tested — treat it carefully.
 - **Public repo.** Never commit secrets, credentials, or personal infrastructure details.
 
+## Contributor License Agreement
+
+Before your first pull request can be merged, you'll be asked to sign our
+[Contributor License Agreement](CLA.md). The CLA-Assistant bot comments on your
+PR with a one-time sign-off link — it takes a few seconds and keeps the project's
+licensing options open.
+
 ## Getting started
 
 Local setup, the repo layout, and how to build/test are in **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**.

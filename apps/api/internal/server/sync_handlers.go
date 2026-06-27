@@ -64,11 +64,11 @@ type syncPushOutput struct {
 }
 
 func (s *Server) handleSyncPush(ctx context.Context, in *syncPushInput) (*syncPushOutput, error) {
+	userID := userIDFromCtx(ctx)
 	changes, err := fromAPIChanges(in.Body.Changes)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
 	}
-	userID := userIDFromCtx(ctx)
 	applied, err := s.sync.Push(ctx, userID, changes)
 	if err != nil {
 		return nil, toHumaErr(ctx, err)
