@@ -119,11 +119,10 @@ jobs:
 
   screenshots:
     name: README screenshots
-    # Generates README screenshots from a demo-data instance and commits any
-    # changes back to main, so the README always reflects the current UI. Only on
-    # main (it writes to the repo); a GITHUB_TOKEN push doesn't retrigger CI, and
-    # the commit is tagged [skip ci] as belt-and-suspenders.
-    if: github.ref == 'refs/heads/main'
+    # Captures README screenshots from a demo-data instance. Runs on PRs too (to
+    # verify the pipeline), but only *commits* the refreshed PNGs back on main — so
+    # the README always reflects the current UI with no manual step. A GITHUB_TOKEN
+    # push doesn't retrigger CI, and the commit is tagged [skip ci] regardless.
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,6 +142,7 @@ jobs:
       - name: Capture screenshots
         run: corepack pnpm --filter mobile screenshots
       - name: Commit refreshed screenshots if changed
+        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
