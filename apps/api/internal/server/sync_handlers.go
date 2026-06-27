@@ -71,15 +71,15 @@ type syncPushOutput struct {
 }
 
 func (s *Server) handleSyncPush(ctx context.Context, in *syncPushInput) (*syncPushOutput, error) {
-	changes, err := fromAPIChanges(in.Body.Changes)
-	if err != nil {
-		return nil, toHumaErr(ctx, err)
-	}
 	userID := userIDFromCtx(ctx)
 	if ok, err := s.gate.CanSync(ctx, userID); err != nil {
 		return nil, toHumaErr(ctx, err)
 	} else if !ok {
 		return nil, toHumaErr(ctx, apperr.Forbidden("sync is not permitted for this account"))
+	}
+	changes, err := fromAPIChanges(in.Body.Changes)
+	if err != nil {
+		return nil, toHumaErr(ctx, err)
 	}
 	applied, err := s.sync.Push(ctx, userID, changes)
 	if err != nil {
