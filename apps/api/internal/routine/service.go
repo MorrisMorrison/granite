@@ -12,6 +12,7 @@ import (
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
 // Service implements routine + folder use-cases. Nested writes run in a tx.
@@ -172,7 +173,7 @@ func (s *Service) ListRoutines(ctx context.Context, userID string) ([]Routine, e
 	out := make([]Routine, 0, len(rows))
 	for _, r := range rows {
 		out = append(out, Routine{
-			ID: r.ID, FolderID: strPtr(r.FolderID), Title: r.Title, Notes: r.Notes,
+			ID: r.ID, FolderID: sqlnull.StringPtr(r.FolderID), Title: r.Title, Notes: r.Notes,
 			OrderIndex: int(r.OrderIndex), Exercises: []Exercise{},
 			CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 		})
@@ -221,7 +222,7 @@ func (s *Service) Create(ctx context.Context, userID string, in RoutineInput) (R
 	id := uuid.NewString()
 	err := s.inTx(ctx, func(qtx *sqlc.Queries) error {
 		if _, err := qtx.CreateRoutine(ctx, sqlc.CreateRoutineParams{
-			ID: id, UserID: userID, FolderID: nullStr(in.FolderID), Title: strings.TrimSpace(in.Title),
+			ID: id, UserID: userID, FolderID: sqlnull.String(in.FolderID), Title: strings.TrimSpace(in.Title),
 			Notes: in.Notes, OrderIndex: int64(in.OrderIndex), CreatedAt: now, UpdatedAt: now,
 		}); err != nil {
 			return err
@@ -249,7 +250,7 @@ func (s *Service) Update(ctx context.Context, userID, id string, in RoutineInput
 	now := s.now().UnixMilli()
 	err = s.inTx(ctx, func(qtx *sqlc.Queries) error {
 		if _, err := qtx.UpdateRoutineMeta(ctx, sqlc.UpdateRoutineMetaParams{
-			FolderID: nullStr(in.FolderID), Title: strings.TrimSpace(in.Title), Notes: in.Notes,
+			FolderID: sqlnull.String(in.FolderID), Title: strings.TrimSpace(in.Title), Notes: in.Notes,
 			OrderIndex: int64(in.OrderIndex), UpdatedAt: now, ID: id, UserID: userID,
 		}); err != nil {
 			return err
@@ -299,7 +300,7 @@ func insertChildren(ctx context.Context, qtx *sqlc.Queries, routineID string, ex
 		reID := uuid.NewString()
 		if _, err := qtx.CreateRoutineExercise(ctx, sqlc.CreateRoutineExerciseParams{
 			ID: reID, RoutineID: routineID, ExerciseID: ex.ExerciseID, OrderIndex: int64(ei),
-			Notes: ex.Notes, RestSeconds: int64(ex.RestSeconds), SupersetGroup: nullInt(ex.SupersetGroup),
+			Notes: ex.Notes, RestSeconds: int64(ex.RestSeconds), SupersetGroup: sqlnull.Int(ex.SupersetGroup),
 			CreatedAt: now, UpdatedAt: now,
 		}); err != nil {
 			return err
@@ -311,8 +312,8 @@ func insertChildren(ctx context.Context, qtx *sqlc.Queries, routineID string, ex
 			}
 			if _, err := qtx.CreateRoutineSet(ctx, sqlc.CreateRoutineSetParams{
 				ID: uuid.NewString(), RoutineExerciseID: reID, OrderIndex: int64(si), SetType: setType,
-				TargetWeight: nullF64(st.TargetWeight), TargetReps: nullInt(st.TargetReps),
-				TargetRpe: nullF64(st.TargetRPE), TargetDuration: nullInt(st.TargetDuration),
+				TargetWeight: sqlnull.Float64(st.TargetWeight), TargetReps: sqlnull.Int(st.TargetReps),
+				TargetRpe: sqlnull.Float64(st.TargetRPE), TargetDuration: sqlnull.Int(st.TargetDuration),
 				CreatedAt: now, UpdatedAt: now,
 			}); err != nil {
 				return err
@@ -324,7 +325,7 @@ func insertChildren(ctx context.Context, qtx *sqlc.Queries, routineID string, ex
 
 func (s *Service) loadNested(ctx context.Context, r sqlc.Routine) (Routine, error) {
 	out := Routine{
-		ID: r.ID, FolderID: strPtr(r.FolderID), Title: r.Title, Notes: r.Notes,
+		ID: r.ID, FolderID: sqlnull.StringPtr(r.FolderID), Title: r.Title, Notes: r.Notes,
 		OrderIndex: int(r.OrderIndex), CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 		Exercises: []Exercise{},
 	}
@@ -340,8 +341,8 @@ func (s *Service) loadNested(ctx context.Context, r sqlc.Routine) (Routine, erro
 	for _, st := range sets {
 		byRE[st.RoutineExerciseID] = append(byRE[st.RoutineExerciseID], Set{
 			ID: st.ID, OrderIndex: int(st.OrderIndex), SetType: st.SetType,
-			TargetWeight: f64Ptr(st.TargetWeight), TargetReps: intPtr(st.TargetReps),
-			TargetRPE: f64Ptr(st.TargetRpe), TargetDuration: intPtr(st.TargetDuration),
+			TargetWeight: sqlnull.Float64Ptr(st.TargetWeight), TargetReps: sqlnull.IntPtr(st.TargetReps),
+			TargetRPE: sqlnull.Float64Ptr(st.TargetRpe), TargetDuration: sqlnull.IntPtr(st.TargetDuration),
 		})
 	}
 	for _, e := range exs {
@@ -351,7 +352,7 @@ func (s *Service) loadNested(ctx context.Context, r sqlc.Routine) (Routine, erro
 		}
 		out.Exercises = append(out.Exercises, Exercise{
 			ID: e.ID, ExerciseID: e.ExerciseID, OrderIndex: int(e.OrderIndex), Notes: e.Notes,
-			RestSeconds: int(e.RestSeconds), SupersetGroup: intPtr(e.SupersetGroup), Sets: setsForE,
+			RestSeconds: int(e.RestSeconds), SupersetGroup: sqlnull.IntPtr(e.SupersetGroup), Sets: setsForE,
 		})
 	}
 	return out, nil
@@ -389,44 +390,4 @@ func (s *Service) validate(ctx context.Context, userID string, in RoutineInput) 
 
 func toFolder(f sqlc.RoutineFolder) Folder {
 	return Folder{ID: f.ID, Name: f.Name, OrderIndex: int(f.OrderIndex), CreatedAt: f.CreatedAt, UpdatedAt: f.UpdatedAt}
-}
-
-func nullStr(s *string) sql.NullString {
-	if s == nil {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: *s, Valid: true}
-}
-func strPtr(n sql.NullString) *string {
-	if !n.Valid {
-		return nil
-	}
-	v := n.String
-	return &v
-}
-func nullF64(f *float64) sql.NullFloat64 {
-	if f == nil {
-		return sql.NullFloat64{}
-	}
-	return sql.NullFloat64{Float64: *f, Valid: true}
-}
-func f64Ptr(n sql.NullFloat64) *float64 {
-	if !n.Valid {
-		return nil
-	}
-	v := n.Float64
-	return &v
-}
-func nullInt(i *int) sql.NullInt64 {
-	if i == nil {
-		return sql.NullInt64{}
-	}
-	return sql.NullInt64{Int64: int64(*i), Valid: true}
-}
-func intPtr(n sql.NullInt64) *int {
-	if !n.Valid {
-		return nil
-	}
-	v := int(n.Int64)
-	return &v
 }

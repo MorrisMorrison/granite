@@ -11,6 +11,7 @@ import (
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
 // Service implements logged-workout use-cases. Nested writes run in a tx.
@@ -147,8 +148,8 @@ func (s *Service) Create(ctx context.Context, userID string, in WorkoutInput) (W
 	id := uuid.NewString()
 	err := s.inTx(ctx, func(qtx *sqlc.Queries) error {
 		if _, err := qtx.CreateWorkout(ctx, sqlc.CreateWorkoutParams{
-			ID: id, UserID: userID, RoutineID: nullStr(in.RoutineID), Title: in.Title, Notes: in.Notes,
-			StartTime: start, EndTime: nullI64Ptr(in.EndTime), CreatedAt: now, UpdatedAt: now,
+			ID: id, UserID: userID, RoutineID: sqlnull.String(in.RoutineID), Title: in.Title, Notes: in.Notes,
+			StartTime: start, EndTime: sqlnull.Int64(in.EndTime), CreatedAt: now, UpdatedAt: now,
 		}); err != nil {
 			return err
 		}
@@ -179,8 +180,8 @@ func (s *Service) Update(ctx context.Context, userID, id string, in WorkoutInput
 	}
 	err = s.inTx(ctx, func(qtx *sqlc.Queries) error {
 		if _, err := qtx.UpdateWorkoutMeta(ctx, sqlc.UpdateWorkoutMetaParams{
-			RoutineID: nullStr(in.RoutineID), Title: in.Title, Notes: in.Notes, StartTime: start,
-			EndTime: nullI64Ptr(in.EndTime), UpdatedAt: now, ID: id, UserID: userID,
+			RoutineID: sqlnull.String(in.RoutineID), Title: in.Title, Notes: in.Notes, StartTime: start,
+			EndTime: sqlnull.Int64(in.EndTime), UpdatedAt: now, ID: id, UserID: userID,
 		}); err != nil {
 			return err
 		}
@@ -229,7 +230,7 @@ func insertChildren(ctx context.Context, qtx *sqlc.Queries, workoutID string, ex
 		weID := uuid.NewString()
 		if _, err := qtx.CreateWorkoutExercise(ctx, sqlc.CreateWorkoutExerciseParams{
 			ID: weID, WorkoutID: workoutID, ExerciseID: ex.ExerciseID, OrderIndex: int64(ei),
-			Notes: ex.Notes, SupersetGroup: nullInt(ex.SupersetGroup), CreatedAt: now, UpdatedAt: now,
+			Notes: ex.Notes, SupersetGroup: sqlnull.Int(ex.SupersetGroup), CreatedAt: now, UpdatedAt: now,
 		}); err != nil {
 			return err
 		}
@@ -240,8 +241,8 @@ func insertChildren(ctx context.Context, qtx *sqlc.Queries, workoutID string, ex
 			}
 			if _, err := qtx.CreateWorkoutSet(ctx, sqlc.CreateWorkoutSetParams{
 				ID: uuid.NewString(), WorkoutExerciseID: weID, OrderIndex: int64(si), SetType: setType,
-				Weight: nullF64(st.Weight), Reps: nullInt(st.Reps), Rpe: nullF64(st.RPE),
-				Duration: nullInt(st.Duration), Distance: nullF64(st.Distance),
+				Weight: sqlnull.Float64(st.Weight), Reps: sqlnull.Int(st.Reps), Rpe: sqlnull.Float64(st.RPE),
+				Duration: sqlnull.Int(st.Duration), Distance: sqlnull.Float64(st.Distance),
 				IsCompleted: boolToInt(st.IsCompleted), CreatedAt: now, UpdatedAt: now,
 			}); err != nil {
 				return err
@@ -265,8 +266,8 @@ func (s *Service) loadNested(ctx context.Context, w sqlc.Workout) (Workout, erro
 	for _, st := range sets {
 		byWE[st.WorkoutExerciseID] = append(byWE[st.WorkoutExerciseID], WorkoutSet{
 			ID: st.ID, OrderIndex: int(st.OrderIndex), SetType: st.SetType,
-			Weight: f64Ptr(st.Weight), Reps: intPtr(st.Reps), RPE: f64Ptr(st.Rpe),
-			Duration: intPtr(st.Duration), Distance: f64Ptr(st.Distance), IsCompleted: st.IsCompleted != 0,
+			Weight: sqlnull.Float64Ptr(st.Weight), Reps: sqlnull.IntPtr(st.Reps), RPE: sqlnull.Float64Ptr(st.Rpe),
+			Duration: sqlnull.IntPtr(st.Duration), Distance: sqlnull.Float64Ptr(st.Distance), IsCompleted: st.IsCompleted != 0,
 		})
 	}
 	for _, e := range exs {
@@ -276,7 +277,7 @@ func (s *Service) loadNested(ctx context.Context, w sqlc.Workout) (Workout, erro
 		}
 		out.Exercises = append(out.Exercises, WorkoutExercise{
 			ID: e.ID, ExerciseID: e.ExerciseID, OrderIndex: int(e.OrderIndex), Notes: e.Notes,
-			SupersetGroup: intPtr(e.SupersetGroup), Sets: setsForE,
+			SupersetGroup: sqlnull.IntPtr(e.SupersetGroup), Sets: setsForE,
 		})
 	}
 	return out, nil
@@ -311,64 +312,12 @@ func (s *Service) validate(ctx context.Context, userID string, in WorkoutInput) 
 
 func meta(w sqlc.Workout) Workout {
 	return Workout{
-		ID: w.ID, RoutineID: strPtr(w.RoutineID), Title: w.Title, Notes: w.Notes,
-		StartTime: w.StartTime, EndTime: i64Ptr(w.EndTime), CreatedAt: w.CreatedAt, UpdatedAt: w.UpdatedAt,
+		ID: w.ID, RoutineID: sqlnull.StringPtr(w.RoutineID), Title: w.Title, Notes: w.Notes,
+		StartTime: w.StartTime, EndTime: sqlnull.Int64Ptr(w.EndTime), CreatedAt: w.CreatedAt, UpdatedAt: w.UpdatedAt,
 		Exercises: []WorkoutExercise{},
 	}
 }
 
-func nullStr(s *string) sql.NullString {
-	if s == nil {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: *s, Valid: true}
-}
-func strPtr(n sql.NullString) *string {
-	if !n.Valid {
-		return nil
-	}
-	v := n.String
-	return &v
-}
-func nullF64(f *float64) sql.NullFloat64 {
-	if f == nil {
-		return sql.NullFloat64{}
-	}
-	return sql.NullFloat64{Float64: *f, Valid: true}
-}
-func f64Ptr(n sql.NullFloat64) *float64 {
-	if !n.Valid {
-		return nil
-	}
-	v := n.Float64
-	return &v
-}
-func nullInt(i *int) sql.NullInt64 {
-	if i == nil {
-		return sql.NullInt64{}
-	}
-	return sql.NullInt64{Int64: int64(*i), Valid: true}
-}
-func intPtr(n sql.NullInt64) *int {
-	if !n.Valid {
-		return nil
-	}
-	v := int(n.Int64)
-	return &v
-}
-func nullI64Ptr(i *int64) sql.NullInt64 {
-	if i == nil {
-		return sql.NullInt64{}
-	}
-	return sql.NullInt64{Int64: *i, Valid: true}
-}
-func i64Ptr(n sql.NullInt64) *int64 {
-	if !n.Valid {
-		return nil
-	}
-	v := n.Int64
-	return &v
-}
 func boolToInt(b bool) int64 {
 	if b {
 		return 1
