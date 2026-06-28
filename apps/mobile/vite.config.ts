@@ -23,7 +23,7 @@ const gitSha = (
 ).slice(0, 7);
 const appVersion = `${pkgVersion}+${gitSha} · ${new Date().toISOString().slice(0, 10)}`;
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
 	plugins: [
 		sveltekit({
 			compilerOptions: {
@@ -33,13 +33,19 @@ export default defineConfig({
 			adapter: adapter({ fallback: 'index.html' }),
 			version: { name: appVersion }
 		}),
-		// Codecov bundle analysis — uploads bundle stats on build when a token is
-		// present (CI). No-op locally, so dev/build without the token is unaffected.
-		codecovVitePlugin({
-			enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
-			bundleName: 'granite-mobile',
-			uploadToken: process.env.CODECOV_TOKEN
-		})
+		// Codecov bundle analysis — CLIENT build only. SvelteKit also runs an SSR /
+		// prerender build that never ships to users; instrumenting it inflated the
+		// reported bundle ~3x (it counted the server chunks). No-op without a token,
+		// so local dev/build is unaffected.
+		...(isSsrBuild
+			? []
+			: [
+					codecovVitePlugin({
+						enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
+						bundleName: 'granite-mobile',
+						uploadToken: process.env.CODECOV_TOKEN
+					})
+				])
 	],
 	test: {
 		expect: { requireAssertions: true },
@@ -79,4 +85,4 @@ export default defineConfig({
 			}
 		]
 	}
-});
+}));
