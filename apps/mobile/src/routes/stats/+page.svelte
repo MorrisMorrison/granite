@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import {
-		muscleSetsThisWeek,
+		muscleSets,
 		volumeTrend,
 		recentPersonalRecords,
 		type PersonalRecordRow
@@ -19,10 +19,11 @@
 	let volume = $state<WeeklyVolume[]>([]);
 	let prs = $state<PersonalRecordRow[]>([]);
 	let loading = $state(true);
+	let weeks = $state(8); // muscle-balance window + volume chart span
 
 	const unit = $derived(prefs.current.weightUnit);
 	const maxSets = $derived(muscles.reduce((m, x) => Math.max(m, x.sets), 0));
-	const volValues = $derived(volume.map((v) => kgToDisplay(v.volume, unit) ?? 0));
+	const volValues = $derived(volume.slice(-weeks).map((v) => kgToDisplay(v.volume, unit) ?? 0));
 	const hasVolume = $derived(volValues.some((v) => v > 0));
 	const latestVol = $derived(volValues.length ? Math.round(volValues[volValues.length - 1]) : 0);
 
@@ -38,12 +39,18 @@
 		return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 	}
 
+	async function loadMuscle() {
+		muscles = await muscleSets(weeks);
+	}
 	async function load() {
-		[muscles, volume, prs] = await Promise.all([
-			muscleSetsThisWeek(),
-			volumeTrend(),
-			recentPersonalRecords()
-		]);
+		[volume, prs] = await Promise.all([volumeTrend(), recentPersonalRecords()]);
+		await loadMuscle();
+	}
+	// Switching range only re-counts muscle sets; the volume chart slices client-side.
+	function setRange(w: number) {
+		if (w === weeks) return;
+		weeks = w;
+		void loadMuscle();
 	}
 	onMount(async () => {
 		await load();
@@ -71,10 +78,24 @@
 			description="Log a few workouts and your training insights will show up here."
 		/>
 	{:else}
+		<div class="range" role="group" aria-label="Time range">
+			{#each [4, 8, 12] as w (w)}
+				<button
+					type="button"
+					class="seg"
+					class:active={weeks === w}
+					onclick={() => setRange(w)}
+					data-testid={`range-${w}w`}
+				>
+					{w}w
+				</button>
+			{/each}
+		</div>
+
 		<section class="block">
-			<h2>Sets per muscle · this week</h2>
+			<h2>Sets per muscle · last {weeks} weeks</h2>
 			{#if muscles.length === 0}
-				<p class="muted">No working sets logged this week yet.</p>
+				<p class="muted">No working sets in this range yet.</p>
 			{:else}
 				<div class="bars" data-testid="muscle-bars">
 					{#each muscles as m (m.muscle)}
@@ -124,6 +145,29 @@
 </main>
 
 <style>
+	.range {
+		display: inline-flex;
+		gap: 0.25rem;
+		margin-top: 0.25rem;
+		padding: 0.2rem;
+		background: var(--surface-2);
+		border-radius: var(--radius-pill);
+	}
+	.seg {
+		border: none;
+		background: none;
+		color: var(--muted);
+		font: inherit;
+		font-size: 0.8rem;
+		font-weight: 600;
+		padding: 0.3rem 0.75rem;
+		border-radius: var(--radius-pill);
+		cursor: pointer;
+	}
+	.seg.active {
+		background: var(--surface);
+		color: var(--text);
+	}
 	.block {
 		margin-top: 1.5rem;
 	}

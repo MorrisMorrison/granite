@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { setsPerMuscleThisWeek, weeklyVolume, recentPRs, type AnalyticsWorkout } from './analytics';
+import {
+	setsPerMuscle,
+	setsPerMuscleThisWeek,
+	weeklyVolume,
+	recentPRs,
+	type AnalyticsWorkout
+} from './analytics';
 
 const DAY = 86400000;
 const now = new Date(2026, 5, 24, 12).getTime(); // Wed 2026-06-24
@@ -43,6 +49,32 @@ describe('setsPerMuscleThisWeek', () => {
 		];
 		const res = setsPerMuscleThisWeek(workouts, (id) => (id === 'unk' ? '' : 'Legs'), now);
 		expect(res).toEqual([{ muscle: 'Other', sets: 1 }]);
+	});
+});
+
+describe('setsPerMuscle (windowed)', () => {
+	const workouts = [
+		wk(now, [{ exercise_id: 'sq', sets: [set('normal', 100, 5), set('normal', 100, 5)] }]), // this week: 2 Legs
+		wk(now - 7 * DAY, [{ exercise_id: 'bn', sets: [set('normal', 80, 5)] }]), // last week: 1 Chest
+		wk(now - 21 * DAY, [{ exercise_id: 'sq', sets: [set('normal', 100, 5)] }]) // 3 weeks ago: 1 Legs
+	];
+
+	it('counts only the last N weeks, excluding older weeks', () => {
+		expect(setsPerMuscle(workouts, muscleOf, now, 2)).toEqual([
+			{ muscle: 'Legs', sets: 2 },
+			{ muscle: 'Chest', sets: 1 }
+		]);
+	});
+
+	it('widens to include older weeks as the window grows', () => {
+		expect(setsPerMuscle(workouts, muscleOf, now, 4)).toEqual([
+			{ muscle: 'Legs', sets: 3 }, // this week (2) + 3 weeks ago (1)
+			{ muscle: 'Chest', sets: 1 }
+		]);
+	});
+
+	it('excludes future-dated workouts', () => {
+		expect(setsPerMuscle([wk(now + 14 * DAY, [{ exercise_id: 'sq', sets: [set('normal', 100, 5)] }])], muscleOf, now, 8)).toEqual([]);
 	});
 });
 
