@@ -2,8 +2,8 @@
 
 ## One line
 
-A workout tracker you can **self-host** so you truly own your training data — offline-first,
-open source, no social network.
+A workout tracker you can **self-host** so you truly own your training data — offline-first and
+open source, focused purely on training.
 
 ## The problem
 
