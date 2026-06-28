@@ -1,0 +1,51 @@
+name: README screenshots
+
+# Only runs when the frontend changes (so it doesn't churn on API-only / docs work).
+# Captures the app screens from a demo-data instance; on main it force-pushes them to
+# the dedicated `screenshots` branch (the README points at that branch's raw URLs),
+# never to main — so main stays strictly PR-protected and the README still refreshes
+# whenever the UI changes. On PRs it just verifies the capture works.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared/**'
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared/**'
+
+jobs:
+  screenshots:
+    name: Capture + publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: corepack pnpm --filter mobile exec playwright install --with-deps chromium
+      - name: Capture screenshots
+        run: corepack pnpm --filter mobile screenshots
+      - name: Publish to the screenshots branch
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd docs/screenshots
+          git init -q -b screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ./*.png
+          git commit -q -m "screenshots @ ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" screenshots

@@ -34,10 +34,12 @@ The reasoning behind each major choice lives in the [Architecture Decision Recor
      .github/workflows/ci.yml). Do not edit by hand. -->
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/today.png" width="220" alt="Today — stats and quick start" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/history.png" width="220" alt="History — calendar + sessions" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/insights.png" width="220" alt="Insights — sets per muscle + volume" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/routines.png" width="220" alt="Routines and folders" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/today.png" width="200" alt="Today — next routine + stats" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/workout-log.png" width="200" alt="Workout logger — sets + rest timer" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/routines.png" width="200" alt="Routines and folders" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/history.png" width="200" alt="History — calendar + sessions" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercise-detail.png" width="200" alt="Exercise detail — progress chart + 1RM" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercises.png" width="200" alt="Exercise library" />
 </p>
 
 ## Run it yourself (self-hosting)
