@@ -83,6 +83,29 @@
 
 	<Button href="/log" icon="play" block testid="btn-start-workout">Start workout</Button>
 
+	{#if routines.length > 0}
+		<section class="section">
+			<div class="section-head"><span>Next up</span></div>
+			<div class="list">
+				<ListRow
+					href={`/routines/${routines[0].id}`}
+					title={routines[0].title}
+					testid="today-next-routine"
+				>
+					{#snippet trailing()}
+						<IconButton
+							name="play"
+							size={18}
+							label={`Start ${routines[0].title}`}
+							href={`/log?routine=${routines[0].id}`}
+							testid="today-start-routine"
+						/>
+					{/snippet}
+				</ListRow>
+			</div>
+		</section>
+	{/if}
+
 	<a class="bw-link" href="/bodyweight" data-testid="bodyweight-link">
 		<span class="muted">Bodyweight</span>
 		<span class="bw-val">
@@ -90,34 +113,10 @@
 		</span>
 	</a>
 
-	<a class="bw-link" href="/insights" data-testid="insights-link">
+	<a class="bw-link bw-link-minor" href="/insights" data-testid="insights-link">
 		<span class="muted">Insights</span>
 		<span class="bw-val">View →</span>
 	</a>
-
-	{#if routines.length > 0}
-		<section class="section">
-			<div class="section-head">
-				<span>Routines</span>
-				<a href="/routines">All</a>
-			</div>
-			<div class="list">
-				{#each routines.slice(0, 4) as r (r.id)}
-					<ListRow href={`/routines/${r.id}`} title={r.title} testid="today-routine-row">
-						{#snippet trailing()}
-							<IconButton
-								name="play"
-								size={18}
-								label={`Start ${r.title}`}
-								href={`/log?routine=${r.id}`}
-								testid="today-start-routine"
-							/>
-						{/snippet}
-					</ListRow>
-				{/each}
-			</div>
-		</section>
-	{/if}
 </main>
 
 <style>
@@ -133,6 +132,11 @@
 	}
 	.bw-val {
 		font-weight: 600;
+	}
+	.bw-link-minor {
+		font-size: 0.82rem;
+		opacity: 0.8;
+		margin-top: 0.5rem;
 	}
 	.stats {
 		display: grid;
