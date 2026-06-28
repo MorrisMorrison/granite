@@ -77,26 +77,6 @@
 			description="Log a few workouts and your training insights will show up here."
 		/>
 	{:else}
-		{#if lifts.length > 0}
-			<section class="block">
-				<h2>Top lifts</h2>
-				<div class="lifts" data-testid="top-lifts">
-					{#each lifts as l (l.exerciseId)}
-						<a class="lift" href={`/exercises/${l.exerciseId}`} data-testid="top-lift-row">
-							<span class="lift-info">
-								<span class="lift-name">{l.exerciseName}</span>
-								<span class="lift-sub muted">{l.sessions} sessions</span>
-							</span>
-							<span class="lift-spark">
-								<Sparkline values={l.e1rmSeries} label={`${l.exerciseName} estimated 1RM trend`} />
-							</span>
-							<span class="lift-val">{disp(l.latestE1rm)} {unit}<small>e1RM</small></span>
-						</a>
-					{/each}
-				</div>
-			</section>
-		{/if}
-
 		<div class="range" role="group" aria-label="Time range">
 			{#each [4, 8, 12] as w (w)}
 				<button
@@ -140,6 +120,26 @@
 			{/if}
 		</section>
 
+		{#if lifts.length > 0}
+			<section class="block">
+				<h2>Top lifts</h2>
+				<div class="lifts" data-testid="top-lifts">
+					{#each lifts as l (l.exerciseId)}
+						<a class="lift" href={`/exercises/${l.exerciseId}`} data-testid="top-lift-row">
+							<span class="lift-info">
+								<span class="lift-name">{l.exerciseName}</span>
+								<span class="lift-sub muted">{l.sessions} sessions</span>
+							</span>
+							<span class="lift-spark">
+								<Sparkline values={l.e1rmSeries} label={`${l.exerciseName} estimated 1RM trend`} />
+							</span>
+							<span class="lift-val">{disp(l.latestE1rm)} {unit}<small>e1RM</small></span>
+						</a>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
 		{#if prs.length > 0}
 			<section class="block">
 				<h2>Recent PRs</h2>
@@ -158,7 +158,7 @@
 	.range {
 		display: inline-flex;
 		gap: 0.25rem;
-		margin-top: 1.25rem;
+		margin-top: 0.25rem;
 		padding: 0.2rem;
 		background: var(--surface-2);
 		border-radius: var(--radius-pill);
