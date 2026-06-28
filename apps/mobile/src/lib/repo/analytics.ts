@@ -4,13 +4,18 @@ import {
 	setsPerMuscle,
 	weeklyVolume,
 	recentPRs,
+	allTimeRecords,
 	type AnalyticsWorkout,
 	type MuscleSets,
 	type WeeklyVolume,
-	type PersonalRecord
+	type PersonalRecord,
+	type AllTimeRecord
 } from '$lib/analytics';
 
 export interface PersonalRecordRow extends PersonalRecord {
+	exerciseName: string;
+}
+export interface AllTimeRecordRow extends AllTimeRecord {
 	exerciseName: string;
 }
 
@@ -62,5 +67,15 @@ export async function recentPersonalRecords(limit = 5): Promise<PersonalRecordRo
 	return recentPRs(workouts, limit).map((pr) => ({
 		...pr,
 		exerciseName: name.get(pr.exerciseId) ?? 'Exercise'
+	}));
+}
+
+/** Best estimated-1RM per exercise (strongest first), with exercise names joined in. */
+export async function allTimeRecordsBoard(limit = 10): Promise<AllTimeRecordRow[]> {
+	const [workouts, exs] = await Promise.all([workoutsForAnalytics(), listExercises()]);
+	const name = new Map(exs.map((e) => [e.id, e.name]));
+	return allTimeRecords(workouts, limit).map((r) => ({
+		...r,
+		exerciseName: name.get(r.exerciseId) ?? 'Exercise'
 	}));
 }

@@ -32,6 +32,13 @@ export interface PersonalRecord {
 	reps: number;
 	at: number; // workout start_time (epoch ms)
 }
+export interface AllTimeRecord {
+	exerciseId: string;
+	e1rm: number; // best-ever estimated 1RM (kg, rounded)
+	weight: number; // the working set that achieved it (kg)
+	reps: number;
+	at: number; // workout start_time (epoch ms)
+}
 
 const WEEK = 7 * 86400000;
 const isWorking = (s: AnalyticsSet) => s.set_type !== 'warmup';
@@ -135,4 +142,32 @@ export function recentPRs(workouts: AnalyticsWorkout[], limit = 5): PersonalReco
 		}
 	}
 	return prs.sort((a, b) => b.at - a.at).slice(0, limit);
+}
+
+/** Best estimated-1RM per exercise across all history, strongest first — a
+ *  leaderboard of personal bests. Warm-ups and invalid sets are excluded. */
+export function allTimeRecords(workouts: AnalyticsWorkout[], limit = 10): AllTimeRecord[] {
+	const best = new Map<string, AllTimeRecord>();
+	for (const w of workouts) {
+		for (const ex of w.exercises) {
+			for (const s of ex.sets) {
+				if (!isWorking(s)) continue;
+				const weight = s.weight ?? 0;
+				const reps = s.reps ?? 0;
+				if (weight <= 0 || reps <= 0) continue;
+				const e1rm = estimate1RM(weight, reps);
+				const cur = best.get(ex.exercise_id);
+				if (!cur || e1rm > cur.e1rm) {
+					best.set(ex.exercise_id, {
+						exerciseId: ex.exercise_id,
+						e1rm: Math.round(e1rm),
+						weight,
+						reps,
+						at: w.start_time
+					});
+				}
+			}
+		}
+	}
+	return [...best.values()].sort((a, b) => b.e1rm - a.e1rm).slice(0, limit);
 }
