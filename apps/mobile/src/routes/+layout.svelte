@@ -58,6 +58,9 @@
 			<div class="appbar-inner">
 				<a class="brand" href="/"><img class="logo" src={favicon} alt="" />Granite</a>
 				<div class="appbar-actions">
+					<a class="iconbtn" href="/exercises" aria-label="Exercise library" data-testid="nav-exercises">
+						<Icon name="exercises" size={20} />
+					</a>
 					<a class="iconbtn" href="/tools" aria-label="Calculators" data-testid="nav-tools">
 						<Icon name="calculator" size={20} />
 					</a>
