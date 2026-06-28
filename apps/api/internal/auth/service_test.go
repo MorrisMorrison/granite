@@ -171,3 +171,43 @@ func TestUpdateProfileInvalidSettings(t *testing.T) {
 	_, err = s.UpdateProfile(ctx, u.ID, nil, json.RawMessage("{not valid"))
 	assertCode(t, err, apperr.CodeValidation)
 }
+
+func TestUpdateProfileAndGetUser(t *testing.T) {
+	s := newTestService(t, true)
+	ctx := context.Background()
+	u, _, err := s.Register(ctx, "prof@example.com", "supersecret", "Old")
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	name := "New Name"
+	updated, err := s.UpdateProfile(ctx, u.ID, &name, json.RawMessage(`{"weightUnit":"lb"}`))
+	if err != nil {
+		t.Fatalf("update profile: %v", err)
+	}
+	if updated.DisplayName != "New Name" {
+		t.Errorf("DisplayName = %q, want New Name", updated.DisplayName)
+	}
+
+	got, err := s.GetUser(ctx, u.ID)
+	if err != nil {
+		t.Fatalf("get user: %v", err)
+	}
+	if got.Email != "prof@example.com" || got.DisplayName != "New Name" {
+		t.Errorf("got = %+v", got)
+	}
+
+	if _, err := s.GetUser(ctx, "nope"); err == nil {
+		t.Error("GetUser(unknown) should be NotFound")
+	}
+	if _, err := s.UpdateProfile(ctx, "nope", &name, nil); err == nil {
+		t.Error("UpdateProfile(unknown) should be NotFound")
+	}
+}
+
+func TestLogoutEmptyRefreshIsNoOp(t *testing.T) {
+	s := newTestService(t, true)
+	if err := s.Logout(context.Background(), ""); err != nil {
+		t.Fatalf("empty logout should be a no-op, got %v", err)
+	}
+}
