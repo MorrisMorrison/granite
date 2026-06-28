@@ -30,13 +30,14 @@ The reasoning behind each major choice lives in the [Architecture Decision Recor
 ## Screenshots
 
 <!-- Auto-generated from a demo-data instance by the "README screenshots" CI job on
-     every push to main (see .github/workflows/ci.yml). Do not edit by hand. -->
+     every push to main; published to the `screenshots` branch (see
+     .github/workflows/ci.yml). Do not edit by hand. -->
 
 <p align="center">
-  <img src="docs/screenshots/today.png" width="220" alt="Today — stats and quick start" />
-  <img src="docs/screenshots/history.png" width="220" alt="History — calendar + sessions" />
-  <img src="docs/screenshots/insights.png" width="220" alt="Insights — sets per muscle + volume" />
-  <img src="docs/screenshots/routines.png" width="220" alt="Routines and folders" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/today.png" width="220" alt="Today — stats and quick start" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/history.png" width="220" alt="History — calendar + sessions" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/insights.png" width="220" alt="Insights — sets per muscle + volume" />
+  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/routines.png" width="220" alt="Routines and folders" />
 </p>
 
 ## Run it yourself (self-hosting)
