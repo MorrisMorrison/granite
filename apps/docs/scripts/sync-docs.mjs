@@ -12,13 +12,14 @@ const repoRoot = resolve(root, '../..');
 const docsSrc = join(repoRoot, 'docs');
 const contentDir = join(root, 'src', 'content', 'docs');
 const guidesDir = join(contentDir, 'guides');
-const decisionsDir = join(contentDir, 'decisions');
 
 const GH = 'https://github.com/MorrisMorrison/granite/blob/main';
 const BASE = process.env.DOCS_BASE ?? '/granite';
 
-// Skip catalogs (Starlight provides navigation) and non-doc files.
-const SKIP = new Set(['README.md']);
+// Files kept in the repo but NOT published to the docs site: the catalog README
+// (Starlight provides navigation) and the MVP-scope planning checklist (a historical
+// artifact — everything shipped; the roadmap is the live view).
+const SKIP = new Set(['README.md', '01-mvp-scope.md']);
 
 function guideSlug(file) {
 	return file.replace(/\.md$/i, '').replace(/^\d+-/, '').toLowerCase();
@@ -48,14 +49,16 @@ function rewriteLinks(md, fileDir) {
 
 		if (underDocs && /\.md$/i.test(abs)) {
 			const rel = relative(docsSrc, abs).replace(/\\/g, '/');
-			if (rel.startsWith('decisions/')) {
-				const slug = basename(rel).replace(/\.md$/i, '').toLowerCase();
-				return `](${BASE}/decisions/${slug}/${suffix})`;
+			// ADRs and the MVP-scope doc live in the repo but aren't published to the
+			// site (see SKIP / the dropped decisions loop) → link to GitHub, not a dead
+			// site route.
+			if (rel.startsWith('decisions/') || rel === '01-mvp-scope.md') {
+				return `](${GH}/docs/${rel}${suffix})`;
 			}
 			return `](${BASE}/guides/${guideSlug(basename(rel))}/${suffix})`;
 		}
 		if (underDocs && relative(docsSrc, abs).replace(/\\/g, '/') === 'decisions') {
-			return `](${BASE}/decisions/${suffix})`;
+			return `](${GH}/docs/decisions/${suffix})`;
 		}
 		// Outside /docs (code, deploy assets, README, …) → link to the repo on GitHub.
 		return `](${GH}/${relative(repoRoot, abs).replace(/\\/g, '/')}${suffix})`;
@@ -69,10 +72,11 @@ function emit(srcFile, destDir, { slug, title, order }) {
 	writeFileSync(join(destDir, `${slug}.md`), fm + body);
 }
 
+// ADRs are intentionally NOT published — clear any previously-generated output so a
+// stale decisions collection can't linger in the site build.
 rmSync(guidesDir, { recursive: true, force: true });
-rmSync(decisionsDir, { recursive: true, force: true });
+rmSync(join(contentDir, 'decisions'), { recursive: true, force: true });
 mkdirSync(guidesDir, { recursive: true });
-mkdirSync(decisionsDir, { recursive: true });
 
 let guides = 0;
 for (const file of readdirSync(docsSrc).filter((f) => f.endsWith('.md') && !SKIP.has(f))) {
@@ -83,14 +87,8 @@ for (const file of readdirSync(docsSrc).filter((f) => f.endsWith('.md') && !SKIP
 	guides++;
 }
 
-let adrs = 0;
-const decSrc = join(docsSrc, 'decisions');
-for (const file of readdirSync(decSrc).filter((f) => f.endsWith('.md') && !SKIP.has(f))) {
-	const order = Number((file.match(/^(\d+)/) ?? [])[1] ?? 99);
-	const slug = file.replace(/\.md$/i, '').toLowerCase();
-	const title = titleFromH1(readFileSync(join(decSrc, file), 'utf8'), slug);
-	emit(join(decSrc, file), decisionsDir, { slug, title, order });
-	adrs++;
-}
+// ADRs (docs/decisions/*) are deliberately not synced to the site — they stay in the
+// repo for contributors and render on GitHub; guide cross-links to them are rewritten
+// to GitHub by rewriteLinks().
 
-console.log(`[sync-docs] synced ${guides} guides + ${adrs} ADRs`);
+console.log(`[sync-docs] synced ${guides} guides (ADRs + MVP scope kept repo-only)`);
