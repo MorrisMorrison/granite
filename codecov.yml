@@ -30,6 +30,10 @@ ignore:
   - 'apps/api/internal/db/migrations/**'
   - 'apps/api/internal/logging/**'
   - 'apps/api/internal/webui/**'
+  # Mobile: SvelteKit route screens are exercised by the Playwright e2e suite, not
+  # unit tests (vitest collects coverage from src/lib/** only — see vite.config.ts);
+  # the testable logic lives in src/lib (repos, analytics, components).
+  - 'apps/mobile/src/routes/**'
 
 # Per-app flags. No path filter: each flag is scoped by its own CI upload (the
 # api job uploads the Go profile, the web job the mobile lcov), so they never
