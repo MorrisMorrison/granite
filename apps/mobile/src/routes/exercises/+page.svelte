@@ -4,6 +4,7 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let exercises = $state<ExerciseRow[]>([]);
@@ -34,11 +35,19 @@
 <svelte:head><title>Exercises · Granite</title></svelte:head>
 
 <main class="container">
-	<PageHeader title="Exercises" />
+	<PageHeader title="Exercises">
+		{#snippet action()}
+			<Button size="sm" icon="plus" href="/exercises/new" testid="btn-new-exercise">New</Button>
+		{/snippet}
+	</PageHeader>
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if exercises.length === 0}
-		<EmptyState title="No exercises yet" description="Your exercise library will appear here." />
+		<EmptyState title="No exercises yet" description="Your exercise library will appear here.">
+			{#snippet action()}
+				<Button href="/exercises/new" icon="plus" testid="btn-new-exercise-empty">New exercise</Button>
+			{/snippet}
+		</EmptyState>
 	{:else}
 		<input
 			class="search"
