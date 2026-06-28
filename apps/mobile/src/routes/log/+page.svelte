@@ -13,6 +13,7 @@
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import ExerciseForm from '$lib/components/ExerciseForm.svelte';
 
 	interface DraftSet {
@@ -375,7 +376,7 @@
 		{#if restActive}
 			<div class="rest">
 				<button class="link" onclick={() => bumpRest(-15)}>-15</button>
-				<span class="rest-time">⏱ {fmt(restRemaining)}</span>
+				<span class="rest-time"><Icon name="clock" size={16} /> {fmt(restRemaining)}</span>
 				<button class="link" onclick={() => bumpRest(15)}>+15</button>
 				<button class="link" onclick={stopRest}>skip</button>
 			</div>
@@ -525,6 +526,10 @@
 		gap: 0.75rem;
 	}
 	.rest-time {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		white-space: nowrap;
 		font-variant-numeric: tabular-nums;
 		font-weight: 600;
 	}
