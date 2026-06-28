@@ -25,7 +25,8 @@ import {
 	muscleSetsThisWeek,
 	volumeTrend,
 	recentPersonalRecords,
-	allTimeRecordsBoard
+	allTimeRecordsBoard,
+	topLiftsTrend
 } from './analytics';
 
 const DAY = 86400000;
@@ -117,5 +118,20 @@ describe('repo/analytics', () => {
 		// Strongest first; an exercise missing from the library falls back to "Exercise".
 		expect(res.map((r) => r.exerciseName)).toEqual(['Exercise', 'Squat', 'Bench']);
 		expect(res[1].weight).toBe(120);
+	});
+
+	it('topLiftsTrend returns most-trained lifts with names and an e1RM series', async () => {
+		await addWorkout('w1', now - 7 * DAY, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 100, reps: 5 }] }
+		]);
+		await addWorkout('w2', now, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 110, reps: 5 }] }
+		]);
+
+		const res = await topLiftsTrend();
+		expect(res).toHaveLength(1);
+		expect(res[0].exerciseName).toBe('Squat');
+		expect(res[0].sessions).toBe(2);
+		expect(res[0].e1rmSeries).toHaveLength(2);
 	});
 });

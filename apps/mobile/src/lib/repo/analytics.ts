@@ -5,17 +5,22 @@ import {
 	weeklyVolume,
 	recentPRs,
 	allTimeRecords,
+	topLifts,
 	type AnalyticsWorkout,
 	type MuscleSets,
 	type WeeklyVolume,
 	type PersonalRecord,
-	type AllTimeRecord
+	type AllTimeRecord,
+	type TopLift
 } from '$lib/analytics';
 
 export interface PersonalRecordRow extends PersonalRecord {
 	exerciseName: string;
 }
 export interface AllTimeRecordRow extends AllTimeRecord {
+	exerciseName: string;
+}
+export interface TopLiftRow extends TopLift {
 	exerciseName: string;
 }
 
@@ -77,5 +82,15 @@ export async function allTimeRecordsBoard(limit = 10): Promise<AllTimeRecordRow[
 	return allTimeRecords(workouts, limit).map((r) => ({
 		...r,
 		exerciseName: name.get(r.exerciseId) ?? 'Exercise'
+	}));
+}
+
+/** Most-trained lifts with their e1RM trend series, with names joined in. */
+export async function topLiftsTrend(limit = 5): Promise<TopLiftRow[]> {
+	const [workouts, exs] = await Promise.all([workoutsForAnalytics(), listExercises()]);
+	const name = new Map(exs.map((e) => [e.id, e.name]));
+	return topLifts(workouts, limit).map((l) => ({
+		...l,
+		exerciseName: name.get(l.exerciseId) ?? 'Exercise'
 	}));
 }
