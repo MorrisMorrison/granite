@@ -13,7 +13,8 @@
 		"test:unit": "vitest",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"e2e": "playwright test"
+		"e2e": "playwright test",
+		"screenshots": "playwright test --config=playwright.screenshots.config.ts"
 	},
 	"devDependencies": {
 		"@codecov/vite-plugin": "^2.0.1",
