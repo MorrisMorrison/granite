@@ -39,6 +39,12 @@ export interface AllTimeRecord {
 	reps: number;
 	at: number; // workout start_time (epoch ms)
 }
+export interface TopLift {
+	exerciseId: string;
+	sessions: number; // # sessions with a working set of this lift
+	e1rmSeries: number[]; // best working-set e1RM per session, chronological (kg, rounded)
+	latestE1rm: number; // most recent session's best e1RM (kg, rounded)
+}
 
 const WEEK = 7 * 86400000;
 const isWorking = (s: AnalyticsSet) => s.set_type !== 'warmup';
@@ -170,4 +176,39 @@ export function allTimeRecords(workouts: AnalyticsWorkout[], limit = 10): AllTim
 		}
 	}
 	return [...best.values()].sort((a, b) => b.e1rm - a.e1rm).slice(0, limit);
+}
+
+/** Most-trained lifts (by session count, strongest as tie-break), each with its
+ *  per-session best-e1RM series for a trend sparkline. Only lifts trained in at
+ *  least two sessions are included — a trend needs two points. */
+export function topLifts(workouts: AnalyticsWorkout[], limit = 5): TopLift[] {
+	const chronological = [...workouts].sort((a, b) => a.start_time - b.start_time);
+	const series = new Map<string, number[]>();
+	for (const w of chronological) {
+		for (const ex of w.exercises) {
+			let best = 0;
+			for (const s of ex.sets) {
+				if (!isWorking(s)) continue;
+				const weight = s.weight ?? 0;
+				const reps = s.reps ?? 0;
+				if (weight <= 0 || reps <= 0) continue;
+				const e = estimate1RM(weight, reps);
+				if (e > best) best = e;
+			}
+			if (best <= 0) continue;
+			const arr = series.get(ex.exercise_id) ?? [];
+			arr.push(Math.round(best));
+			series.set(ex.exercise_id, arr);
+		}
+	}
+	return [...series.entries()]
+		.map(([exerciseId, e1rmSeries]) => ({
+			exerciseId,
+			sessions: e1rmSeries.length,
+			e1rmSeries,
+			latestE1rm: e1rmSeries[e1rmSeries.length - 1]
+		}))
+		.filter((l) => l.sessions >= 2)
+		.sort((a, b) => b.sessions - a.sessions || b.latestE1rm - a.latestE1rm)
+		.slice(0, limit);
 }

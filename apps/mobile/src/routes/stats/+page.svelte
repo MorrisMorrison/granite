@@ -5,8 +5,10 @@
 		volumeTrend,
 		recentPersonalRecords,
 		allTimeRecordsBoard,
+		topLiftsTrend,
 		type PersonalRecordRow,
-		type AllTimeRecordRow
+		type AllTimeRecordRow,
+		type TopLiftRow
 	} from '$lib/repo/analytics';
 	import type { MuscleSets, WeeklyVolume } from '$lib/analytics';
 	import { syncNow } from '$lib/sync';
@@ -15,12 +17,14 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import LineChart from '$lib/components/ui/LineChart.svelte';
+	import Sparkline from '$lib/components/ui/Sparkline.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let muscles = $state<MuscleSets[]>([]);
 	let volume = $state<WeeklyVolume[]>([]);
 	let prs = $state<PersonalRecordRow[]>([]);
 	let records = $state<AllTimeRecordRow[]>([]);
+	let lifts = $state<TopLiftRow[]>([]);
 	let loading = $state(true);
 	let weeks = $state(8); // muscle-balance window + volume chart span
 
@@ -46,10 +50,11 @@
 		muscles = await muscleSets(weeks);
 	}
 	async function load() {
-		[volume, prs, records] = await Promise.all([
+		[volume, prs, records, lifts] = await Promise.all([
 			volumeTrend(),
 			recentPersonalRecords(),
-			allTimeRecordsBoard()
+			allTimeRecordsBoard(),
+			topLiftsTrend()
 		]);
 		await loadMuscle();
 	}
@@ -127,6 +132,26 @@
 				<p class="muted">Not enough volume logged yet.</p>
 			{/if}
 		</section>
+
+		{#if lifts.length > 0}
+			<section class="block">
+				<h2>Top lifts</h2>
+				<div class="lifts" data-testid="top-lifts">
+					{#each lifts as l (l.exerciseId)}
+						<a class="lift" href={`/exercises/${l.exerciseId}`} data-testid="top-lift-row">
+							<span class="lift-info">
+								<span class="lift-name">{l.exerciseName}</span>
+								<span class="lift-sub muted">{l.sessions} sessions</span>
+							</span>
+							<span class="lift-spark">
+								<Sparkline values={l.e1rmSeries} label={`${l.exerciseName} estimated 1RM trend`} />
+							</span>
+							<span class="lift-val">{disp(l.latestE1rm)} {unit}<small>e1RM</small></span>
+						</a>
+					{/each}
+				</div>
+			</section>
+		{/if}
 
 		{#snippet recordRows(rows: (PersonalRecordRow | AllTimeRecordRow)[], rowTestid: string)}
 			{#each rows as r (r.exerciseId + r.at)}
@@ -237,6 +262,56 @@
 	}
 	.chart {
 		padding: 0.75rem;
+	}
+	.lifts {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.lift {
+		display: grid;
+		grid-template-columns: 1fr auto auto;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.6rem 0.9rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		color: var(--text);
+		text-decoration: none;
+	}
+	.lift-info {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.lift-name {
+		font-weight: 600;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.lift-sub {
+		font-size: 0.75rem;
+	}
+	.lift-spark {
+		width: 72px;
+		height: 24px;
+		opacity: 0.85;
+	}
+	.lift-val {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		font-size: 0.9rem;
+		line-height: 1.1;
+	}
+	.lift-val small {
+		font-weight: 400;
+		font-size: 0.62rem;
+		color: var(--muted);
 	}
 	.prs {
 		display: flex;
