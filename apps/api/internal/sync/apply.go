@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
 func (s *Service) inTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
@@ -120,7 +121,7 @@ func (s *Service) applyRoutine(ctx context.Context, userID string, c Change) (bo
 	created := nz(d.CreatedAt, c.UpdatedAt)
 	err = s.inTx(ctx, func(qtx *sqlc.Queries) error {
 		if err := qtx.UpsertRoutine(ctx, sqlc.UpsertRoutineParams{
-			ID: c.ID, UserID: userID, FolderID: nullStr(d.FolderID), Title: d.Title, Notes: d.Notes,
+			ID: c.ID, UserID: userID, FolderID: sqlnull.String(d.FolderID), Title: d.Title, Notes: d.Notes,
 			OrderIndex: d.OrderIndex, CreatedAt: created, UpdatedAt: c.UpdatedAt, DeletedAt: deletedAt(c),
 		}); err != nil {
 			return err
@@ -135,7 +136,7 @@ func (s *Service) applyRoutine(ctx context.Context, userID string, c Change) (bo
 			reID := orID(ex.ID)
 			if _, err := qtx.CreateRoutineExercise(ctx, sqlc.CreateRoutineExerciseParams{
 				ID: reID, RoutineID: c.ID, ExerciseID: ex.ExerciseID, OrderIndex: ex.OrderIndex,
-				Notes: ex.Notes, RestSeconds: ex.RestSeconds, SupersetGroup: nullI64(ex.SupersetGroup),
+				Notes: ex.Notes, RestSeconds: ex.RestSeconds, SupersetGroup: sqlnull.Int64(ex.SupersetGroup),
 				CreatedAt: created, UpdatedAt: c.UpdatedAt,
 			}); err != nil {
 				return err
@@ -143,9 +144,9 @@ func (s *Service) applyRoutine(ctx context.Context, userID string, c Change) (bo
 			for _, st := range ex.Sets {
 				if _, err := qtx.CreateRoutineSet(ctx, sqlc.CreateRoutineSetParams{
 					ID: orID(st.ID), RoutineExerciseID: reID, OrderIndex: st.OrderIndex,
-					SetType: orDefault(st.SetType, "normal"), TargetWeight: nullF64(st.TargetWeight),
-					TargetReps: nullI64(st.TargetReps), TargetRpe: nullF64(st.TargetRpe),
-					TargetDuration: nullI64(st.TargetDuration), CreatedAt: created, UpdatedAt: c.UpdatedAt,
+					SetType: orDefault(st.SetType, "normal"), TargetWeight: sqlnull.Float64(st.TargetWeight),
+					TargetReps: sqlnull.Int64(st.TargetReps), TargetRpe: sqlnull.Float64(st.TargetRpe),
+					TargetDuration: sqlnull.Int64(st.TargetDuration), CreatedAt: created, UpdatedAt: c.UpdatedAt,
 				}); err != nil {
 					return err
 				}
@@ -180,8 +181,8 @@ func (s *Service) applyWorkout(ctx context.Context, userID string, c Change) (bo
 	created := nz(d.CreatedAt, c.UpdatedAt)
 	err = s.inTx(ctx, func(qtx *sqlc.Queries) error {
 		if err := qtx.UpsertWorkout(ctx, sqlc.UpsertWorkoutParams{
-			ID: c.ID, UserID: userID, RoutineID: nullStr(d.RoutineID), Title: d.Title, Notes: d.Notes,
-			StartTime: nz(d.StartTime, c.UpdatedAt), EndTime: nullI64(d.EndTime), CreatedAt: created,
+			ID: c.ID, UserID: userID, RoutineID: sqlnull.String(d.RoutineID), Title: d.Title, Notes: d.Notes,
+			StartTime: nz(d.StartTime, c.UpdatedAt), EndTime: sqlnull.Int64(d.EndTime), CreatedAt: created,
 			UpdatedAt: c.UpdatedAt, DeletedAt: deletedAt(c),
 		}); err != nil {
 			return err
@@ -196,15 +197,15 @@ func (s *Service) applyWorkout(ctx context.Context, userID string, c Change) (bo
 			weID := orID(ex.ID)
 			if _, err := qtx.CreateWorkoutExercise(ctx, sqlc.CreateWorkoutExerciseParams{
 				ID: weID, WorkoutID: c.ID, ExerciseID: ex.ExerciseID, OrderIndex: ex.OrderIndex,
-				Notes: ex.Notes, SupersetGroup: nullI64(ex.SupersetGroup), CreatedAt: created, UpdatedAt: c.UpdatedAt,
+				Notes: ex.Notes, SupersetGroup: sqlnull.Int64(ex.SupersetGroup), CreatedAt: created, UpdatedAt: c.UpdatedAt,
 			}); err != nil {
 				return err
 			}
 			for _, st := range ex.Sets {
 				if _, err := qtx.CreateWorkoutSet(ctx, sqlc.CreateWorkoutSetParams{
 					ID: orID(st.ID), WorkoutExerciseID: weID, OrderIndex: st.OrderIndex,
-					SetType: orDefault(st.SetType, "normal"), Weight: nullF64(st.Weight), Reps: nullI64(st.Reps),
-					Rpe: nullF64(st.Rpe), Duration: nullI64(st.Duration), Distance: nullF64(st.Distance),
+					SetType: orDefault(st.SetType, "normal"), Weight: sqlnull.Float64(st.Weight), Reps: sqlnull.Int64(st.Reps),
+					Rpe: sqlnull.Float64(st.Rpe), Duration: sqlnull.Int64(st.Duration), Distance: sqlnull.Float64(st.Distance),
 					IsCompleted: b2i(st.IsCompleted), CreatedAt: created, UpdatedAt: c.UpdatedAt,
 				}); err != nil {
 					return err

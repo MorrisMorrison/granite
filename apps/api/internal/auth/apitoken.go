@@ -11,6 +11,7 @@ import (
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
 // Token scopes. read is always implied; write additionally permits mutations.
@@ -42,8 +43,8 @@ func toAPIToken(t sqlc.ApiToken) APIToken {
 		Name:       t.Name,
 		Prefix:     t.Prefix,
 		Scopes:     parseScopes(t.Scopes),
-		LastUsedAt: ptrInt64(t.LastUsedAt),
-		ExpiresAt:  ptrInt64(t.ExpiresAt),
+		LastUsedAt: sqlnull.Int64Ptr(t.LastUsedAt),
+		ExpiresAt:  sqlnull.Int64Ptr(t.ExpiresAt),
 		CreatedAt:  t.CreatedAt,
 	}
 }
@@ -122,7 +123,7 @@ func (s *Service) CreateAPIToken(ctx context.Context, userID, name string, scope
 		TokenHash: HashToken(raw),
 		Prefix:    raw[:len(APITokenPrefix)+8], // prefix + 8 chars, enough to identify
 		Scopes:    scopeStr,
-		ExpiresAt: nullInt64(expiresAt),
+		ExpiresAt: sqlnull.Int64(expiresAt),
 		CreatedAt: now,
 	})
 	if err != nil {
@@ -180,19 +181,4 @@ func (s *Service) AuthenticateAPIToken(ctx context.Context, raw string) (userID,
 		}
 	}
 	return row.UserID, row.Scopes, nil
-}
-
-func nullInt64(p *int64) sql.NullInt64 {
-	if p == nil {
-		return sql.NullInt64{}
-	}
-	return sql.NullInt64{Int64: *p, Valid: true}
-}
-
-func ptrInt64(n sql.NullInt64) *int64 {
-	if !n.Valid {
-		return nil
-	}
-	v := n.Int64
-	return &v
 }

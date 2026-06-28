@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
+	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
 // Entity identifiers, ordered by foreign-key dependency for push apply / pull return.
@@ -93,7 +94,7 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 		return nil, since, err
 	}
 	for _, r := range routines {
-		d := routineData{FolderID: strPtr(r.FolderID), Title: r.Title, Notes: r.Notes, OrderIndex: r.OrderIndex, CreatedAt: r.CreatedAt}
+		d := routineData{FolderID: sqlnull.StringPtr(r.FolderID), Title: r.Title, Notes: r.Notes, OrderIndex: r.OrderIndex, CreatedAt: r.CreatedAt}
 		if !r.DeletedAt.Valid {
 			if d.Exercises, err = s.loadRoutineChildren(ctx, r.ID); err != nil {
 				return nil, since, err
@@ -107,7 +108,7 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 		return nil, since, err
 	}
 	for _, w := range workouts {
-		d := workoutData{RoutineID: strPtr(w.RoutineID), Title: w.Title, Notes: w.Notes, StartTime: w.StartTime, EndTime: i64Ptr(w.EndTime), CreatedAt: w.CreatedAt}
+		d := workoutData{RoutineID: sqlnull.StringPtr(w.RoutineID), Title: w.Title, Notes: w.Notes, StartTime: w.StartTime, EndTime: sqlnull.Int64Ptr(w.EndTime), CreatedAt: w.CreatedAt}
 		if !w.DeletedAt.Valid {
 			if d.Exercises, err = s.loadWorkoutChildren(ctx, w.ID); err != nil {
 				return nil, since, err

@@ -2,8 +2,9 @@ package sync
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
+
+	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
 // --- wire DTOs (Change.Data shapes) -----------------------------------------
@@ -106,8 +107,8 @@ func (s *Service) loadRoutineChildren(ctx context.Context, routineID string) ([]
 	for _, st := range sets {
 		byRE[st.RoutineExerciseID] = append(byRE[st.RoutineExerciseID], routineSetData{
 			ID: st.ID, OrderIndex: st.OrderIndex, SetType: st.SetType,
-			TargetWeight: f64Ptr(st.TargetWeight), TargetReps: i64Ptr(st.TargetReps),
-			TargetRpe: f64Ptr(st.TargetRpe), TargetDuration: i64Ptr(st.TargetDuration),
+			TargetWeight: sqlnull.Float64Ptr(st.TargetWeight), TargetReps: sqlnull.Int64Ptr(st.TargetReps),
+			TargetRpe: sqlnull.Float64Ptr(st.TargetRpe), TargetDuration: sqlnull.Int64Ptr(st.TargetDuration),
 		})
 	}
 	out := []routineExerciseData{}
@@ -118,7 +119,7 @@ func (s *Service) loadRoutineChildren(ctx context.Context, routineID string) ([]
 		}
 		out = append(out, routineExerciseData{
 			ID: e.ID, ExerciseID: e.ExerciseID, OrderIndex: e.OrderIndex, Notes: e.Notes,
-			RestSeconds: e.RestSeconds, SupersetGroup: i64Ptr(e.SupersetGroup), Sets: ss,
+			RestSeconds: e.RestSeconds, SupersetGroup: sqlnull.Int64Ptr(e.SupersetGroup), Sets: ss,
 		})
 	}
 	return out, nil
@@ -137,8 +138,8 @@ func (s *Service) loadWorkoutChildren(ctx context.Context, workoutID string) ([]
 	for _, st := range sets {
 		byWE[st.WorkoutExerciseID] = append(byWE[st.WorkoutExerciseID], workoutSetData{
 			ID: st.ID, OrderIndex: st.OrderIndex, SetType: st.SetType,
-			Weight: f64Ptr(st.Weight), Reps: i64Ptr(st.Reps), Rpe: f64Ptr(st.Rpe),
-			Duration: i64Ptr(st.Duration), Distance: f64Ptr(st.Distance), IsCompleted: st.IsCompleted != 0,
+			Weight: sqlnull.Float64Ptr(st.Weight), Reps: sqlnull.Int64Ptr(st.Reps), Rpe: sqlnull.Float64Ptr(st.Rpe),
+			Duration: sqlnull.Int64Ptr(st.Duration), Distance: sqlnull.Float64Ptr(st.Distance), IsCompleted: st.IsCompleted != 0,
 		})
 	}
 	out := []workoutExerciseData{}
@@ -149,7 +150,7 @@ func (s *Service) loadWorkoutChildren(ctx context.Context, workoutID string) ([]
 		}
 		out = append(out, workoutExerciseData{
 			ID: e.ID, ExerciseID: e.ExerciseID, OrderIndex: e.OrderIndex, Notes: e.Notes,
-			SupersetGroup: i64Ptr(e.SupersetGroup), Sets: ss,
+			SupersetGroup: sqlnull.Int64Ptr(e.SupersetGroup), Sets: ss,
 		})
 	}
 	return out, nil
@@ -174,44 +175,4 @@ func b2i(b bool) int64 {
 		return 1
 	}
 	return 0
-}
-
-func strPtr(n sql.NullString) *string {
-	if !n.Valid {
-		return nil
-	}
-	v := n.String
-	return &v
-}
-func nullStr(p *string) sql.NullString {
-	if p == nil {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: *p, Valid: true}
-}
-func i64Ptr(n sql.NullInt64) *int64 {
-	if !n.Valid {
-		return nil
-	}
-	v := n.Int64
-	return &v
-}
-func nullI64(p *int64) sql.NullInt64 {
-	if p == nil {
-		return sql.NullInt64{}
-	}
-	return sql.NullInt64{Int64: *p, Valid: true}
-}
-func f64Ptr(n sql.NullFloat64) *float64 {
-	if !n.Valid {
-		return nil
-	}
-	v := n.Float64
-	return &v
-}
-func nullF64(p *float64) sql.NullFloat64 {
-	if p == nil {
-		return sql.NullFloat64{}
-	}
-	return sql.NullFloat64{Float64: *p, Valid: true}
 }
