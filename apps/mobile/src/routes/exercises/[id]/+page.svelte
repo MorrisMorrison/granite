@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { getExercise, type ExerciseRow } from '$lib/repo/exercises';
+	import { goto } from '$app/navigation';
+	import { getExercise, archiveExercise, type ExerciseRow } from '$lib/repo/exercises';
 	import { exerciseProgress, type ExerciseProgress } from '$lib/repo/stats';
 	import { syncNow } from '$lib/sync';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import LineChart from '$lib/components/ui/LineChart.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -30,6 +32,15 @@
 			/* offline — keep local */
 		}
 	});
+
+	async function archive() {
+		if (!ex) return;
+		if (!confirm(`Archive “${ex.name}”? It'll be hidden from your library; past workouts keep it.`)) {
+			return;
+		}
+		await archiveExercise(ex.id);
+		await goto('/exercises');
+	}
 
 	const unit = $derived(prefs.current.weightUnit);
 	function w(kg: number | null): string {
@@ -63,6 +74,25 @@
 		<p class="muted sub">
 			{ex.primary_muscle}{ex.primary_muscle && ex.exercise_type ? ' · ' : ''}{ex.exercise_type}
 		</p>
+
+		{#if !ex.is_builtin}
+			<div class="ex-actions">
+				<Button
+					variant="outline"
+					size="sm"
+					icon="edit"
+					href={`/exercises/${ex.id}/edit`}
+					testid="btn-edit-exercise">Edit</Button
+				>
+				<Button
+					variant="outline"
+					size="sm"
+					icon="trash"
+					onclick={archive}
+					testid="btn-archive-exercise">Archive</Button
+				>
+			</div>
+		{/if}
 
 		{#if !prog || prog.total_sessions === 0}
 			<EmptyState
@@ -128,6 +158,11 @@
 	.sub {
 		margin: 0.25rem 0 1.25rem;
 		text-transform: capitalize;
+	}
+	.ex-actions {
+		display: flex;
+		gap: 0.5rem;
+		margin: 0 0 1.5rem;
 	}
 	.prs {
 		display: grid;

@@ -16,8 +16,16 @@ vi.mock('$lib/local/store', () => ({
 }));
 const getMock = vi.fn();
 vi.mock('$lib/api/client', () => ({ api: () => ({ GET: getMock }) }));
+vi.mock('$lib/sync', () => ({ syncNow: () => Promise.resolve() }));
 
-import { getExercise, listExercises, refreshExerciseLibrary } from './exercises';
+import {
+	getExercise,
+	listExercises,
+	refreshExerciseLibrary,
+	createExercise,
+	updateExercise,
+	archiveExercise
+} from './exercises';
 
 let n = 0;
 beforeEach(() => {
@@ -68,6 +76,54 @@ describe('listExercises + getExercise', () => {
 			{ entity: 'exercise', id: 'd', updated_at: 1, deleted: true, data: { name: 'Gone' } }
 		]);
 		expect(await getExercise('d')).toBeNull();
+		expect(await getExercise('absent')).toBeNull();
+	});
+});
+
+describe('custom exercise CRUD', () => {
+	it('creates a custom exercise (non-builtin, not archived) that lists', async () => {
+		const id = await createExercise({
+			name: 'Cable Fly',
+			exercise_type: 'weight_reps',
+			primary_muscle: 'Chest',
+			equipment: 'Cable'
+		});
+		expect(await getExercise(id)).toMatchObject({
+			name: 'Cable Fly',
+			exercise_type: 'weight_reps',
+			primary_muscle: 'Chest',
+			equipment: 'Cable',
+			is_builtin: false,
+			is_archived: false
+		});
+		expect((await listExercises()).map((e) => e.name)).toContain('Cable Fly');
+	});
+
+	it('updates a custom exercise, merging fields', async () => {
+		const id = await createExercise({ name: 'Fly', exercise_type: 'weight_reps', primary_muscle: 'Chest' });
+		await updateExercise(id, {
+			name: 'Pec Fly',
+			exercise_type: 'reps_only',
+			primary_muscle: 'Chest',
+			equipment: 'Machine'
+		});
+		expect(await getExercise(id)).toMatchObject({
+			name: 'Pec Fly',
+			exercise_type: 'reps_only',
+			equipment: 'Machine'
+		});
+	});
+
+	it('archives a custom exercise: hidden from the list but still readable by id', async () => {
+		const id = await createExercise({ name: 'Mistake', exercise_type: 'weight_reps', primary_muscle: 'Chest' });
+		await archiveExercise(id);
+		expect((await listExercises()).map((e) => e.name)).not.toContain('Mistake');
+		expect((await getExercise(id))?.is_archived).toBe(true); // history still resolves it
+	});
+
+	it('update/archive are no-ops for a missing id', async () => {
+		await updateExercise('absent', { name: 'x', exercise_type: 'weight_reps', primary_muscle: 'Chest' });
+		await archiveExercise('absent');
 		expect(await getExercise('absent')).toBeNull();
 	});
 });
