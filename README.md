@@ -10,8 +10,9 @@
 
 **Status:** 🟢 In active development, **in the open**. A full-featured offline-first PWA — the in-gym
 logger (rest timer, warm-ups, quick deload, notes), Routines (folders, duplicate), History (month
-calendar + workout detail), Exercises (progress charts + PRs), Bodyweight tracking, training Insights
-(sets per muscle, weekly volume), in-app calculators, and Settings — backed by a Go API with auth,
+calendar + workout detail), a custom Exercises library (progress charts + PRs), Bodyweight tracking,
+a Stats hub (top lifts, weekly volume, sets per muscle, all-time records), in-app calculators, and
+Settings — backed by a Go API with auth,
 sync, JSON + other-tracker (CSV) import, an MCP server, and personal API tokens.
 
 ## What it is

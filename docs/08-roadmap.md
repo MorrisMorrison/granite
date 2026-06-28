@@ -4,8 +4,8 @@ Phased so each step is usable on its own. Offline-first is built in from the sta
 later is painful), but **sync** is deferred until after a single-device app works.
 
 > **Status (2026-06-25):** Phases 0–5 are done, and a good chunk of Phase 6 has shipped too —
-> bodyweight tracking, import from other trackers, and advanced analytics (Insights) are all live,
-> alongside a stack of in-app enhancements: history calendar, Today + Insights stats, quick deload,
+> bodyweight tracking, import from other trackers, and advanced analytics (the Stats hub) are all live,
+> alongside a stack of in-app enhancements: history calendar, Today + Stats screens, custom exercises, quick deload,
 > session notes, per-exercise notes, duplicate routine, auto cache-reset on a server reset, and a
 > full UI consistency pass (shared list rows, page headers, icon buttons). Remaining Phase 6: native
 > Capacitor builds, Apple Health / Google Fit (+ Watch/Wear OS), and OIDC / passkeys; plus optional
@@ -66,8 +66,8 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [x] Import from other trackers — Hevy CSV import (name-aliased to built-ins, custom for the rest),
       via the existing `/api/v1/import`.
 - [x] Plate / 1RM / warmup calculators in UI (`/tools`).
-- [x] Advanced analytics — an opt-in Insights screen: working sets per muscle group this week +
-      weekly volume (tonnage) trend.
+- [x] Advanced analytics — a Stats hub: top lifts with e1RM sparklines, weekly volume, sets per
+      muscle (4/8/12-week range), and an all-time records board.
 - [ ] Apple Health / Google Fit; (later) Watch / Wear OS.
 - [ ] OIDC / passkeys.
 
