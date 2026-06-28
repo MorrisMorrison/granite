@@ -4,6 +4,7 @@ import {
 	setsPerMuscleThisWeek,
 	weeklyVolume,
 	recentPRs,
+	allTimeRecords,
 	type AnalyticsWorkout
 } from './analytics';
 
@@ -157,5 +158,33 @@ describe('recentPRs', () => {
 
 	it('returns nothing without prior history', () => {
 		expect(recentPRs([wk(now, [{ exercise_id: 'sq', sets: [set('normal', 100, 5)] }])])).toEqual([]);
+	});
+});
+
+describe('allTimeRecords', () => {
+	it('keeps the best e1RM per exercise, strongest first, warm-ups excluded', () => {
+		const workouts = [
+			wk(now - 14 * DAY, [{ exercise_id: 'sq', sets: [set('normal', 100, 5), set('warmup', 200, 1)] }]),
+			wk(now - 7 * DAY, [{ exercise_id: 'sq', sets: [set('normal', 120, 5)] }]), // new best for sq
+			wk(now, [{ exercise_id: 'bn', sets: [set('normal', 80, 5)] }])
+		];
+		const res = allTimeRecords(workouts);
+		expect(res.map((r) => r.exerciseId)).toEqual(['sq', 'bn']); // sq is stronger
+		expect(res[0]).toMatchObject({ weight: 120, reps: 5, at: now - 7 * DAY });
+	});
+
+	it('skips invalid sets and respects the limit', () => {
+		const workouts = [
+			wk(now, [
+				{ exercise_id: 'a', sets: [set('normal', null, 5), set('normal', 50, 5)] },
+				{ exercise_id: 'b', sets: [set('normal', 60, 5)] }
+			])
+		];
+		expect(allTimeRecords(workouts, 1)).toHaveLength(1);
+		expect(allTimeRecords(workouts, 1)[0].exerciseId).toBe('b'); // 60 beats 50
+	});
+
+	it('is empty with no valid working sets', () => {
+		expect(allTimeRecords([wk(now, [{ exercise_id: 'x', sets: [set('warmup', 40, 5)] }])])).toEqual([]);
 	});
 });

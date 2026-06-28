@@ -11,6 +11,9 @@ test('stats shows sets-per-muscle and weekly volume after a workout', async ({ p
 
 	await expect(page.getByTestId('muscle-bars')).toBeVisible();
 	await expect(page.getByText(/This week:/)).toBeVisible();
+	// A single logged working set already yields an all-time record.
+	await expect(page.getByTestId('records-list')).toBeVisible();
+	await expect(page.getByTestId('record-row').first()).toBeVisible();
 });
 
 test('stats time-range control switches the muscle-balance window', async ({ page }) => {

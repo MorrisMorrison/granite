@@ -20,7 +20,13 @@ vi.mock('./exercises', () => ({
 		])
 }));
 
-import { muscleSets, muscleSetsThisWeek, volumeTrend, recentPersonalRecords } from './analytics';
+import {
+	muscleSets,
+	muscleSetsThisWeek,
+	volumeTrend,
+	recentPersonalRecords,
+	allTimeRecordsBoard
+} from './analytics';
 
 const DAY = 86400000;
 
@@ -95,5 +101,19 @@ describe('repo/analytics', () => {
 		expect(res).toHaveLength(1);
 		expect(res[0].exerciseName).toBe('Squat');
 		expect(res[0].weight).toBe(110);
+	});
+
+	it('allTimeRecordsBoard returns the best e1RM per exercise with names, strongest first', async () => {
+		await addWorkout('w1', now - 14 * DAY, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 100, reps: 5 }] }
+		]);
+		await addWorkout('w2', now, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 120, reps: 5 }] }, // new best
+			{ exercise_id: 'bn', sets: [{ set_type: 'normal', weight: 80, reps: 5 }] }
+		]);
+
+		const res = await allTimeRecordsBoard();
+		expect(res.map((r) => r.exerciseName)).toEqual(['Squat', 'Bench']);
+		expect(res[0].weight).toBe(120);
 	});
 });

@@ -4,7 +4,9 @@
 		muscleSets,
 		volumeTrend,
 		recentPersonalRecords,
-		type PersonalRecordRow
+		allTimeRecordsBoard,
+		type PersonalRecordRow,
+		type AllTimeRecordRow
 	} from '$lib/repo/analytics';
 	import type { MuscleSets, WeeklyVolume } from '$lib/analytics';
 	import { syncNow } from '$lib/sync';
@@ -18,6 +20,7 @@
 	let muscles = $state<MuscleSets[]>([]);
 	let volume = $state<WeeklyVolume[]>([]);
 	let prs = $state<PersonalRecordRow[]>([]);
+	let records = $state<AllTimeRecordRow[]>([]);
 	let loading = $state(true);
 	let weeks = $state(8); // muscle-balance window + volume chart span
 
@@ -43,7 +46,11 @@
 		muscles = await muscleSets(weeks);
 	}
 	async function load() {
-		[volume, prs] = await Promise.all([volumeTrend(), recentPersonalRecords()]);
+		[volume, prs, records] = await Promise.all([
+			volumeTrend(),
+			recentPersonalRecords(),
+			allTimeRecordsBoard()
+		]);
 		await loadMuscle();
 	}
 	// Switching range only re-counts muscle sets; the volume chart slices client-side.
@@ -121,23 +128,36 @@
 			{/if}
 		</section>
 
+		{#snippet recordRows(rows: (PersonalRecordRow | AllTimeRecordRow)[], rowTestid: string)}
+			{#each rows as r (r.exerciseId + r.at)}
+				<ListRow
+					href={`/exercises/${r.exerciseId}`}
+					title={r.exerciseName}
+					subtitle={`${disp(r.weight)} ${unit} × ${r.reps} · ${relDate(r.at)}`}
+					chevron
+					testid={rowTestid}
+				>
+					{#snippet trailing()}
+						<span class="pr-1rm">{disp(r.e1rm)} {unit}<small>e1RM</small></span>
+					{/snippet}
+				</ListRow>
+			{/each}
+		{/snippet}
+
+		{#if records.length > 0}
+			<section class="block">
+				<h2>All-time records</h2>
+				<div class="prs" data-testid="records-list">
+					{@render recordRows(records, 'record-row')}
+				</div>
+			</section>
+		{/if}
+
 		{#if prs.length > 0}
 			<section class="block">
-				<h2>Personal records</h2>
+				<h2>Recent PRs</h2>
 				<div class="prs" data-testid="pr-list">
-					{#each prs as pr (pr.exerciseId + pr.at)}
-						<ListRow
-							href={`/exercises/${pr.exerciseId}`}
-							title={pr.exerciseName}
-							subtitle={`${disp(pr.weight)} ${unit} × ${pr.reps} · ${relDate(pr.at)}`}
-							chevron
-							testid="pr-row"
-						>
-							{#snippet trailing()}
-								<span class="pr-1rm">{disp(pr.e1rm)} {unit}<small>e1RM</small></span>
-							{/snippet}
-						</ListRow>
-					{/each}
+					{@render recordRows(prs, 'pr-row')}
 				</div>
 			</section>
 		{/if}
