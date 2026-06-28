@@ -2,15 +2,16 @@ import { render } from '@testing-library/svelte';
 import { fireEvent } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 
-const { listExercises, listFolders } = vi.hoisted(() => ({
+const { listExercises, listFolders, createExercise } = vi.hoisted(() => ({
 	listExercises: vi.fn(() =>
 		Promise.resolve([
 			{ id: 'e1', name: 'Bench', primary_muscle: 'chest', exercise_type: 'weight', is_builtin: true }
 		])
 	),
-	listFolders: vi.fn(() => Promise.resolve([{ id: 'f1', name: 'Strength', order_index: 0 }]))
+	listFolders: vi.fn(() => Promise.resolve([{ id: 'f1', name: 'Strength', order_index: 0 }])),
+	createExercise: vi.fn(() => Promise.resolve('new-ex-id'))
 }));
-vi.mock('$lib/repo/exercises', () => ({ listExercises }));
+vi.mock('$lib/repo/exercises', () => ({ listExercises, createExercise }));
 vi.mock('$lib/repo/folders', () => ({ listFolders }));
 vi.mock('$lib/stores/prefs.svelte', () => ({ prefs: { current: { weightUnit: 'kg', restSeconds: 90 } } }));
 
@@ -71,5 +72,25 @@ describe('RoutineForm', () => {
 
 		const payload = onsubmit.mock.calls[0][0] as { exercises: { exercise_id: string }[] };
 		expect(payload.exercises.map((e) => e.exercise_id)).toEqual(['e1']);
+	});
+
+	it('creates a custom exercise from the picker and adds it to the routine', async () => {
+		const onsubmit = vi.fn((_payload: unknown) => Promise.resolve());
+		const { getByTestId, findByTestId } = render(RoutineForm, {
+			props: { initialTitle: 'New', onsubmit }
+		});
+
+		await fireEvent.click(getByTestId('btn-add-exercise'));
+		await fireEvent.click(await findByTestId('btn-picker-new-exercise'));
+		await fireEvent.input(getByTestId('field-exercise-name'), { target: { value: 'Cable Crossover' } });
+		await fireEvent.input(getByTestId('field-exercise-muscle'), { target: { value: 'Chest' } });
+		await fireEvent.click(getByTestId('btn-save-exercise'));
+		await fireEvent.click(getByTestId('btn-save-routine'));
+
+		expect(createExercise).toHaveBeenCalledWith(
+			expect.objectContaining({ name: 'Cable Crossover', primary_muscle: 'Chest' })
+		);
+		const payload = onsubmit.mock.calls[0][0] as { exercises: { exercise_id: string }[] };
+		expect(payload.exercises.map((e) => e.exercise_id)).toEqual(['new-ex-id']);
 	});
 });

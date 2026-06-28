@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { listExercises } from '$lib/repo/exercises';
+	import { listExercises, createExercise, type ExerciseInput } from '$lib/repo/exercises';
 	import { getRoutine } from '$lib/repo/routines';
 	import { logWorkout } from '$lib/repo/workouts';
 	import { lastPerformance } from '$lib/repo/stats';
@@ -13,6 +13,7 @@
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
+	import ExerciseForm from '$lib/components/ExerciseForm.svelte';
 
 	interface DraftSet {
 		uid: string;
@@ -65,8 +66,10 @@
 	let pickerOpen = $state(false);
 	let library = $state<{ id: string; name: string; primary_muscle: string }[]>([]);
 	let libraryLoaded = $state(false);
+	let creating = $state(false);
 
 	async function openPicker() {
+		creating = false;
 		pickerOpen = true;
 		if (!libraryLoaded) {
 			library = (await listExercises()).map((e) => ({
@@ -87,6 +90,14 @@
 		});
 		pickerOpen = false;
 		void attachPrev(exercises[exercises.length - 1]);
+	}
+	// Create a custom exercise mid-picker, then drop it straight into the workout.
+	async function createAndAdd(input: ExerciseInput) {
+		const id = await createExercise(input);
+		const name = input.name.trim();
+		library = [...library, { id, name, primary_muscle: input.primary_muscle.trim() }];
+		creating = false;
+		addExercise({ id, name });
 	}
 
 	// Load the exercise's last performance to hint targets (shown as input placeholders).
@@ -320,10 +331,29 @@
 		></textarea>
 	{/if}
 
-	<Sheet open={pickerOpen} title="Add exercise" onclose={() => (pickerOpen = false)}>
-		{#if !libraryLoaded}
+	<Sheet
+		open={pickerOpen}
+		title={creating ? 'New exercise' : 'Add exercise'}
+		onclose={() => {
+			pickerOpen = false;
+			creating = false;
+		}}
+	>
+		{#if creating}
+			<button type="button" class="link" onclick={() => (creating = false)}>← Back to list</button>
+			<ExerciseForm submitLabel="Create & add" onsubmit={createAndAdd} />
+		{:else if !libraryLoaded}
 			<p class="muted">Loading…</p>
 		{:else}
+			<Button
+				variant="outline"
+				block
+				icon="plus"
+				onclick={() => (creating = true)}
+				testid="btn-picker-new-exercise"
+			>
+				New exercise
+			</Button>
 			<ul class="lib">
 				{#each library as l (l.id)}
 					<li>
