@@ -20,7 +20,9 @@ vi.mock('./exercises', () => ({
 		])
 }));
 
-import { muscleSetsThisWeek, volumeTrend } from './analytics';
+import { muscleSetsThisWeek, volumeTrend, recentPersonalRecords } from './analytics';
+
+const DAY = 86400000;
 
 const now = new Date(2026, 5, 24, 12).getTime();
 let n = 0;
@@ -65,5 +67,18 @@ describe('repo/analytics', () => {
 		]);
 		const res = await volumeTrend(now);
 		expect(res[res.length - 1].volume).toBe(500);
+	});
+
+	it('recentPersonalRecords returns recent e1RM PRs with exercise names joined', async () => {
+		await addWorkout('w1', now - 14 * DAY, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 100, reps: 5 }] }
+		]); // baseline
+		await addWorkout('w2', now - 2 * DAY, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 110, reps: 5 }] }
+		]); // PR
+		const res = await recentPersonalRecords();
+		expect(res).toHaveLength(1);
+		expect(res[0].exerciseName).toBe('Squat');
+		expect(res[0].weight).toBe(110);
 	});
 });
