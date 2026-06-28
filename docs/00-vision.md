@@ -35,23 +35,8 @@ The popular gym-logging apps are genuinely good, but:
 5. **Open and inspectable.** AGPL-3.0; the API and data model are documented and stable.
 6. **One UI, everywhere.** A single SvelteKit build serves mobile (via Capacitor) and the web app.
 
-## Non-goals (explicitly out of scope)
-
-- ❌ **Social features** — no feed, followers, likes, comments, public profiles, sharing-as-a-product.
-- ❌ **Coaching marketplace / paid programs / monetization.**
-- ❌ **Nutrition / macro tracking** as a core feature — out of scope here.
-- ❌ **Being a generic "fitness" app** — Granite is for **resistance training / gym logging**. Running,
-  cycling, GPS, etc. are not targets.
-- ❌ **Multi-tenant SaaS.** Each instance is for one person or a small trusted group (e.g. a household).
-  No org/team/billing machinery.
-
 ## Who it's for
 
 - Lifters who want a clean, fast logger and care about owning their data.
 - Self-hosters / homelab folks who'd rather run it themselves.
 - Developers who want a hackable, open base to build on.
-
-## How we'll know it's working
-
-Someone can log real gym sessions with it day-to-day, offline, without friction — and the data
-round-trips reliably to their self-hosted server. See [01 — MVP scope](01-mvp-scope.md).

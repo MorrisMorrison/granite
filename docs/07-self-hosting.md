@@ -1,50 +1,14 @@
 # 07 — Self-hosting
 
 Self-hosting is a first-class goal, not an afterthought. The bar: **`docker-compose up` and one config
-file** (or just run the binary).
+file** (or just run the binary). Granite is a **single container** — one Go binary that serves the
+REST/sync API **and** the embedded web app, and stores everything in a SQLite file on a mounted volume.
+There's no separate database process to run, tune, or back up.
 
-## What you run
-
-```mermaid
-graph LR
-    C["reverse proxy (TLS)\ne.g. Caddy / Traefik / nginx"] --> G["granite (Go binary)\nAPI + embedded web app + SQLite"]
-    G --> F[("SQLite file\n(a mounted volume)")]
-```
-
-That's the whole system: **one container** (the Go binary, which serves the REST/sync API **and**
-the embedded web app, and stores data in a SQLite file on a mounted volume) behind a reverse proxy for
-TLS. No separate database process to run, tune, or back up. (The optional [MCP server](../apps/mcp/)
-is a separate stdio process you run alongside, not part of this container.)
-
-## Image & build
-
-- The Go binary **embeds the SvelteKit static build**, so the image is self-contained — no separate
-  web container, no Node at runtime.
-- A pure-Go SQLite driver keeps the binary **CGO-free** and easy to cross-compile to a small static image.
-- Multi-stage Docker build: build web (pnpm) → build Go (with embedded assets) → tiny final image
-  (distroless/alpine).
-- Built and published by **GitHub Actions** (public repo → free CI). Images published to a registry
-  (e.g. GHCR) so self-hosters can `docker pull`, or build from source.
-
-## Configuration (env vars)
-
-| Var | Purpose |
-|---|---|
-| `GRANITE_DB_PATH` | Path to the SQLite file (on a mounted volume). |
-| `GRANITE_JWT_SECRET` | Signing secret for JWTs. |
-| `GRANITE_BASE_URL` | Public URL (links, CORS, etc.). |
-| `GRANITE_ALLOW_REGISTRATION` | `true`/`false` or invite-gated — lock down a personal instance. |
-| `GRANITE_LOG_LEVEL` | `debug`/`info`/`warn`/`error` (default `info`). |
-| `PORT` | Listen port (default 8080). |
-
-`GRANITE_JWT_SECRET` is **required** and must be ≥ 32 bytes (the server refuses to start otherwise) —
-generate one with `openssl rand -base64 48`. Registration defaults **closed**, but the **first account
-can always be created**, so a personal instance needs no extra steps to bootstrap.
+## Quickstart (Docker Compose)
 
 A ready-to-use [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) +
 [`deploy/.env.example`](../deploy/.env.example) ship in the repo — see [`deploy/`](../deploy/).
-
-### The compose file
 
 ```yaml
 services:
@@ -90,7 +54,24 @@ GRANITE_PORT=8080
 GRANITE_LOG_LEVEL=info
 ```
 
-Then `docker compose up -d` and open `GRANITE_BASE_URL`.
+Then `docker compose up -d` and open `GRANITE_BASE_URL`. Put it behind a reverse proxy (Caddy / Traefik /
+nginx) for TLS. The optional [MCP server](../apps/mcp/) runs as a separate stdio process alongside the
+container, not part of it.
+
+## Configuration (env vars)
+
+| Var | Purpose |
+|---|---|
+| `GRANITE_DB_PATH` | Path to the SQLite file (on a mounted volume). |
+| `GRANITE_JWT_SECRET` | Signing secret for JWTs. |
+| `GRANITE_BASE_URL` | Public URL (links, CORS, etc.). |
+| `GRANITE_ALLOW_REGISTRATION` | `true`/`false` or invite-gated — lock down a personal instance. |
+| `GRANITE_LOG_LEVEL` | `debug`/`info`/`warn`/`error` (default `info`). |
+| `PORT` | Listen port (default 8080). |
+
+`GRANITE_JWT_SECRET` is **required** and must be ≥ 32 bytes (the server refuses to start otherwise) —
+generate one with `openssl rand -base64 48`. Registration defaults **closed**, but the **first account
+can always be created**, so a personal instance needs no extra steps to bootstrap.
 
 ## Backups & data ownership
 
@@ -119,6 +100,16 @@ it stops accepting connections, drains in-flight requests (up to 15s), then clos
 A single Go binary + a SQLite file comfortably runs on a Raspberry Pi, a NAS, or a small VPS/LXC. The
 heavy read/stat work happens on the **client** (each device has the full local SQLite), so the server
 stays light even with the whole history synced.
+
+## Image & build
+
+- The Go binary **embeds the SvelteKit static build**, so the image is self-contained — no separate
+  web container, no Node at runtime.
+- A pure-Go SQLite driver keeps the binary **CGO-free** and easy to cross-compile to a small static image.
+- Multi-stage Docker build: build web (pnpm) → build Go (with embedded assets) → tiny final image
+  (distroless/alpine).
+- Built and published by **GitHub Actions** (public repo → free CI). Images published to a registry
+  (e.g. GHCR) so self-hosters can `docker pull`, or build from source.
 
 ## Scaling beyond a household (optional, later)
 
