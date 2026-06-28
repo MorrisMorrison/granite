@@ -173,13 +173,18 @@ describe('allTimeRecords', () => {
 		expect(res[0]).toMatchObject({ weight: 120, reps: 5, at: now - 7 * DAY });
 	});
 
-	it('skips invalid sets and respects the limit', () => {
+	it('skips invalid sets (null/zero weight or reps) and respects the limit', () => {
 		const workouts = [
 			wk(now, [
-				{ exercise_id: 'a', sets: [set('normal', null, 5), set('normal', 50, 5)] },
+				{
+					exercise_id: 'a',
+					sets: [set('normal', null, 5), set('normal', 0, 5), set('normal', 50, 0), set('normal', 50, 5)]
+				},
 				{ exercise_id: 'b', sets: [set('normal', 60, 5)] }
 			])
 		];
+		const res = allTimeRecords(workouts);
+		expect(res.find((r) => r.exerciseId === 'a')).toMatchObject({ weight: 50, reps: 5 }); // only valid set
 		expect(allTimeRecords(workouts, 1)).toHaveLength(1);
 		expect(allTimeRecords(workouts, 1)[0].exerciseId).toBe('b'); // 60 beats 50
 	});

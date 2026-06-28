@@ -109,11 +109,13 @@ describe('repo/analytics', () => {
 		]);
 		await addWorkout('w2', now, [
 			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 120, reps: 5 }] }, // new best
-			{ exercise_id: 'bn', sets: [{ set_type: 'normal', weight: 80, reps: 5 }] }
+			{ exercise_id: 'bn', sets: [{ set_type: 'normal', weight: 80, reps: 5 }] },
+			{ exercise_id: 'zz', sets: [{ set_type: 'normal', weight: 200, reps: 5 }] } // not in library
 		]);
 
 		const res = await allTimeRecordsBoard();
-		expect(res.map((r) => r.exerciseName)).toEqual(['Squat', 'Bench']);
-		expect(res[0].weight).toBe(120);
+		// Strongest first; an exercise missing from the library falls back to "Exercise".
+		expect(res.map((r) => r.exerciseName)).toEqual(['Exercise', 'Squat', 'Bench']);
+		expect(res[1].weight).toBe(120);
 	});
 });
