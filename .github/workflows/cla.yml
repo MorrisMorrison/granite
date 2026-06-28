@@ -24,5 +24,8 @@ jobs:
         with:
           path-to-signatures: 'signatures/cla.json'
           path-to-document: 'https://github.com/MorrisMorrison/granite/blob/main/CLA.md'
-          branch: 'main'
+          # Store signatures on a dedicated branch, not main: main is PR-protected,
+          # so the bot can't commit straight to it (rulesets don't reliably honour
+          # role/token bypass). This branch is unprotected, so the push succeeds.
+          branch: 'cla-signatures'
           allowlist: 'MorrisMorrison,dependabot[bot]'

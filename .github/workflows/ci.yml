@@ -120,9 +120,10 @@ jobs:
   screenshots:
     name: README screenshots
     # Captures README screenshots from a demo-data instance. Runs on PRs too (to
-    # verify the pipeline), but only *commits* the refreshed PNGs back on main — so
-    # the README always reflects the current UI with no manual step. A GITHUB_TOKEN
-    # push doesn't retrigger CI, and the commit is tagged [skip ci] regardless.
+    # verify the pipeline), but only *publishes* on main. Screenshots are force-pushed
+    # to a dedicated `screenshots` branch (the README points at its raw URLs), never to
+    # main — so main stays strictly PR-protected with no bypass exceptions, and the
+    # README still refreshes on every main build.
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -141,18 +142,18 @@ jobs:
         run: corepack pnpm --filter mobile exec playwright install --with-deps chromium
       - name: Capture screenshots
         run: corepack pnpm --filter mobile screenshots
-      - name: Commit refreshed screenshots if changed
+      - name: Publish to the screenshots branch
         if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cd docs/screenshots
+          git init -q -b screenshots
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/screenshots
-          if git diff --staged --quiet; then
-            echo "screenshots unchanged"
-          else
-            git commit -m "chore: refresh README screenshots [skip ci]"
-            git push
-          fi
+          git add ./*.png
+          git commit -q -m "screenshots @ ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" screenshots
 
   openapi:
     name: OpenAPI client up-to-date

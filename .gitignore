@@ -50,3 +50,6 @@ junit.xml
 *.db-wal
 *.db-shm
 *.dump
+
+# Screenshots live on the dedicated `screenshots` branch, not main.
+/docs/screenshots/
