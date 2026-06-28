@@ -4,10 +4,8 @@
 		muscleSets,
 		volumeTrend,
 		recentPersonalRecords,
-		allTimeRecordsBoard,
 		topLiftsTrend,
 		type PersonalRecordRow,
-		type AllTimeRecordRow,
 		type TopLiftRow
 	} from '$lib/repo/analytics';
 	import type { MuscleSets, WeeklyVolume } from '$lib/analytics';
@@ -15,15 +13,14 @@
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import LineChart from '$lib/components/ui/LineChart.svelte';
 	import Sparkline from '$lib/components/ui/Sparkline.svelte';
+	import RecordList from '$lib/components/RecordList.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let muscles = $state<MuscleSets[]>([]);
 	let volume = $state<WeeklyVolume[]>([]);
 	let prs = $state<PersonalRecordRow[]>([]);
-	let records = $state<AllTimeRecordRow[]>([]);
 	let lifts = $state<TopLiftRow[]>([]);
 	let loading = $state(true);
 	let weeks = $state(8); // muscle-balance window + volume chart span
@@ -37,23 +34,13 @@
 	// Convert a canonical-kg value to the display unit, rounded.
 	const disp = (kg: number) => Math.round(kgToDisplay(kg, unit) ?? 0);
 
-	function relDate(ts: number): string {
-		const days = Math.floor((Date.now() - ts) / 86400000);
-		if (days <= 0) return 'today';
-		if (days === 1) return 'yesterday';
-		if (days < 7) return `${days}d ago`;
-		if (days < 28) return `${Math.floor(days / 7)}w ago`;
-		return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-	}
-
 	async function loadMuscle() {
 		muscles = await muscleSets(weeks);
 	}
 	async function load() {
-		[volume, prs, records, lifts] = await Promise.all([
+		[volume, prs, lifts] = await Promise.all([
 			volumeTrend(),
 			recentPersonalRecords(),
-			allTimeRecordsBoard(),
 			topLiftsTrend()
 		]);
 		await loadMuscle();
@@ -90,49 +77,6 @@
 			description="Log a few workouts and your training insights will show up here."
 		/>
 	{:else}
-		<div class="range" role="group" aria-label="Time range">
-			{#each [4, 8, 12] as w (w)}
-				<button
-					type="button"
-					class="seg"
-					class:active={weeks === w}
-					onclick={() => setRange(w)}
-					data-testid={`range-${w}w`}
-				>
-					{w}w
-				</button>
-			{/each}
-		</div>
-
-		<section class="block">
-			<h2>Sets per muscle · last {weeks} weeks</h2>
-			{#if muscles.length === 0}
-				<p class="muted">No working sets in this range yet.</p>
-			{:else}
-				<div class="bars" data-testid="muscle-bars">
-					{#each muscles as m (m.muscle)}
-						<div class="bar-row">
-							<span class="bar-label">{m.muscle}</span>
-							<span class="bar-track">
-								<span class="bar-fill" style="width: {maxSets ? (m.sets / maxSets) * 100 : 0}%"></span>
-							</span>
-							<span class="bar-val">{m.sets}</span>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</section>
-
-		<section class="block">
-			<h2>Weekly volume</h2>
-			{#if hasVolume}
-				<p class="muted vol-latest">This week: {latestVol.toLocaleString()} {unit}</p>
-				<div class="card chart"><LineChart values={volValues} label="Weekly training volume" /></div>
-			{:else}
-				<p class="muted">Not enough volume logged yet.</p>
-			{/if}
-		</section>
-
 		{#if lifts.length > 0}
 			<section class="block">
 				<h2>Top lifts</h2>
@@ -153,39 +97,60 @@
 			</section>
 		{/if}
 
-		{#snippet recordRows(rows: (PersonalRecordRow | AllTimeRecordRow)[], rowTestid: string)}
-			{#each rows as r (r.exerciseId + r.at)}
-				<ListRow
-					href={`/exercises/${r.exerciseId}`}
-					title={r.exerciseName}
-					subtitle={`${disp(r.weight)} ${unit} × ${r.reps} · ${relDate(r.at)}`}
-					chevron
-					testid={rowTestid}
+		<div class="range" role="group" aria-label="Time range">
+			{#each [4, 8, 12] as w (w)}
+				<button
+					type="button"
+					class="seg"
+					class:active={weeks === w}
+					onclick={() => setRange(w)}
+					data-testid={`range-${w}w`}
 				>
-					{#snippet trailing()}
-						<span class="pr-1rm">{disp(r.e1rm)} {unit}<small>e1RM</small></span>
-					{/snippet}
-				</ListRow>
+					{w}w
+				</button>
 			{/each}
-		{/snippet}
+		</div>
 
-		{#if records.length > 0}
-			<section class="block">
-				<h2>All-time records</h2>
-				<div class="prs" data-testid="records-list">
-					{@render recordRows(records, 'record-row')}
+		<section class="block">
+			<h2>Weekly volume</h2>
+			{#if hasVolume}
+				<p class="muted vol-latest">This week: {latestVol.toLocaleString()} {unit}</p>
+				<div class="card chart"><LineChart values={volValues} label="Weekly training volume" /></div>
+			{:else}
+				<p class="muted">Not enough volume logged yet.</p>
+			{/if}
+		</section>
+
+		<section class="block">
+			<h2>Sets per muscle · last {weeks} weeks</h2>
+			{#if muscles.length === 0}
+				<p class="muted">No working sets in this range yet.</p>
+			{:else}
+				<div class="bars" data-testid="muscle-bars">
+					{#each muscles as m (m.muscle)}
+						<div class="bar-row">
+							<span class="bar-label">{m.muscle}</span>
+							<span class="bar-track">
+								<span class="bar-fill" style="width: {maxSets ? (m.sets / maxSets) * 100 : 0}%"></span>
+							</span>
+							<span class="bar-val">{m.sets}</span>
+						</div>
+					{/each}
 				</div>
-			</section>
-		{/if}
+			{/if}
+		</section>
 
 		{#if prs.length > 0}
 			<section class="block">
 				<h2>Recent PRs</h2>
-				<div class="prs" data-testid="pr-list">
-					{@render recordRows(prs, 'pr-row')}
-				</div>
+				<RecordList rows={prs} {unit} rowTestid="pr-row" />
 			</section>
 		{/if}
+
+		<a class="records-link" href="/stats/records" data-testid="records-link">
+			<span>All-time records</span>
+			<span class="records-cta">View all →</span>
+		</a>
 	{/if}
 </main>
 
@@ -193,7 +158,7 @@
 	.range {
 		display: inline-flex;
 		gap: 0.25rem;
-		margin-top: 0.25rem;
+		margin-top: 1.25rem;
 		padding: 0.2rem;
 		background: var(--surface-2);
 		border-radius: var(--radius-pill);
@@ -313,23 +278,21 @@
 		font-size: 0.62rem;
 		color: var(--muted);
 	}
-	.prs {
+	.records-link {
 		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 1.5rem;
+		padding: 0.85rem 0.9rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		color: var(--text);
+		text-decoration: none;
+		font-size: 0.95rem;
 	}
-	.pr-1rm {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
+	.records-cta {
 		font-weight: 600;
-		font-variant-numeric: tabular-nums;
-		font-size: 0.9rem;
-		line-height: 1.1;
-	}
-	.pr-1rm small {
-		font-weight: 400;
-		font-size: 0.62rem;
-		color: var(--muted);
+		color: var(--accent);
 	}
 </style>

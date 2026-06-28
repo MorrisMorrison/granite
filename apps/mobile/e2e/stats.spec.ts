@@ -11,8 +11,16 @@ test('stats shows sets-per-muscle and weekly volume after a workout', async ({ p
 
 	await expect(page.getByTestId('muscle-bars')).toBeVisible();
 	await expect(page.getByText(/This week:/)).toBeVisible();
-	// A single logged working set already yields an all-time record.
-	await expect(page.getByTestId('records-list')).toBeVisible();
+	await expect(page.getByTestId('records-link')).toBeVisible();
+});
+
+test('stats links to the full all-time records page', async ({ page }) => {
+	await register(page);
+	await logWorkout(page); // one working set → one all-time record
+
+	await page.goto('/stats');
+	await page.getByTestId('records-link').click();
+	await expect(page).toHaveURL(/\/stats\/records$/);
 	await expect(page.getByTestId('record-row').first()).toBeVisible();
 });
 
