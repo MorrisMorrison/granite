@@ -12,10 +12,11 @@ SvelteKit static build ──┬─► Capacitor ──► iOS app / Android app
                          └─► embedded in Go binary ──► web app / installable PWA
 ```
 
-## Why this works for a web/backend dev
+## One codebase, small native surface
 
-You're essentially writing a **Svelte web app** — familiar territory. The genuinely "mobile" surface
-is small and isolated to a few Capacitor plugins. No React, no Dart, no second UI codebase for web.
+Granite is a Svelte web app at its core. The genuinely native surface is small and isolated to a few
+Capacitor plugins (local database, notifications, filesystem) — there is no separate UI codebase for
+web versus mobile.
 
 ## Local storage
 
