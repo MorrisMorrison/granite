@@ -42,7 +42,7 @@ The reasoning behind each major choice lives in the [Architecture Decision Recor
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/history.png" width="230" alt="History — calendar + sessions" /><br /><sub>History</sub></td>
     <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercise-detail.png" width="230" alt="Exercise detail — progress chart + 1RM" /><br /><sub>Exercise detail</sub></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercises.png" width="230" alt="Exercise library" /><br /><sub>Exercise library</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/stats.png" width="230" alt="Stats — muscle balance, volume, personal records" /><br /><sub>Stats</sub></td>
   </tr>
 </table>
 
