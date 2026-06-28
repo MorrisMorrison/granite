@@ -33,14 +33,18 @@ The reasoning behind each major choice lives in the [Architecture Decision Recor
      every push to main; published to the `screenshots` branch (see
      .github/workflows/ci.yml). Do not edit by hand. -->
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/today.png" width="200" alt="Today — next routine + stats" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/workout-log.png" width="200" alt="Workout logger — sets + rest timer" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/routines.png" width="200" alt="Routines and folders" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/history.png" width="200" alt="History — calendar + sessions" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercise-detail.png" width="200" alt="Exercise detail — progress chart + 1RM" />
-  <img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercises.png" width="200" alt="Exercise library" />
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/today.png" width="230" alt="Today — next routine + stats" /><br /><sub>Today</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/workout-log.png" width="230" alt="Workout logger — sets + rest timer" /><br /><sub>Workout logger</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/routines.png" width="230" alt="Routines and folders" /><br /><sub>Routines</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/history.png" width="230" alt="History — calendar + sessions" /><br /><sub>History</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercise-detail.png" width="230" alt="Exercise detail — progress chart + 1RM" /><br /><sub>Exercise detail</sub></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/exercises.png" width="230" alt="Exercise library" /><br /><sub>Exercise library</sub></td>
+  </tr>
+</table>
 
 ## Run it yourself (self-hosting)
 

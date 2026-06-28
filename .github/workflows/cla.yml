@@ -28,4 +28,6 @@ jobs:
           # so the bot can't commit straight to it (rulesets don't reliably honour
           # role/token bypass). This branch is unprotected, so the push succeeds.
           branch: 'cla-signatures'
-          allowlist: 'MorrisMorrison,dependabot[bot]'
+          # `claude` is the AI co-author from the `Co-Authored-By: Claude` commit
+          # trailer — a tool, not a human contributor, so exempt it like other bots.
+          allowlist: 'MorrisMorrison,dependabot[bot],claude'
