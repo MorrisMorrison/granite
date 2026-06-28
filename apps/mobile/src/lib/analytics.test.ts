@@ -227,4 +227,23 @@ describe('topLifts', () => {
 		expect(topLifts(workouts).map((l) => l.exerciseId)).toEqual(['a']);
 		expect(topLifts(workouts, 0)).toHaveLength(0); // limit respected
 	});
+
+	it('skips warm-up-only/invalid sets, uses the session best, and breaks ties by latest e1RM', () => {
+		const workouts = [
+			// 'x' never has a valid working set → excluded entirely
+			wk(now - 14 * DAY, [{ exercise_id: 'x', sets: [set('warmup', 60, 5)] }]),
+			wk(now - 7 * DAY, [
+				{ exercise_id: 'x', sets: [set('normal', null, 5), set('normal', 50, 0)] }, // null weight / zero reps
+				{ exercise_id: 'p', sets: [set('normal', 100, 5), set('normal', 80, 5)] }, // best is the first set
+				{ exercise_id: 'q', sets: [set('normal', 90, 5)] }
+			]),
+			wk(now, [
+				{ exercise_id: 'p', sets: [set('normal', 105, 5)] },
+				{ exercise_id: 'q', sets: [set('normal', 130, 5)] }
+			])
+		];
+		const res = topLifts(workouts);
+		expect(res.map((l) => l.exerciseId)).toEqual(['q', 'p']); // 2-session tie → higher latest e1RM first
+		expect(res.find((l) => l.exerciseId === 'x')).toBeUndefined();
+	});
 });

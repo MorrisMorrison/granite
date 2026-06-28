@@ -14,4 +14,9 @@ describe('Sparkline', () => {
 		const { container } = render(Sparkline, { props: { values: [10] } });
 		expect(container.querySelector('svg')).toBeNull();
 	});
+
+	it('handles a flat series (all values equal)', () => {
+		const { container } = render(Sparkline, { props: { values: [10, 10, 10] } });
+		expect(container.querySelector('path')?.getAttribute('d')).toContain('M');
+	});
 });
