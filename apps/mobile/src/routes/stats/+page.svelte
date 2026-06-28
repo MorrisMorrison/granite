@@ -5,7 +5,7 @@
 	import { syncNow } from '$lib/sync';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import LineChart from '$lib/components/ui/LineChart.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
@@ -34,11 +34,10 @@
 	});
 </script>
 
-<svelte:head><title>Insights · Granite</title></svelte:head>
+<svelte:head><title>Stats · Granite</title></svelte:head>
 
 <main class="container">
-	<BackLink href="/" label="Today" />
-	<h1>Insights</h1>
+	<PageHeader title="Stats" />
 
 	{#if loading}
 		<p class="muted">Loading…</p>

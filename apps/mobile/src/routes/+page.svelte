@@ -112,11 +112,6 @@
 			{latestWeight != null ? `${kgToDisplay(latestWeight, unit)} ${unit}` : 'Log →'}
 		</span>
 	</a>
-
-	<a class="bw-link bw-link-minor" href="/insights" data-testid="insights-link">
-		<span class="muted">Insights</span>
-		<span class="bw-val">View →</span>
-	</a>
 </main>
 
 <style>
@@ -132,11 +127,6 @@
 	}
 	.bw-val {
 		font-weight: 600;
-	}
-	.bw-link-minor {
-		font-size: 0.82rem;
-		opacity: 0.8;
-		margin-top: 0.5rem;
 	}
 	.stats {
 		display: grid;

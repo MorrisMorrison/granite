@@ -9,7 +9,7 @@ import TabBar from './TabBar.svelte';
 describe('TabBar', () => {
 	it('renders the four primary tabs', () => {
 		const { getByTestId } = render(TabBar);
-		for (const id of ['nav-tab-today', 'nav-tab-routines', 'nav-tab-history', 'nav-tab-exercises']) {
+		for (const id of ['nav-tab-today', 'nav-tab-routines', 'nav-tab-history', 'nav-tab-stats']) {
 			expect(getByTestId(id)).toBeTruthy();
 		}
 	});

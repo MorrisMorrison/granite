@@ -6,7 +6,7 @@
 		{ href: '/', label: 'Today', icon: 'home', testid: 'nav-tab-today' },
 		{ href: '/routines', label: 'Routines', icon: 'routines', testid: 'nav-tab-routines' },
 		{ href: '/history', label: 'History', icon: 'history', testid: 'nav-tab-history' },
-		{ href: '/exercises', label: 'Exercises', icon: 'exercises', testid: 'nav-tab-exercises' }
+		{ href: '/stats', label: 'Stats', icon: 'stats', testid: 'nav-tab-stats' }
 	];
 
 	function active(href: string): boolean {
