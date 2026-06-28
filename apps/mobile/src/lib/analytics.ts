@@ -44,16 +44,20 @@ function mondayOf(ts: number): number {
 	return d.getTime();
 }
 
-/** Working sets per muscle group for the current week, busiest first. */
-export function setsPerMuscleThisWeek(
+/** Working sets per muscle group over the last `weeks` weeks (including the current
+ *  week), busiest first. `weeks = 1` is the current week only. Warm-ups excluded. */
+export function setsPerMuscle(
 	workouts: AnalyticsWorkout[],
 	muscleOf: (exerciseId: string) => string,
-	now: number
+	now: number,
+	weeks = 1
 ): MuscleSets[] {
-	const thisWeek = mondayOf(now);
+	const currentWeek = mondayOf(now);
+	const cutoff = mondayOf(currentWeek - (weeks - 1) * WEEK); // oldest Monday in range
 	const counts = new Map<string, number>();
 	for (const w of workouts) {
-		if (mondayOf(w.start_time) !== thisWeek) continue;
+		const wk = mondayOf(w.start_time);
+		if (wk < cutoff || wk > currentWeek) continue;
 		for (const ex of w.exercises) {
 			const n = ex.sets.filter(isWorking).length;
 			if (n === 0) continue;
@@ -64,6 +68,15 @@ export function setsPerMuscleThisWeek(
 	return [...counts.entries()]
 		.map(([muscle, sets]) => ({ muscle, sets }))
 		.sort((a, b) => b.sets - a.sets || a.muscle.localeCompare(b.muscle));
+}
+
+/** Working sets per muscle group for the current week, busiest first. */
+export function setsPerMuscleThisWeek(
+	workouts: AnalyticsWorkout[],
+	muscleOf: (exerciseId: string) => string,
+	now: number
+): MuscleSets[] {
+	return setsPerMuscle(workouts, muscleOf, now, 1);
 }
 
 /** Total working-set tonnage per week for the last `weeks` weeks (oldest first),

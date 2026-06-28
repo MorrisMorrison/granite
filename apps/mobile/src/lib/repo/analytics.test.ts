@@ -20,7 +20,7 @@ vi.mock('./exercises', () => ({
 		])
 }));
 
-import { muscleSetsThisWeek, volumeTrend, recentPersonalRecords } from './analytics';
+import { muscleSets, muscleSetsThisWeek, volumeTrend, recentPersonalRecords } from './analytics';
 
 const DAY = 86400000;
 
@@ -59,6 +59,21 @@ describe('repo/analytics', () => {
 			{ muscle: 'Chest', sets: 1 },
 			{ muscle: 'Legs', sets: 1 }
 		]);
+	});
+
+	it('muscleSets windows working sets over the last N weeks', async () => {
+		await addWorkout('w1', now, [
+			{ exercise_id: 'sq', sets: [{ set_type: 'normal', weight: 100, reps: 5 }] }
+		]); // this week: 1 Legs
+		await addWorkout('w2', now - 21 * DAY, [
+			{ exercise_id: 'bn', sets: [{ set_type: 'normal', weight: 80, reps: 5 }] }
+		]); // 3 weeks ago: 1 Chest
+
+		expect(await muscleSets(1, now)).toEqual([{ muscle: 'Legs', sets: 1 }]);
+		expect(await muscleSets(4, now)).toEqual([
+			{ muscle: 'Chest', sets: 1 },
+			{ muscle: 'Legs', sets: 1 }
+		]); // tie broken alphabetically
 	});
 
 	it('volumeTrend sums weekly tonnage from local workouts', async () => {

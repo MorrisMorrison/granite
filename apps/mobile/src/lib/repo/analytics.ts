@@ -1,7 +1,7 @@
 import { localStore } from '$lib/local/store';
 import { listExercises } from './exercises';
 import {
-	setsPerMuscleThisWeek,
+	setsPerMuscle,
 	weeklyVolume,
 	recentPRs,
 	type AnalyticsWorkout,
@@ -38,11 +38,16 @@ async function workoutsForAnalytics(): Promise<AnalyticsWorkout[]> {
 	});
 }
 
-/** Working sets per muscle group this week (busiest first). */
-export async function muscleSetsThisWeek(now = Date.now()): Promise<MuscleSets[]> {
+/** Working sets per muscle group over the last `weeks` weeks (busiest first). */
+export async function muscleSets(weeks: number, now = Date.now()): Promise<MuscleSets[]> {
 	const [workouts, exs] = await Promise.all([workoutsForAnalytics(), listExercises()]);
 	const muscle = new Map(exs.map((e) => [e.id, e.primary_muscle]));
-	return setsPerMuscleThisWeek(workouts, (id) => muscle.get(id) ?? 'Other', now);
+	return setsPerMuscle(workouts, (id) => muscle.get(id) ?? 'Other', now, weeks);
+}
+
+/** Working sets per muscle group this week (busiest first). */
+export async function muscleSetsThisWeek(now = Date.now()): Promise<MuscleSets[]> {
+	return muscleSets(1, now);
 }
 
 /** Working-set tonnage (kg) per week over the recent weeks (oldest first). */
