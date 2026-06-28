@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest';
 import Sparkline from './Sparkline.svelte';
 
 describe('Sparkline', () => {
-	it('draws a path through the values', () => {
+	it('draws an area + line and marks the latest point', () => {
 		const { container } = render(Sparkline, { props: { values: [10, 20, 15] } });
-		const path = container.querySelector('path');
-		expect(path).not.toBeNull();
-		expect(path?.getAttribute('d')?.startsWith('M')).toBe(true);
+		const paths = container.querySelectorAll('path');
+		expect(paths).toHaveLength(2); // area fill + line
+		expect(paths[1].getAttribute('d')?.startsWith('M')).toBe(true);
+		expect(container.querySelectorAll('circle')).toHaveLength(1); // latest point
 	});
 
 	it('renders nothing with fewer than two points', () => {
