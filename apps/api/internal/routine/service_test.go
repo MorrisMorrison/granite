@@ -219,3 +219,73 @@ func TestRoutineSoftDelete(t *testing.T) {
 		t.Fatalf("list after delete = %d, want 0", len(list))
 	}
 }
+
+func TestFolderValidationAndNotFound(t *testing.T) {
+	s, _, uid, _ := newTestService(t)
+	ctx := context.Background()
+
+	_, err := s.CreateFolder(ctx, uid, FolderInput{Name: "  "})
+	assertCode(t, err, apperr.CodeValidation)
+
+	_, err = s.UpdateFolder(ctx, uid, "nope", FolderInput{Name: ""})
+	assertCode(t, err, apperr.CodeValidation)
+
+	_, err = s.UpdateFolder(ctx, uid, "nope", FolderInput{Name: "Renamed"})
+	assertCode(t, err, apperr.CodeNotFound)
+
+	err = s.DeleteFolder(ctx, uid, "nope")
+	assertCode(t, err, apperr.CodeNotFound)
+}
+
+func TestRoutineUpdateNotFoundAndCrossUser(t *testing.T) {
+	s, q, uid, exID := newTestService(t)
+	ctx := context.Background()
+
+	// Updating a routine that doesn't exist.
+	_, err := s.Update(ctx, uid, "nope", sampleRoutine(exID))
+	assertCode(t, err, apperr.CodeNotFound)
+
+	// Another user's routine is hidden as NotFound, not Forbidden.
+	created, err := s.Create(ctx, uid, sampleRoutine(exID))
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	uidB := makeUser(t, q, "cross@example.com")
+	exB := makeExercise(t, q, uidB, "B Squat") // uidB must pass validate with their own exercise
+	_, err = s.Update(ctx, uidB, created.ID, RoutineInput{
+		Title:     "Hijack",
+		Exercises: []ExerciseInput{{ExerciseID: exB, Sets: []SetInput{{SetType: "normal"}}}},
+	})
+	assertCode(t, err, apperr.CodeNotFound)
+}
+
+func TestRoutineValidationDetails(t *testing.T) {
+	s, _, uid, exID := newTestService(t)
+	ctx := context.Background()
+
+	// Unknown folder.
+	bad := "no-such-folder"
+	_, err := s.Create(ctx, uid, RoutineInput{Title: "X", FolderID: &bad,
+		Exercises: []ExerciseInput{{ExerciseID: exID, Sets: []SetInput{{SetType: "normal"}}}}})
+	assertCode(t, err, apperr.CodeValidation)
+
+	// Invalid set type.
+	_, err = s.Create(ctx, uid, RoutineInput{Title: "X",
+		Exercises: []ExerciseInput{{ExerciseID: exID, Sets: []SetInput{{SetType: "bogus"}}}}})
+	assertCode(t, err, apperr.CodeValidation)
+}
+
+func TestRoutineListFull(t *testing.T) {
+	s, _, uid, exID := newTestService(t)
+	ctx := context.Background()
+	if _, err := s.Create(ctx, uid, sampleRoutine(exID)); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	full, err := s.ListFull(ctx, uid)
+	if err != nil || len(full) != 1 {
+		t.Fatalf("listfull: %v len=%d", err, len(full))
+	}
+	if len(full[0].Exercises) != 1 || len(full[0].Exercises[0].Sets) != 2 {
+		t.Fatalf("ListFull should be fully nested: %+v", full[0])
+	}
+}

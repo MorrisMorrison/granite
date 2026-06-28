@@ -1,10 +1,23 @@
 # Codecov config. Coverage is tracked per app via flags (api / mobile) so each
-# app's README can show its own badge. It's informational only — never gates CI
-# or PRs (see docs: coverage is a proxy, weight the dangerous code, don't block).
+# app's README can show its own badge. It stays informational — it never gates CI
+# or PRs (coverage is a proxy; weight the dangerous code, don't block). The 80%
+# target is a visible baseline: the status goes red below it, but the check still
+# passes so a merge is never blocked on coverage.
 coverage:
   status:
     project:
       default:
+        target: 80%
+        informational: true
+      api:
+        target: 80%
+        flags:
+          - api
+        informational: true
+      mobile:
+        target: 80%
+        flags:
+          - mobile
         informational: true
     patch:
       default:

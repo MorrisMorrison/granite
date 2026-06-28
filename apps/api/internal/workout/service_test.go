@@ -183,3 +183,33 @@ func TestSoftDelete(t *testing.T) {
 	_, err = s.Get(ctx, uid, created.ID)
 	assertCode(t, err, apperr.CodeNotFound)
 }
+
+func TestUpdateNotFoundAndCrossUser(t *testing.T) {
+	s, q, uid, exID := newTestService(t)
+	ctx := context.Background()
+
+	_, err := s.Update(ctx, uid, "nope", sample(exID))
+	assertCode(t, err, apperr.CodeNotFound)
+
+	created, err := s.Create(ctx, uid, sample(exID))
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	uidB := makeUser(t, q, "wb@example.com")
+	exB := makeExercise(t, q, uidB, "B Row") // uidB must pass validate with their own exercise
+	_, err = s.Update(ctx, uidB, created.ID, WorkoutInput{
+		Title:     "Hijack",
+		Exercises: []WorkoutExerciseInput{{ExerciseID: exB, Sets: []WorkoutSetInput{{SetType: "normal"}}}},
+	})
+	assertCode(t, err, apperr.CodeNotFound)
+}
+
+func TestInvalidSetType(t *testing.T) {
+	s, _, uid, exID := newTestService(t)
+	ctx := context.Background()
+	_, err := s.Create(ctx, uid, WorkoutInput{
+		Title:     "W",
+		Exercises: []WorkoutExerciseInput{{ExerciseID: exID, Sets: []WorkoutSetInput{{SetType: "bogus"}}}},
+	})
+	assertCode(t, err, apperr.CodeValidation)
+}

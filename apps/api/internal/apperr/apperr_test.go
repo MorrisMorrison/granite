@@ -69,3 +69,32 @@ func TestHandleErrorUnknownIs500(t *testing.T) {
 		t.Error("internal cause leaked to client")
 	}
 }
+
+func TestWrapExposesCauseButNotToClient(t *testing.T) {
+	cause := errors.New("db connection refused")
+	e := NotFound("missing").Wrap(cause)
+	if !errors.Is(e, cause) {
+		t.Fatal("Wrap/Unwrap should expose the cause to errors.Is")
+	}
+	if e.Error() != "missing" {
+		t.Errorf("Error() = %q, want the client message", e.Error())
+	}
+}
+
+func TestWithDetailsIncludedInResponse(t *testing.T) {
+	e := Validation("bad input").WithDetails(map[string]any{"field": "name"})
+	if e.Details["field"] != "name" {
+		t.Fatalf("WithDetails did not set details: %+v", e.Details)
+	}
+	rec := httptest.NewRecorder()
+	HandleError(rec, httptest.NewRequest(http.MethodGet, "/", nil), e)
+	var env struct {
+		Details map[string]any `json:"details"`
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&env); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if env.Details["field"] != "name" {
+		t.Errorf("details not surfaced in response: %+v", env.Details)
+	}
+}
