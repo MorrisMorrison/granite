@@ -98,4 +98,32 @@ describe('recentPRs', () => {
 		];
 		expect(recentPRs(workouts, 1)).toHaveLength(1);
 	});
+
+	it('skips invalid sets, ignores warm-up-only exercises, and uses the best set in a session', () => {
+		const workouts = [
+			wk(now - 14 * DAY, [{ exercise_id: 'sq', sets: [set('normal', 100, 5)] }]), // baseline
+			wk(now - 7 * DAY, [
+				{ exercise_id: 'wu', sets: [set('warmup', 60, 10)] }, // warm-up only → no working set
+				{
+					exercise_id: 'sq',
+					sets: [
+						set('normal', null, 5), // null weight → skipped
+						set('normal', 0, 5), // zero weight → skipped
+						set('normal', 50, 0), // zero reps → skipped
+						set('normal', 105, 5), // first valid working set
+						set('normal', 110, 5), // beats it → session best
+						set('normal', 90, 5) // doesn't beat current best
+					]
+				}
+			])
+		];
+		const res = recentPRs(workouts);
+		expect(res).toHaveLength(1); // only the sq improvement; warm-up-only 'wu' produced nothing
+		expect(res[0].exerciseId).toBe('sq');
+		expect(res[0].weight).toBe(110); // best working set in the session
+	});
+
+	it('returns nothing without prior history', () => {
+		expect(recentPRs([wk(now, [{ exercise_id: 'sq', sets: [set('normal', 100, 5)] }])])).toEqual([]);
+	});
 });
