@@ -1,6 +1,8 @@
 // Pure training-analytics helpers (no storage/UI imports) — trivially unit-tested.
 // Working sets only (warm-ups are excluded; they aren't training stimulus).
 
+import { estimate1RM } from './calc';
+
 interface AnalyticsSet {
 	set_type: string;
 	weight: number | null;
@@ -22,6 +24,13 @@ export interface MuscleSets {
 export interface WeeklyVolume {
 	weekStart: number; // Monday 00:00 local (epoch ms)
 	volume: number; // kg (sum of weight × reps over working sets)
+}
+export interface PersonalRecord {
+	exerciseId: string;
+	e1rm: number; // new best estimated 1RM (kg, rounded)
+	weight: number; // the working set that set it (kg)
+	reps: number;
+	at: number; // workout start_time (epoch ms)
 }
 
 const WEEK = 7 * 86400000;
@@ -78,4 +87,39 @@ export function weeklyVolume(workouts: AnalyticsWorkout[], now: number, weeks = 
 		out.push({ weekStart: wk, volume: Math.round(byWeek.get(wk) ?? 0) });
 	}
 	return out;
+}
+
+/** Most recent estimated-1RM personal records across all exercises (newest first).
+ *  A PR is a session whose best working-set e1RM beats the exercise's previous best;
+ *  the first time an exercise is trained sets a baseline and isn't itself counted. */
+export function recentPRs(workouts: AnalyticsWorkout[], limit = 5): PersonalRecord[] {
+	const chronological = [...workouts].sort((a, b) => a.start_time - b.start_time);
+	const best = new Map<string, number>(); // exerciseId → best e1rm seen so far
+	const prs: PersonalRecord[] = [];
+	for (const w of chronological) {
+		for (const ex of w.exercises) {
+			let top: { e1rm: number; weight: number; reps: number } | null = null;
+			for (const s of ex.sets) {
+				if (!isWorking(s)) continue;
+				const weight = s.weight ?? 0;
+				const reps = s.reps ?? 0;
+				if (weight <= 0 || reps <= 0) continue;
+				const e1rm = estimate1RM(weight, reps);
+				if (!top || e1rm > top.e1rm) top = { e1rm, weight, reps };
+			}
+			if (!top) continue;
+			const prev = best.get(ex.exercise_id);
+			best.set(ex.exercise_id, Math.max(prev ?? 0, top.e1rm));
+			if (prev !== undefined && top.e1rm > prev) {
+				prs.push({
+					exerciseId: ex.exercise_id,
+					e1rm: Math.round(top.e1rm),
+					weight: top.weight,
+					reps: top.reps,
+					at: w.start_time
+				});
+			}
+		}
+	}
+	return prs.sort((a, b) => b.at - a.at).slice(0, limit);
 }

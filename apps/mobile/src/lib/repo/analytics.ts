@@ -3,10 +3,16 @@ import { listExercises } from './exercises';
 import {
 	setsPerMuscleThisWeek,
 	weeklyVolume,
+	recentPRs,
 	type AnalyticsWorkout,
 	type MuscleSets,
-	type WeeklyVolume
+	type WeeklyVolume,
+	type PersonalRecord
 } from '$lib/analytics';
+
+export interface PersonalRecordRow extends PersonalRecord {
+	exerciseName: string;
+}
 
 async function workoutsForAnalytics(): Promise<AnalyticsWorkout[]> {
 	const records = await localStore.list('workout');
@@ -42,4 +48,14 @@ export async function muscleSetsThisWeek(now = Date.now()): Promise<MuscleSets[]
 /** Working-set tonnage (kg) per week over the recent weeks (oldest first). */
 export async function volumeTrend(now = Date.now()): Promise<WeeklyVolume[]> {
 	return weeklyVolume(await workoutsForAnalytics(), now);
+}
+
+/** Most recent estimated-1RM PRs across all exercises, with names joined in. */
+export async function recentPersonalRecords(limit = 5): Promise<PersonalRecordRow[]> {
+	const [workouts, exs] = await Promise.all([workoutsForAnalytics(), listExercises()]);
+	const name = new Map(exs.map((e) => [e.id, e.name]));
+	return recentPRs(workouts, limit).map((pr) => ({
+		...pr,
+		exerciseName: name.get(pr.exerciseId) ?? 'Exercise'
+	}));
 }

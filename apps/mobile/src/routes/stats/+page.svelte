@@ -1,16 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { muscleSetsThisWeek, volumeTrend } from '$lib/repo/analytics';
+	import {
+		muscleSetsThisWeek,
+		volumeTrend,
+		recentPersonalRecords,
+		type PersonalRecordRow
+	} from '$lib/repo/analytics';
 	import type { MuscleSets, WeeklyVolume } from '$lib/analytics';
 	import { syncNow } from '$lib/sync';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import LineChart from '$lib/components/ui/LineChart.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let muscles = $state<MuscleSets[]>([]);
 	let volume = $state<WeeklyVolume[]>([]);
+	let prs = $state<PersonalRecordRow[]>([]);
 	let loading = $state(true);
 
 	const unit = $derived(prefs.current.weightUnit);
@@ -19,8 +26,24 @@
 	const hasVolume = $derived(volValues.some((v) => v > 0));
 	const latestVol = $derived(volValues.length ? Math.round(volValues[volValues.length - 1]) : 0);
 
+	// Convert a canonical-kg value to the display unit, rounded.
+	const disp = (kg: number) => Math.round(kgToDisplay(kg, unit) ?? 0);
+
+	function relDate(ts: number): string {
+		const days = Math.floor((Date.now() - ts) / 86400000);
+		if (days <= 0) return 'today';
+		if (days === 1) return 'yesterday';
+		if (days < 7) return `${days}d ago`;
+		if (days < 28) return `${Math.floor(days / 7)}w ago`;
+		return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+	}
+
 	async function load() {
-		[muscles, volume] = await Promise.all([muscleSetsThisWeek(), volumeTrend()]);
+		[muscles, volume, prs] = await Promise.all([
+			muscleSetsThisWeek(),
+			volumeTrend(),
+			recentPersonalRecords()
+		]);
 	}
 	onMount(async () => {
 		await load();
@@ -76,6 +99,27 @@
 				<p class="muted">Not enough volume logged yet.</p>
 			{/if}
 		</section>
+
+		{#if prs.length > 0}
+			<section class="block">
+				<h2>Personal records</h2>
+				<div class="prs" data-testid="pr-list">
+					{#each prs as pr (pr.exerciseId + pr.at)}
+						<ListRow
+							href={`/exercises/${pr.exerciseId}`}
+							title={pr.exerciseName}
+							subtitle={`${disp(pr.weight)} ${unit} × ${pr.reps} · ${relDate(pr.at)}`}
+							chevron
+							testid="pr-row"
+						>
+							{#snippet trailing()}
+								<span class="pr-1rm">{disp(pr.e1rm)} {unit}<small>e1RM</small></span>
+							{/snippet}
+						</ListRow>
+					{/each}
+				</div>
+			</section>
+		{/if}
 	{/if}
 </main>
 
@@ -129,5 +173,24 @@
 	}
 	.chart {
 		padding: 0.75rem;
+	}
+	.prs {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.pr-1rm {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		font-size: 0.9rem;
+		line-height: 1.1;
+	}
+	.pr-1rm small {
+		font-weight: 400;
+		font-size: 0.62rem;
+		color: var(--muted);
 	}
 </style>
