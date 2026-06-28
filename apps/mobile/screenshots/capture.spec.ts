@@ -32,8 +32,8 @@ test('capture README screenshots', async ({ page }) => {
 	await shot(page, 'routines');
 	await page.goto('/history');
 	await shot(page, 'history');
-	await page.goto('/exercises');
-	await shot(page, 'exercises');
+	await page.goto('/stats');
+	await shot(page, 'stats');
 
 	// Exercise detail — progress chart + PRs + estimated 1RM, for a demo exercise
 	// that has logged history.
