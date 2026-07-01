@@ -1,0 +1,51 @@
+# Dependabot version updates. Security updates are configured separately in the
+# repo settings. Minor/patch bumps are grouped into one PR per ecosystem to keep
+# the noise down; majors still come as individual PRs so they get a proper look.
+version: 2
+updates:
+  # Go API (apps/api/go.mod)
+  - package-ecosystem: "gomod"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      go:
+        update-types: ["minor", "patch"]
+
+  # Node — one pnpm workspace, root lockfile covers apps/* and packages/*
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      npm:
+        update-types: ["minor", "patch"]
+
+  # Container image (root Dockerfile)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        update-types: ["minor", "patch"]
