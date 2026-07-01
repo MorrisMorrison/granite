@@ -2,7 +2,7 @@
 # the embedded SvelteKit web app from a single origin, over a SQLite file.
 
 # Stage 1 — build the SvelteKit SPA (pnpm workspace)
-FROM node:24-alpine AS web-builder
+FROM node:26-alpine AS web-builder
 RUN corepack enable
 WORKDIR /src
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
