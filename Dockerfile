@@ -17,7 +17,7 @@ ENV PUBLIC_GIT_SHA=$GIT_SHA
 RUN pnpm --filter mobile build
 
 # Stage 2 — build the Go binary with the web build embedded (CGO-free static)
-FROM golang:1.25-alpine AS api-builder
+FROM golang:1.26-alpine AS api-builder
 WORKDIR /src
 COPY apps/api/go.mod apps/api/go.sum ./
 RUN go mod download
