@@ -12,17 +12,17 @@ importers:
     dependencies:
       '@astrojs/starlight':
         specifier: ^0.40.0
-        version: 0.40.0(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3)
+        version: 0.40.0(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3)
       astro:
         specifier: ^6.4.8
-        version: 6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)
+        version: 6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)
       starlight-openapi:
         specifier: ^0.25.3
-        version: 0.25.3(@astrojs/markdown-remark@7.2.0)(@astrojs/starlight@0.40.0(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3))(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(openapi-types@12.1.3)
+        version: 0.25.3(@astrojs/markdown-remark@7.2.0)(@astrojs/starlight@0.40.0(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3))(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(openapi-types@12.1.3)
     devDependencies:
       astro-mermaid:
         specifier: ^2.0.4
-        version: 2.0.4(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(mermaid@11.15.0)
+        version: 2.0.4(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(mermaid@11.15.0)
       mermaid:
         specifier: ^11.15.0
         version: 11.15.0
@@ -43,14 +43,14 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       '@types/node':
-        specifier: ^22.10.0
-        version: 22.19.21
+        specifier: ^26.1.0
+        version: 26.1.0
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vitest:
         specifier: ^4.1.8
-        version: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+        version: 4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
   apps/mobile:
     dependencies:
@@ -63,25 +63,25 @@ importers:
     devDependencies:
       '@codecov/vite-plugin':
         specifier: ^2.0.1
-        version: 2.0.1(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+        version: 2.0.1(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
       '@playwright/test':
         specifier: ^1.61.0
         version: 1.61.0
       '@sveltejs/adapter-static':
         specifier: ^3.0.10
-        version: 3.0.10(@sveltejs/kit@2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))
+        version: 3.0.10(@sveltejs/kit@2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))
       '@sveltejs/kit':
         specifier: ^2.63.0
-        version: 2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+        version: 2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.1.2
-        version: 7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+        version: 7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
       '@testing-library/dom':
         specifier: ^10.4.1
         version: 10.4.1
       '@testing-library/svelte':
         specifier: ^5.3.1
-        version: 5.3.1(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))(vitest@4.1.9)
+        version: 5.3.1(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))(vitest@4.1.9)
       '@vitest/coverage-v8':
         specifier: ^4.1.9
         version: 4.1.9(vitest@4.1.9)
@@ -102,10 +102,10 @@ importers:
         version: 6.0.3
       vite:
         specifier: ^8.0.16
-        version: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
+        version: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
       vitest:
         specifier: ^4.1.8
-        version: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+        version: 4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
   packages/shared:
     dependencies:
@@ -121,7 +121,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.8
-        version: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7))
+        version: 4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
 packages:
 
@@ -1326,11 +1326,11 @@ packages:
   '@types/nlcst@2.0.3':
     resolution: {integrity: sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA==}
 
-  '@types/node@22.19.21':
-    resolution: {integrity: sha512-VMeFBSCKQKmm2swI2kW51SFusDqekC6q9trBCvJ/JliDchFSuoYYKN7yVNjPthP1HKZcx3U1gI/wTcEBjEFKTA==}
-
   '@types/node@24.13.2':
     resolution: {integrity: sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==}
+
+  '@types/node@26.1.0':
+    resolution: {integrity: sha512-O0A1G3xPGy4w7AgQdAQYUlQ+BKk2Oovw8eRpofyp5KdBZULnbe+WqaOVNrm705SHphCiG4XHsACrSmPu1f+Kgw==}
 
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
@@ -2982,6 +2982,10 @@ packages:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
+  picomatch@4.0.5:
+    resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
+    engines: {node: '>=12'}
+
   pkce-challenge@5.0.1:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
@@ -3389,11 +3393,11 @@ packages:
     resolution: {integrity: sha512-Bf+ILmBgretUrdJxzXM0SgXLZ3XfiaUuOj/IKQHuTXip+05Xn+uyEYdVg0kYDipTBcLrCVyUzAPz7QmArb0mmw==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@7.4.5:
-    resolution: {integrity: sha512-pGrwzZDvPwKe+7NNUqAunb6rqTfynr0VOUhCMdqbu5xlvNiszsAJygRzwvpVycdzejlbpY+SWJOn+s75Og7FEA==}
+  tldts-core@7.4.6:
+    resolution: {integrity: sha512-TkQNGJIhlEphpHCjKodMTSe23egUZr/g+flI2qkLgiJ/maAzSgXypSLRTNH3nCmqgayEmtcJBiLcfODSAr1xoA==}
 
-  tldts@7.4.5:
-    resolution: {integrity: sha512-RfEzKWcq5fHUOFq7J3rl3Oz6ylKGtcHqUznzj4EcXsxLSIjJcvpbXAQtWGeJQ0xKnimR5e0Cn+cn9TssfMzm+g==}
+  tldts@7.4.6:
+    resolution: {integrity: sha512-rbP0Gyx8b3Ae9yO//CU2wbSnQNoQ66m1nJdSbSHmnwKwzkkz/u8mERYU8T2rmlmy+bJvRNn84yNCW8gYqox44Q==}
     hasBin: true
 
   toidentifier@1.0.1:
@@ -3451,11 +3455,11 @@ packages:
   uncrypto@0.1.3:
     resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
+
+  undici-types@8.3.0:
+    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   undici@6.27.0:
     resolution: {integrity: sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==}
@@ -3896,7 +3900,7 @@ snapshots:
       '@types/hast': 3.0.4
       '@types/mdast': 4.0.4
       js-yaml: 4.3.0
-      picomatch: 4.0.4
+      picomatch: 4.0.5
       retext-smartypants: 6.2.0
       shiki: 4.3.0
       smol-toml: 1.7.0
@@ -3924,13 +3928,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@6.0.3(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))':
+  '@astrojs/mdx@6.0.3(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))':
     dependencies:
       '@astrojs/internal-helpers': 0.10.0
       '@astrojs/markdown-remark': 7.2.0
       '@mdx-js/mdx': 3.1.1
       acorn: 8.17.0
-      astro: 6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)
+      astro: 6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)
       es-module-lexer: 2.1.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -3954,17 +3958,17 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 4.4.3
 
-  '@astrojs/starlight@0.40.0(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3)':
+  '@astrojs/starlight@0.40.0(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3)':
     dependencies:
       '@astrojs/markdown-remark': 7.2.0
-      '@astrojs/mdx': 6.0.3(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))
+      '@astrojs/mdx': 6.0.3(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))
       '@astrojs/sitemap': 3.7.3
       '@pagefind/default-ui': 1.5.2
       '@types/hast': 3.0.4
       '@types/js-yaml': 4.0.9
       '@types/mdast': 4.0.4
-      astro: 6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)
-      astro-expressive-code: 0.43.1(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))
+      astro: 6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)
+      astro-expressive-code: 0.43.1(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.3
       hast-util-select: 6.0.4
@@ -4053,11 +4057,11 @@ snapshots:
       unplugin: 1.16.1
       zod: 3.25.76
 
-  '@codecov/vite-plugin@2.0.1(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))':
+  '@codecov/vite-plugin@2.0.1(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))':
     dependencies:
       '@codecov/bundler-plugin-core': 2.0.1
       unplugin: 1.16.1
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
 
   '@csstools/color-helpers@6.1.0': {}
 
@@ -4747,15 +4751,15 @@ snapshots:
     dependencies:
       acorn: 8.17.0
 
-  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))':
+  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))':
     dependencies:
-      '@sveltejs/kit': 2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+      '@sveltejs/kit': 2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
-  '@sveltejs/kit@2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))':
+  '@sveltejs/kit@2.66.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@sveltejs/acorn-typescript': 1.0.10(acorn@8.17.0)
-      '@sveltejs/vite-plugin-svelte': 7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+      '@sveltejs/vite-plugin-svelte': 7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
       '@types/cookie': 0.6.0
       acorn: 8.17.0
       cookie: 0.6.0
@@ -4767,20 +4771,20 @@ snapshots:
       set-cookie-parser: 3.1.0
       sirv: 3.0.2
       svelte: 5.56.3
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
     optionalDependencies:
       typescript: 6.0.3
 
   '@sveltejs/load-config@0.1.1': {}
 
-  '@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))':
+  '@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))':
     dependencies:
       deepmerge: 4.3.1
       magic-string: 0.30.21
       obug: 2.1.3
       svelte: 5.56.3
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
-      vitefu: 1.1.3(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
+      vitefu: 1.1.3(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
   '@testing-library/dom@10.4.1':
     dependencies:
@@ -4797,14 +4801,14 @@ snapshots:
     dependencies:
       svelte: 5.56.3
 
-  '@testing-library/svelte@5.3.1(svelte@5.56.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))(vitest@4.1.9)':
+  '@testing-library/svelte@5.3.1(svelte@5.56.3)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))(vitest@4.1.9)':
     dependencies:
       '@testing-library/dom': 10.4.1
       '@testing-library/svelte-core': 1.0.0(svelte@5.56.3)
       svelte: 5.56.3
     optionalDependencies:
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
-      vitest: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
+      vitest: 4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
@@ -4971,17 +4975,17 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
-  '@types/node@22.19.21':
-    dependencies:
-      undici-types: 6.21.0
-
   '@types/node@24.13.2':
     dependencies:
       undici-types: 7.18.2
 
+  '@types/node@26.1.0':
+    dependencies:
+      undici-types: 8.3.0
+
   '@types/sax@1.2.7':
     dependencies:
-      '@types/node': 22.19.21
+      '@types/node': 26.1.0
 
   '@types/trusted-types@2.0.7': {}
 
@@ -5008,7 +5012,7 @@ snapshots:
       obug: 2.1.3
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+      vitest: 4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
 
   '@vitest/expect@4.1.9':
     dependencies:
@@ -5019,21 +5023,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))':
+  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))':
     dependencies:
       '@vitest/spy': 4.1.9
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
-
-  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7))':
-    dependencies:
-      '@vitest/spy': 4.1.9
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 8.0.16(@types/node@24.13.2)(esbuild@0.27.7)
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
 
   '@vitest/pretty-format@4.1.9':
     dependencies:
@@ -5126,20 +5122,20 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-expressive-code@0.43.1(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)):
+  astro-expressive-code@0.43.1(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)):
     dependencies:
-      astro: 6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)
+      astro: 6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)
       rehype-expressive-code: 0.43.1
 
-  astro-mermaid@2.0.4(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(mermaid@11.15.0):
+  astro-mermaid@2.0.4(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(mermaid@11.15.0):
     dependencies:
-      astro: 6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)
+      astro: 6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)
       import-meta-resolve: 4.2.0
       mdast-util-to-string: 4.0.0
       mermaid: 11.15.0
       unist-util-visit: 5.1.0
 
-  astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2):
+  astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2):
     dependencies:
       '@astrojs/compiler': 4.0.0
       '@astrojs/internal-helpers': 0.10.0
@@ -5191,8 +5187,8 @@ snapshots:
       unist-util-visit: 5.1.0
       unstorage: 1.17.5
       vfile: 6.0.3
-      vite: 7.3.5(@types/node@24.13.2)(lightningcss@1.32.0)
-      vitefu: 1.1.3(vite@7.3.5(@types/node@24.13.2)(lightningcss@1.32.0))
+      vite: 7.3.5(@types/node@26.1.0)(lightningcss@1.32.0)
+      vitefu: 1.1.3(vite@7.3.5(@types/node@26.1.0)(lightningcss@1.32.0))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.4.3
@@ -7121,6 +7117,8 @@ snapshots:
 
   picomatch@4.0.4: {}
 
+  picomatch@4.0.5: {}
+
   pkce-challenge@5.0.1: {}
 
   playwright-core@1.61.0: {}
@@ -7606,12 +7604,12 @@ snapshots:
 
   stackback@0.0.2: {}
 
-  starlight-openapi@0.25.3(@astrojs/markdown-remark@7.2.0)(@astrojs/starlight@0.40.0(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3))(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(openapi-types@12.1.3):
+  starlight-openapi@0.25.3(@astrojs/markdown-remark@7.2.0)(@astrojs/starlight@0.40.0(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3))(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(openapi-types@12.1.3):
     dependencies:
       '@astrojs/markdown-remark': 7.2.0
-      '@astrojs/starlight': 0.40.0(astro@6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3)
+      '@astrojs/starlight': 0.40.0(astro@6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2))(typescript@6.0.3)
       '@readme/openapi-parser': 4.1.2(openapi-types@12.1.3)
-      astro: 6.4.8(@types/node@24.13.2)(lightningcss@1.32.0)(rollup@4.62.2)
+      astro: 6.4.8(@types/node@26.1.0)(lightningcss@1.32.0)(rollup@4.62.2)
       github-slugger: 2.0.0
       httpsnippet: 3.0.10
       url-template: 3.1.1
@@ -7729,11 +7727,11 @@ snapshots:
 
   tinyrainbow@3.1.0: {}
 
-  tldts-core@7.4.5: {}
+  tldts-core@7.4.6: {}
 
-  tldts@7.4.5:
+  tldts@7.4.6:
     dependencies:
-      tldts-core: 7.4.5
+      tldts-core: 7.4.6
 
   toidentifier@1.0.1: {}
 
@@ -7741,7 +7739,7 @@ snapshots:
 
   tough-cookie@6.0.1:
     dependencies:
-      tldts: 7.4.5
+      tldts: 7.4.6
 
   tr46@6.0.0:
     dependencies:
@@ -7774,9 +7772,9 @@ snapshots:
 
   uncrypto@0.1.3: {}
 
-  undici-types@6.21.0: {}
-
   undici-types@7.18.2: {}
+
+  undici-types@8.3.0: {}
 
   undici@6.27.0: {}
 
@@ -7889,7 +7887,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@7.3.5(@types/node@24.13.2)(lightningcss@1.32.0):
+  vite@7.3.5(@types/node@26.1.0)(lightningcss@1.32.0):
     dependencies:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.4)
@@ -7898,46 +7896,34 @@ snapshots:
       rollup: 4.62.2
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.13.2
+      '@types/node': 26.1.0
       fsevents: 2.3.3
       lightningcss: 1.32.0
 
-  vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7):
+  vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7):
     dependencies:
       lightningcss: 1.32.0
-      picomatch: 4.0.4
+      picomatch: 4.0.5
       postcss: 8.5.16
       rolldown: 1.0.3
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 22.19.21
+      '@types/node': 26.1.0
       esbuild: 0.27.7
       fsevents: 2.3.3
 
-  vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7):
-    dependencies:
-      lightningcss: 1.32.0
-      picomatch: 4.0.4
-      postcss: 8.5.16
-      rolldown: 1.0.3
-      tinyglobby: 0.2.17
+  vitefu@1.1.3(vite@7.3.5(@types/node@26.1.0)(lightningcss@1.32.0)):
     optionalDependencies:
-      '@types/node': 24.13.2
-      esbuild: 0.27.7
-      fsevents: 2.3.3
+      vite: 7.3.5(@types/node@26.1.0)(lightningcss@1.32.0)
 
-  vitefu@1.1.3(vite@7.3.5(@types/node@24.13.2)(lightningcss@1.32.0)):
+  vitefu@1.1.3(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)):
     optionalDependencies:
-      vite: 7.3.5(@types/node@24.13.2)(lightningcss@1.32.0)
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
 
-  vitefu@1.1.3(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)):
-    optionalDependencies:
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
-
-  vitest@4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)):
+  vitest@4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7)):
     dependencies:
       '@vitest/expect': 4.1.9
-      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7))
+      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@26.1.0)(esbuild@0.27.7))
       '@vitest/pretty-format': 4.1.9
       '@vitest/runner': 4.1.9
       '@vitest/snapshot': 4.1.9
@@ -7954,39 +7940,10 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)
+      vite: 8.0.16(@types/node@26.1.0)(esbuild@0.27.7)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 22.19.21
-      '@vitest/coverage-v8': 4.1.9(vitest@4.1.9)
-      jsdom: 29.1.1
-    transitivePeerDependencies:
-      - msw
-
-  vitest@4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)):
-    dependencies:
-      '@vitest/expect': 4.1.9
-      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7))
-      '@vitest/pretty-format': 4.1.9
-      '@vitest/runner': 4.1.9
-      '@vitest/snapshot': 4.1.9
-      '@vitest/spy': 4.1.9
-      '@vitest/utils': 4.1.9
-      es-module-lexer: 2.1.0
-      expect-type: 1.3.0
-      magic-string: 0.30.21
-      obug: 2.1.3
-      pathe: 2.0.3
-      picomatch: 4.0.4
-      std-env: 4.1.0
-      tinybench: 2.9.0
-      tinyexec: 1.2.4
-      tinyglobby: 0.2.17
-      tinyrainbow: 3.1.0
-      vite: 8.0.16(@types/node@24.13.2)(esbuild@0.27.7)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/node': 22.19.21
+      '@types/node': 26.1.0
       '@vitest/coverage-v8': 4.1.9(vitest@4.1.9)
       jsdom: 29.1.1
     transitivePeerDependencies:
