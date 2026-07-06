@@ -56,6 +56,14 @@ export class IdbSyncStore implements SyncStore {
 		return (await db.getAll(OUTBOX)) as Change[];
 	}
 
+	/** Count of queued local changes not yet confirmed by the server. Used to guard
+	 * destructive wipes (logout, instance rotation) so a non-empty outbox isn't
+	 * silently discarded. */
+	async hasPending(): Promise<boolean> {
+		const db = await this.dbp;
+		return (await db.count(OUTBOX)) > 0;
+	}
+
 	async markPushed(pushed: Change[]): Promise<void> {
 		const db = await this.dbp;
 		const tx = db.transaction(OUTBOX, 'readwrite');

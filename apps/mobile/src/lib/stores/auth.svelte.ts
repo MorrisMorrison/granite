@@ -2,7 +2,7 @@ import { api } from '$lib/api/client';
 import { tokens } from '$lib/api/tokens';
 import { refreshExerciseLibrary } from '$lib/repo/exercises';
 import { prefs } from '$lib/stores/prefs.svelte';
-import { resetLocalData, syncNow } from '$lib/sync';
+import { hasPending, requestPersistentStorage, resetLocalData, syncNow } from '$lib/sync';
 
 export interface CurrentUser {
 	id: string;
@@ -84,6 +84,27 @@ class Auth {
 	}
 
 	async logout(): Promise<void> {
+		// Before wiping, try to push any unsynced local work to the server so an
+		// offline-logged workout isn't lost. Best-effort: a failed push (offline /
+		// server down) leaves the outbox intact.
+		if (await hasPending()) {
+			try {
+				await syncNow();
+			} catch {
+				/* offline / push failed — outbox still has the changes */
+			}
+			// Still unsynced → the wipe would discard the user's work. Skip it and keep
+			// the session so they can retry with connectivity. clearSession() (a forced
+			// 401) is the path that clears local data unconditionally.
+			if (await hasPending()) {
+				console.warn(
+					'[auth] logout aborted: local changes are still unsynced. Keeping the ' +
+						'session so they are not discarded — reconnect and retry.'
+				);
+				return;
+			}
+		}
+
 		const refresh = tokens.refresh();
 		if (refresh) {
 			try {
@@ -92,10 +113,7 @@ class Auth {
 				/* best-effort */
 			}
 		}
-		this.clearSession();
-		// Wipe device-local data so the next account (or a reset server) starts clean
-		// instead of inheriting this session's cached records.
-		await resetLocalData();
+		this.clearSession(); // also wipes device-local data (see clearSession)
 	}
 
 	private setUser(u: CurrentUser): void {
@@ -103,15 +121,27 @@ class Auth {
 		cacheUser(u);
 	}
 
+	/**
+	 * End the session. Reached from an explicit logout and from a genuine
+	 * session-ending 401 (revalidate → the API client already tried a silent refresh
+	 * and it failed). It clears the device-local store as well as the tokens/identity
+	 * so a forced-401 logout can't leak the previous user's records/outbox into the
+	 * next login on this device. A *transient* 401 never reaches here — the client
+	 * middleware refreshes and replays it, returning a 2xx.
+	 */
 	private clearSession(): void {
 		tokens.clear();
 		cacheUser(null);
 		this.user = null;
+		void resetLocalData();
 	}
 
 	/** Background sync to populate/refresh local data. Non-blocking; offline failures
 	 *  are swallowed so the app keeps running against the local store. */
 	private bootstrap(): void {
+		// The local store is the offline-first source of truth — ask the browser to
+		// keep it from being evicted under storage pressure. Best-effort, guarded.
+		requestPersistentStorage();
 		void syncNow().catch(() => {});
 		void refreshExerciseLibrary().catch(() => {});
 		void prefs.load().catch(() => {});

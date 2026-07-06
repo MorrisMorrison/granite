@@ -52,6 +52,17 @@ describe('IdbSyncStore', () => {
 		expect(await s.list('exercise')).toHaveLength(1);
 	});
 
+	it('hasPending reflects the outbox', async () => {
+		const s = freshStore();
+		expect(await s.hasPending()).toBe(false);
+
+		await s.localWrite(ex('e1', 1000, 'Squat')); // queues an outbox entry
+		expect(await s.hasPending()).toBe(true);
+
+		await s.clear();
+		expect(await s.hasPending()).toBe(false);
+	});
+
 	it('applyRemote is last-write-wins; the cursor persists', async () => {
 		const s = freshStore();
 		await s.localWrite(ex('e1', 2000, 'mine'));

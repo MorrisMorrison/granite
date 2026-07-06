@@ -2,21 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // syncNow wires the shared sync engine to the app's store + API client. We mock
 // those collaborators and assert the deduping behaviour syncNow adds on top.
-const { syncFn, createSyncApi, setCursor, getMock, getServerId, setServerId, clear } = vi.hoisted(
-	() => ({
+const { syncFn, createSyncApi, setCursor, getMock, getServerId, setServerId, clear, hasPending } =
+	vi.hoisted(() => ({
 		syncFn: vi.fn(),
 		createSyncApi: vi.fn(() => ({})),
 		setCursor: vi.fn(() => Promise.resolve()),
 		getMock: vi.fn(),
 		getServerId: vi.fn(() => Promise.resolve<string | undefined>(undefined)),
 		setServerId: vi.fn(() => Promise.resolve()),
-		clear: vi.fn(() => Promise.resolve())
-	})
-);
+		clear: vi.fn(() => Promise.resolve()),
+		hasPending: vi.fn(() => Promise.resolve(false))
+	}));
 vi.mock('@granite/shared', () => ({ sync: syncFn, createSyncApi }));
 vi.mock('$lib/api/client', () => ({ api: vi.fn(() => ({ GET: getMock })) }));
 vi.mock('$lib/local/store', () => ({
-	localStore: { setCursor, getServerId, setServerId, clear }
+	localStore: { setCursor, getServerId, setServerId, clear, hasPending }
 }));
 
 import { resync, syncNow } from './index';
@@ -30,6 +30,8 @@ beforeEach(() => {
 	getServerId.mockResolvedValue(undefined);
 	setServerId.mockClear();
 	clear.mockClear();
+	hasPending.mockReset();
+	hasPending.mockResolvedValue(false);
 });
 
 describe('syncNow', () => {
@@ -75,6 +77,34 @@ describe('reconcileServerInstance (via syncNow)', () => {
 
 		expect(clear).toHaveBeenCalledOnce();
 		expect(setServerId).toHaveBeenCalledWith('srv-2');
+	});
+
+	it('attempts a final push before wiping when the outbox is non-empty', async () => {
+		getMock.mockResolvedValue({ data: { instance_id: 'srv-2' } });
+		getServerId.mockResolvedValue('srv-1'); // different DB
+		hasPending.mockResolvedValueOnce(true).mockResolvedValueOnce(false); // pushed clean
+		syncFn.mockResolvedValue({ pushed: 1, pulled: 0 });
+
+		await syncNow();
+
+		// One reconcile-phase push (the guard) + the normal post-reconcile sync.
+		expect(syncFn).toHaveBeenCalledTimes(2);
+		expect(clear).toHaveBeenCalledOnce();
+	});
+
+	it('warns but still wipes when the outbox cannot be flushed before rotation', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		getMock.mockResolvedValue({ data: { instance_id: 'srv-2' } });
+		getServerId.mockResolvedValue('srv-1');
+		hasPending.mockResolvedValue(true); // still pending even after the push attempt
+		syncFn.mockRejectedValueOnce(new Error('offline')); // guard push fails
+		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 }); // post-reconcile sync
+
+		await syncNow();
+
+		expect(warn).toHaveBeenCalled();
+		expect(clear).toHaveBeenCalledOnce();
+		warn.mockRestore();
 	});
 
 	it('does not wipe on first run or when the instance is unchanged', async () => {
