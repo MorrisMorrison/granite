@@ -58,6 +58,11 @@ Then `docker compose up -d` and open `GRANITE_BASE_URL`. Put it behind a reverse
 nginx) for TLS. The optional [MCP server](../apps/mcp/) runs as a separate stdio process alongside the
 container, not part of it.
 
+If you run behind a proxy that **replaces** `X-Forwarded-For` (not appends to it), set
+`GRANITE_TRUSTED_PROXY=true` so the rate limiter keys on the real client IP; leave it `false` (the
+default) if the port is exposed directly, otherwise a client could spoof the header to bypass the
+per-IP brute-force limits.
+
 ## Configuration (env vars)
 
 | Var | Purpose |
@@ -66,6 +71,7 @@ container, not part of it.
 | `GRANITE_JWT_SECRET` | Signing secret for JWTs. |
 | `GRANITE_BASE_URL` | Public URL (links, CORS, etc.). |
 | `GRANITE_ALLOW_REGISTRATION` | `true`/`false` or invite-gated — lock down a personal instance. |
+| `GRANITE_TRUSTED_PROXY` | `true` only behind a proxy that replaces `X-Forwarded-For` (default `false`). |
 | `GRANITE_LOG_LEVEL` | `debug`/`info`/`warn`/`error` (default `info`). |
 | `PORT` | Listen port (default 8080). |
 
