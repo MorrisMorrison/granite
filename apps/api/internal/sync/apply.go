@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
+	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
@@ -56,15 +57,7 @@ func validate(c Change) error {
 }
 
 func (s *Service) inTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = tx.Rollback() }()
-	if err := fn(s.q.WithTx(tx)); err != nil {
-		return err
-	}
-	return tx.Commit()
+	return db.InTx(ctx, s.db, s.q, fn)
 }
 
 // nz returns v unless it's zero, in which case fallback.

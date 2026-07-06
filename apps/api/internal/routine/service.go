@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
+	"github.com/MorrisMorrison/granite/apps/api/internal/db"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
@@ -301,15 +302,7 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 // --- helpers ----------------------------------------------------------------
 
 func (s *Service) inTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = tx.Rollback() }()
-	if err := fn(s.q.WithTx(tx)); err != nil {
-		return err
-	}
-	return tx.Commit()
+	return db.InTx(ctx, s.db, s.q, fn)
 }
 
 func insertChildren(ctx context.Context, qtx *sqlc.Queries, routineID string, exs []ExerciseInput, now int64) error {
