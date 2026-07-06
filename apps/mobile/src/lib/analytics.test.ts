@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
 	setsPerMuscle,
-	setsPerMuscleThisWeek,
 	weeklyVolume,
 	recentPRs,
 	allTimeRecords,
@@ -20,7 +19,7 @@ const wk = (start: number, exercises: AnalyticsWorkout['exercises']): AnalyticsW
 
 const muscleOf = (id: string) => ({ sq: 'Legs', bn: 'Chest', rw: 'Back' })[id] ?? 'Other';
 
-describe('setsPerMuscleThisWeek', () => {
+describe('setsPerMuscle (current week, weeks=1)', () => {
 	it('counts working sets per muscle this week, busiest first, excluding warm-ups', () => {
 		const workouts = [
 			wk(now, [
@@ -30,7 +29,7 @@ describe('setsPerMuscleThisWeek', () => {
 			wk(now - DAY, [{ exercise_id: 'rw', sets: [set('normal', 60, 8), set('normal', 60, 8)] }]),
 			wk(now - 21 * DAY, [{ exercise_id: 'sq', sets: [set('normal', 100, 5)] }]) // old week, ignored
 		];
-		const res = setsPerMuscleThisWeek(workouts, muscleOf, now);
+		const res = setsPerMuscle(workouts, muscleOf, now, 1);
 		expect(res).toEqual([
 			{ muscle: 'Back', sets: 2 }, // tie (2) broken alphabetically; warm-up set excluded
 			{ muscle: 'Legs', sets: 2 },
@@ -39,7 +38,7 @@ describe('setsPerMuscleThisWeek', () => {
 	});
 
 	it('is empty with no training this week', () => {
-		expect(setsPerMuscleThisWeek([wk(now - 21 * DAY, [])], muscleOf, now)).toEqual([]);
+		expect(setsPerMuscle([wk(now - 21 * DAY, [])], muscleOf, now, 1)).toEqual([]);
 	});
 
 	it('skips warm-up-only exercises and labels unknown muscles "Other"', () => {
@@ -49,7 +48,7 @@ describe('setsPerMuscleThisWeek', () => {
 				{ exercise_id: 'unk', sets: [set('normal', 50, 5)] } // unknown muscle → Other
 			])
 		];
-		const res = setsPerMuscleThisWeek(workouts, (id) => (id === 'unk' ? '' : 'Legs'), now);
+		const res = setsPerMuscle(workouts, (id) => (id === 'unk' ? '' : 'Legs'), now, 1);
 		expect(res).toEqual([{ muscle: 'Other', sets: 1 }]);
 	});
 });

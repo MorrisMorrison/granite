@@ -47,6 +47,9 @@ export interface TopLift {
 }
 
 const WEEK = 7 * 86400000;
+// A working set is a non-warm-up set. Callers pre-filter uncompleted sets (see
+// repo/analytics.workoutsForAnalytics), so the shared predicate is completed AND
+// not-warmup — the same rule stats.ts and the history detail screen apply.
 const isWorking = (s: AnalyticsSet) => s.set_type !== 'warmup';
 
 /** Local Monday-midnight for a timestamp (week boundary). */
@@ -81,15 +84,6 @@ export function setsPerMuscle(
 	return [...counts.entries()]
 		.map(([muscle, sets]) => ({ muscle, sets }))
 		.sort((a, b) => b.sets - a.sets || a.muscle.localeCompare(b.muscle));
-}
-
-/** Working sets per muscle group for the current week, busiest first. */
-export function setsPerMuscleThisWeek(
-	workouts: AnalyticsWorkout[],
-	muscleOf: (exerciseId: string) => string,
-	now: number
-): MuscleSets[] {
-	return setsPerMuscle(workouts, muscleOf, now, 1);
 }
 
 /** Total working-set tonnage per week for the last `weeks` weeks (oldest first),
