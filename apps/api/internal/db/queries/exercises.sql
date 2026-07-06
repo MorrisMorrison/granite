@@ -30,6 +30,11 @@ WHERE id = ? AND user_id = ? AND deleted_at IS NULL;
 -- name: CountExercises :one
 SELECT count(*) AS total FROM exercises;
 
+-- name: CountExerciseUsage :one
+SELECT
+    (SELECT count(*) FROM routine_exercises re WHERE re.exercise_id = ?)
+  + (SELECT count(*) FROM workout_exercises we WHERE we.exercise_id = ?) AS total;
+
 -- name: CreateBuiltinExercise :exec
 INSERT INTO exercises (
     id, user_id, name, exercise_type, primary_muscle, secondary_muscles,

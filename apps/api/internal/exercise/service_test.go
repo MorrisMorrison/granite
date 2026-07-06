@@ -138,6 +138,45 @@ func TestCrossUserIsolation(t *testing.T) {
 	}
 }
 
+// Deleting an exercise that is referenced by a routine (or workout) must be
+// rejected with Conflict: otherwise the reference dangles and PATCHing those
+// records fails validation ("unknown exercise").
+func TestDeleteInUseExerciseIsRejected(t *testing.T) {
+	s, q, uid := newTestService(t)
+	ctx := context.Background()
+
+	created, err := s.Create(ctx, uid, validInput("Bench Press"))
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	// Reference the exercise from a routine (routine row first, FKs are on).
+	routineID := uuid.NewString()
+	if _, err := q.CreateRoutine(ctx, sqlc.CreateRoutineParams{
+		ID: routineID, UserID: uid, Title: "Push Day", CreatedAt: 0, UpdatedAt: 0,
+	}); err != nil {
+		t.Fatalf("create routine: %v", err)
+	}
+	if _, err := q.CreateRoutineExercise(ctx, sqlc.CreateRoutineExerciseParams{
+		ID: uuid.NewString(), RoutineID: routineID, ExerciseID: created.ID, CreatedAt: 0, UpdatedAt: 0,
+	}); err != nil {
+		t.Fatalf("create routine exercise: %v", err)
+	}
+
+	// In use → Conflict.
+	err = s.Delete(ctx, uid, created.ID)
+	assertCode(t, err, apperr.CodeConflict)
+
+	// An unused custom exercise deletes fine.
+	unused, err := s.Create(ctx, uid, validInput("Unused Curl"))
+	if err != nil {
+		t.Fatalf("create unused: %v", err)
+	}
+	if err := s.Delete(ctx, uid, unused.ID); err != nil {
+		t.Fatalf("delete unused exercise should succeed, got: %v", err)
+	}
+}
+
 func TestValidation(t *testing.T) {
 	s, _, uid := newTestService(t)
 	ctx := context.Background()

@@ -147,15 +147,32 @@ func (s *Service) UpdateFolder(ctx context.Context, userID, id string, in Folder
 	return toFolder(f), nil
 }
 
+// DeleteFolder soft-deletes a folder and, in the same transaction, nulls the
+// folder_id on the user's routines that pointed at it. Without this, those
+// routines would keep a dangling reference to a folder that no longer lists,
+// and a GET->PATCH of such a routine would fail validation ("unknown folder").
 func (s *Service) DeleteFolder(ctx context.Context, userID, id string) error {
 	now := s.now().UnixMilli()
-	rows, err := s.q.SoftDeleteRoutineFolder(ctx, sqlc.SoftDeleteRoutineFolderParams{
-		DeletedAt: sql.NullInt64{Int64: now, Valid: true}, UpdatedAt: now, ID: id, UserID: userID,
+	var deleted int64
+	err := s.inTx(ctx, func(qtx *sqlc.Queries) error {
+		rows, err := qtx.SoftDeleteRoutineFolder(ctx, sqlc.SoftDeleteRoutineFolderParams{
+			DeletedAt: sql.NullInt64{Int64: now, Valid: true}, UpdatedAt: now, ID: id, UserID: userID,
+		})
+		if err != nil {
+			return err
+		}
+		deleted = rows
+		if rows == 0 {
+			return nil
+		}
+		return qtx.ClearRoutinesFolder(ctx, sqlc.ClearRoutinesFolderParams{
+			UpdatedAt: now, FolderID: sql.NullString{String: id, Valid: true}, UserID: userID,
+		})
 	})
 	if err != nil {
 		return err
 	}
-	if rows == 0 {
+	if deleted == 0 {
 		return apperr.NotFound("folder not found")
 	}
 	return nil

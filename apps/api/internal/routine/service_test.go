@@ -275,6 +275,55 @@ func TestRoutineValidationDetails(t *testing.T) {
 	assertCode(t, err, apperr.CodeValidation)
 }
 
+// Deleting a folder must null folder_id on the routines it contained, so those
+// routines stay valid: previously a GET->PATCH of a routine in a deleted folder
+// 400'd because validation reads folders through deleted_at IS NULL.
+func TestDeleteFolderClearsRoutineReferences(t *testing.T) {
+	s, _, uid, exID := newTestService(t)
+	ctx := context.Background()
+
+	f, err := s.CreateFolder(ctx, uid, FolderInput{Name: "Strength"})
+	if err != nil {
+		t.Fatalf("create folder: %v", err)
+	}
+	in := sampleRoutine(exID)
+	in.FolderID = &f.ID
+	rt, err := s.Create(ctx, uid, in)
+	if err != nil {
+		t.Fatalf("create routine: %v", err)
+	}
+	if rt.FolderID == nil || *rt.FolderID != f.ID {
+		t.Fatalf("routine folder_id = %v, want %q", rt.FolderID, f.ID)
+	}
+
+	if err := s.DeleteFolder(ctx, uid, f.ID); err != nil {
+		t.Fatalf("delete folder: %v", err)
+	}
+
+	// The routine is now orphaned but its folder_id must have been cleared.
+	got, err := s.Get(ctx, uid, rt.ID)
+	if err != nil {
+		t.Fatalf("get routine after folder delete: %v", err)
+	}
+	if got.FolderID != nil {
+		t.Fatalf("routine folder_id after folder delete = %v, want nil", got.FolderID)
+	}
+
+	// Re-submitting the routine's own payload (as a client GET->PATCH would) succeeds.
+	got.FolderID = nil
+	if _, err := s.Update(ctx, uid, got.ID, RoutineInput{
+		Title:    got.Title,
+		Notes:    got.Notes,
+		FolderID: got.FolderID,
+		Exercises: []ExerciseInput{{
+			ExerciseID: exID, RestSeconds: 90,
+			Sets: []SetInput{{SetType: "normal", TargetReps: iptr(5)}},
+		}},
+	}); err != nil {
+		t.Fatalf("update routine after folder delete should succeed, got: %v", err)
+	}
+}
+
 func TestRoutineListFull(t *testing.T) {
 	s, _, uid, exID := newTestService(t)
 	ctx := context.Background()

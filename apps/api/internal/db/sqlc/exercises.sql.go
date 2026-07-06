@@ -10,6 +10,24 @@ import (
 	"database/sql"
 )
 
+const countExerciseUsage = `-- name: CountExerciseUsage :one
+SELECT
+    (SELECT count(*) FROM routine_exercises re WHERE re.exercise_id = ?)
+  + (SELECT count(*) FROM workout_exercises we WHERE we.exercise_id = ?) AS total
+`
+
+type CountExerciseUsageParams struct {
+	ExerciseID   string `json:"exercise_id"`
+	ExerciseID_2 string `json:"exercise_id_2"`
+}
+
+func (q *Queries) CountExerciseUsage(ctx context.Context, arg CountExerciseUsageParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countExerciseUsage, arg.ExerciseID, arg.ExerciseID_2)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const countExercises = `-- name: CountExercises :one
 SELECT count(*) AS total FROM exercises
 `

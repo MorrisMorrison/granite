@@ -144,6 +144,19 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	if !existing.UserID.Valid {
 		return apperr.Forbidden("built-in exercises cannot be deleted")
 	}
+	// Reject deletion while the exercise is still referenced by a routine or
+	// workout. Otherwise the reference dangles: PATCHing those records fails
+	// validation ("unknown exercise") and history can no longer resolve the
+	// name via GET /exercises/{id}.
+	used, err := s.q.CountExerciseUsage(ctx, sqlc.CountExerciseUsageParams{
+		ExerciseID: id, ExerciseID_2: id,
+	})
+	if err != nil {
+		return err
+	}
+	if used > 0 {
+		return apperr.Conflict("exercise is in use by a routine or workout")
+	}
 	now := s.now().UnixMilli()
 	rows, err := s.q.SoftDeleteExercise(ctx, sqlc.SoftDeleteExerciseParams{
 		DeletedAt: sql.NullInt64{Int64: now, Valid: true},
