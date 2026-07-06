@@ -9,6 +9,18 @@ import (
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 )
 
+// builtinNamespace is a fixed UUID namespace used to derive deterministic
+// UUIDv5 ids for built-in exercises (from the namespace + the exercise name).
+// This makes built-in ids identical across every instance, so a routine/workout
+// exported from one instance keeps working when imported into a fresh one.
+// Never change this value: it would re-id every future install's built-ins.
+var builtinNamespace = uuid.MustParse("6b1f0c3e-3d2a-5e4b-8f7c-0a1b2c3d4e5f")
+
+// builtinID returns the deterministic id for a built-in exercise given its name.
+func builtinID(name string) string {
+	return uuid.NewSHA1(builtinNamespace, []byte(name)).String()
+}
+
 type builtin struct {
 	Name      string
 	Type      string
@@ -136,7 +148,7 @@ func SeedBuiltins(ctx context.Context, q *sqlc.Queries, now func() time.Time) (i
 			sec = "[]"
 		}
 		if err := q.CreateBuiltinExercise(ctx, sqlc.CreateBuiltinExerciseParams{
-			ID:               uuid.NewString(),
+			ID:               builtinID(b.Name),
 			Name:             b.Name,
 			ExerciseType:     b.Type,
 			PrimaryMuscle:    b.Primary,
