@@ -10,6 +10,22 @@ import (
 	"database/sql"
 )
 
+const clearRoutinesFolder = `-- name: ClearRoutinesFolder :exec
+UPDATE routines SET folder_id = NULL, updated_at = ?
+WHERE folder_id = ? AND user_id = ?
+`
+
+type ClearRoutinesFolderParams struct {
+	UpdatedAt int64          `json:"updated_at"`
+	FolderID  sql.NullString `json:"folder_id"`
+	UserID    string         `json:"user_id"`
+}
+
+func (q *Queries) ClearRoutinesFolder(ctx context.Context, arg ClearRoutinesFolderParams) error {
+	_, err := q.db.ExecContext(ctx, clearRoutinesFolder, arg.UpdatedAt, arg.FolderID, arg.UserID)
+	return err
+}
+
 const createRoutine = `-- name: CreateRoutine :one
 INSERT INTO routines (id, user_id, folder_id, title, notes, order_index, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, user_id, folder_id, title, notes, order_index, created_at, updated_at, deleted_at, server_seq

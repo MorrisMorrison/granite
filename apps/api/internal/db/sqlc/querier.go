@@ -18,6 +18,8 @@ type Querier interface {
 	ChangedRoutineFolders(ctx context.Context, arg ChangedRoutineFoldersParams) ([]RoutineFolder, error)
 	ChangedRoutines(ctx context.Context, arg ChangedRoutinesParams) ([]Routine, error)
 	ChangedWorkouts(ctx context.Context, arg ChangedWorkoutsParams) ([]Workout, error)
+	ClearRoutinesFolder(ctx context.Context, arg ClearRoutinesFolderParams) error
+	CountExerciseUsage(ctx context.Context, arg CountExerciseUsageParams) (int64, error)
 	CountExercises(ctx context.Context) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateApiToken(ctx context.Context, arg CreateApiTokenParams) (ApiToken, error)

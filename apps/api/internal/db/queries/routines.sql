@@ -18,6 +18,10 @@ WHERE id = ? AND user_id = ? AND deleted_at IS NULL RETURNING *;
 UPDATE routine_folders SET deleted_at = ?, updated_at = ?
 WHERE id = ? AND user_id = ? AND deleted_at IS NULL;
 
+-- name: ClearRoutinesFolder :exec
+UPDATE routines SET folder_id = NULL, updated_at = ?
+WHERE folder_id = ? AND user_id = ?;
+
 -- Routines --------------------------------------------------------------------
 
 -- name: ListRoutines :many
