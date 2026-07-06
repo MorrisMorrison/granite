@@ -28,6 +28,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.AllowRegistration {
 		t.Error("AllowRegistration should default to false (closed)")
 	}
+	if cfg.TrustedProxy {
+		t.Error("TrustedProxy should default to false (don't trust X-Forwarded-For)")
+	}
 	if cfg.Port != "8080" {
 		t.Errorf("Port default = %q, want 8080", cfg.Port)
 	}
@@ -41,6 +44,7 @@ func TestLoadOverrides(t *testing.T) {
 	t.Setenv("PORT", "9999")
 	t.Setenv("GRANITE_ENV", "dev")
 	t.Setenv("GRANITE_ALLOW_REGISTRATION", "true")
+	t.Setenv("GRANITE_TRUSTED_PROXY", "true")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -53,6 +57,9 @@ func TestLoadOverrides(t *testing.T) {
 	}
 	if !cfg.AllowRegistration {
 		t.Error("GRANITE_ALLOW_REGISTRATION=true should parse to true")
+	}
+	if !cfg.TrustedProxy {
+		t.Error("GRANITE_TRUSTED_PROXY=true should parse to true")
 	}
 }
 

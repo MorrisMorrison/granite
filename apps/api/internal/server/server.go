@@ -40,6 +40,9 @@ type Server struct {
 	db       *sql.DB
 	web      http.Handler
 	gate     gate.AccountGate
+	// trustedProxy gates middleware.RealIP; off by default so a directly-exposed
+	// instance won't trust client-supplied X-Forwarded-For for rate limiting.
+	trustedProxy bool
 }
 
 // Option configures a Server; options are applied after defaults in New.
@@ -52,6 +55,13 @@ func WithGate(g gate.AccountGate) Option {
 			s.gate = g
 		}
 	}
+}
+
+// WithTrustedProxy enables middleware.RealIP, honoring the client's
+// X-Forwarded-For/X-Real-IP. Only pass true when behind a trusted proxy that
+// replaces those headers; otherwise the per-IP rate limiter can be spoofed.
+func WithTrustedProxy(trusted bool) Option {
+	return func(s *Server) { s.trustedProxy = trusted }
 }
 
 // New constructs a Server. allowedOrigins is the CORS allow-list.
@@ -78,7 +88,13 @@ func (s *Server) OpenAPIYAML() ([]byte, error) {
 
 func (s *Server) setupRouter(allowedOrigins []string) {
 	r := s.router
-	r.Use(middleware.RealIP)
+	// RealIP rewrites RemoteAddr from client-supplied X-Forwarded-For/X-Real-IP,
+	// which the rate limiter keys on. Only trust it behind a proxy that replaces
+	// those headers; on a directly-exposed instance it would let an attacker spoof
+	// its way past the per-IP limits.
+	if s.trustedProxy {
+		r.Use(middleware.RealIP)
+	}
 	r.Use(middleware.Recoverer)
 	r.Use(secureHeaders)
 	r.Use(requestLogger)

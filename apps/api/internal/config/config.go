@@ -18,7 +18,12 @@ type Config struct {
 	JWTSecret         string
 	BaseURL           string
 	AllowRegistration bool
-	LogLevel          string
+	// TrustedProxy enables middleware.RealIP, which rewrites RemoteAddr from the
+	// client-supplied X-Forwarded-For/X-Real-IP headers. Only enable it when the
+	// instance runs behind a trusted proxy that replaces those headers; otherwise
+	// an attacker could spoof them to evade the per-IP rate limiter.
+	TrustedProxy bool
+	LogLevel     string
 	// Env is "prod" (default) or "dev". In dev the server auto-seeds the demo
 	// account on startup; see GRANITE_ENV in docs/DEVELOPMENT.md.
 	Env string
@@ -39,6 +44,7 @@ func Load() (Config, error) {
 		// (see auth.Service.Register), but an exposed instance won't accept
 		// arbitrary signups unless this is explicitly enabled.
 		AllowRegistration: getbool("GRANITE_ALLOW_REGISTRATION", false),
+		TrustedProxy:      getbool("GRANITE_TRUSTED_PROXY", false),
 		LogLevel:          getenv("GRANITE_LOG_LEVEL", "info"),
 		Env:               getenv("GRANITE_ENV", "prod"),
 	}

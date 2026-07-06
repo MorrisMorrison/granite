@@ -82,7 +82,7 @@ func Run(ctx context.Context, opts Options) error {
 	routineSvc := routine.NewService(database, queries)
 	workoutSvc := workout.NewService(database, queries)
 	syncSvc := syncpkg.NewService(database, queries)
-	srv := server.New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{cfg.BaseURL}, server.WithGate(opts.gateOrDefault()))
+	srv := server.New(authSvc, exerciseSvc, routineSvc, workoutSvc, syncSvc, tokens, database, []string{cfg.BaseURL}, server.WithGate(opts.gateOrDefault()), server.WithTrustedProxy(cfg.TrustedProxy))
 
 	httpSrv := &http.Server{
 		Addr:              ":" + cfg.Port,
