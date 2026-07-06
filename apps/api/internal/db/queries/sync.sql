@@ -15,7 +15,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
     name = excluded.name, exercise_type = excluded.exercise_type, primary_muscle = excluded.primary_muscle,
     secondary_muscles = excluded.secondary_muscles, equipment = excluded.equipment, instructions = excluded.instructions,
-    is_archived = excluded.is_archived, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
+    is_archived = excluded.is_archived, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= exercises.updated_at;
 
 -- name: ChangedRoutineFolders :many
 SELECT * FROM routine_folders WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
@@ -27,7 +28,8 @@ SELECT * FROM routine_folders WHERE id = ? LIMIT 1;
 INSERT INTO routine_folders (id, user_id, name, order_index, created_at, updated_at, deleted_at)
 VALUES (?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
-    name = excluded.name, order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
+    name = excluded.name, order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= routine_folders.updated_at;
 
 -- name: ChangedRoutines :many
 SELECT * FROM routines WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
@@ -40,7 +42,8 @@ INSERT INTO routines (id, user_id, folder_id, title, notes, order_index, created
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
     folder_id = excluded.folder_id, title = excluded.title, notes = excluded.notes,
-    order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
+    order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= routines.updated_at;
 
 -- name: ChangedWorkouts :many
 SELECT * FROM workouts WHERE user_id = ? AND server_seq > ? ORDER BY server_seq, id;
@@ -53,4 +56,5 @@ INSERT INTO workouts (id, user_id, routine_id, title, notes, start_time, end_tim
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
     routine_id = excluded.routine_id, title = excluded.title, notes = excluded.notes,
-    start_time = excluded.start_time, end_time = excluded.end_time, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at;
+    start_time = excluded.start_time, end_time = excluded.end_time, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= workouts.updated_at;

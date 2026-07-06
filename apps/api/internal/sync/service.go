@@ -58,6 +58,16 @@ func NewService(db *sql.DB, q *sqlc.Queries) *Service {
 // Pull returns all of the user's changes with server_seq > since, in FK-dependency
 // order, plus the new cursor (max server_seq seen, or since if nothing changed).
 func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Change, int64, error) {
+	// One read-only snapshot for all reads below: without it a concurrent push
+	// interleaved between two of these queries could make the puller skip a
+	// change forever (its server_seq lands below the cursor we ultimately return).
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return nil, since, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	q := s.q.WithTx(tx)
+
 	var changes []Change
 	cursor := since
 	add := func(c Change, seq int64) {
@@ -67,7 +77,7 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 		}
 	}
 
-	exs, err := s.q.ChangedExercises(ctx, sqlc.ChangedExercisesParams{UserID: sql.NullString{String: userID, Valid: true}, ServerSeq: since})
+	exs, err := q.ChangedExercises(ctx, sqlc.ChangedExercisesParams{UserID: sql.NullString{String: userID, Valid: true}, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
@@ -79,7 +89,7 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 		})}, e.ServerSeq)
 	}
 
-	folders, err := s.q.ChangedRoutineFolders(ctx, sqlc.ChangedRoutineFoldersParams{UserID: userID, ServerSeq: since})
+	folders, err := q.ChangedRoutineFolders(ctx, sqlc.ChangedRoutineFoldersParams{UserID: userID, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
@@ -89,28 +99,28 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 		})}, f.ServerSeq)
 	}
 
-	routines, err := s.q.ChangedRoutines(ctx, sqlc.ChangedRoutinesParams{UserID: userID, ServerSeq: since})
+	routines, err := q.ChangedRoutines(ctx, sqlc.ChangedRoutinesParams{UserID: userID, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
 	for _, r := range routines {
 		d := routineData{FolderID: sqlnull.StringPtr(r.FolderID), Title: r.Title, Notes: r.Notes, OrderIndex: r.OrderIndex, CreatedAt: r.CreatedAt}
 		if !r.DeletedAt.Valid {
-			if d.Exercises, err = s.loadRoutineChildren(ctx, r.ID); err != nil {
+			if d.Exercises, err = s.loadRoutineChildren(ctx, q, r.ID); err != nil {
 				return nil, since, err
 			}
 		}
 		add(Change{Entity: EntityRoutine, ID: r.ID, UpdatedAt: r.UpdatedAt, Deleted: r.DeletedAt.Valid, Data: mustJSON(d)}, r.ServerSeq)
 	}
 
-	workouts, err := s.q.ChangedWorkouts(ctx, sqlc.ChangedWorkoutsParams{UserID: userID, ServerSeq: since})
+	workouts, err := q.ChangedWorkouts(ctx, sqlc.ChangedWorkoutsParams{UserID: userID, ServerSeq: since})
 	if err != nil {
 		return nil, since, err
 	}
 	for _, w := range workouts {
 		d := workoutData{RoutineID: sqlnull.StringPtr(w.RoutineID), Title: w.Title, Notes: w.Notes, StartTime: w.StartTime, EndTime: sqlnull.Int64Ptr(w.EndTime), CreatedAt: w.CreatedAt}
 		if !w.DeletedAt.Valid {
-			if d.Exercises, err = s.loadWorkoutChildren(ctx, w.ID); err != nil {
+			if d.Exercises, err = s.loadWorkoutChildren(ctx, q, w.ID); err != nil {
 				return nil, since, err
 			}
 		}
@@ -118,7 +128,7 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 	}
 
 	// Bodyweight (raw SQL — not in sqlc; mirrors the entity pattern above).
-	bwRows, err := s.db.QueryContext(ctx,
+	bwRows, err := tx.QueryContext(ctx,
 		`SELECT id, weight, recorded_at, created_at, updated_at, deleted_at, server_seq FROM bodyweight WHERE user_id = ? AND server_seq > ?`,
 		userID, since)
 	if err != nil {
@@ -137,6 +147,10 @@ func (s *Service) Pull(ctx context.Context, userID string, since int64) ([]Chang
 			Data: mustJSON(bodyweightData{Weight: weight, RecordedAt: recordedAt, CreatedAt: createdAt})}, serverSeq)
 	}
 	if err := bwRows.Err(); err != nil {
+		return nil, since, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, since, err
 	}
 

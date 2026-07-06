@@ -36,7 +36,10 @@ func (s *Service) applyExercise(ctx context.Context, userID string, c Change) (b
 	existing, err := s.q.GetExerciseForSync(ctx, c.ID)
 	switch {
 	case err == nil:
-		if existing.UserID.Valid && existing.UserID.String != userID {
+		if !existing.UserID.Valid {
+			return false, nil // built-in (user_id NULL) — read-only, matches CRUD guard/ADR-0008
+		}
+		if existing.UserID.String != userID {
 			return false, nil // not the owner
 		}
 		if c.UpdatedAt < existing.UpdatedAt {
@@ -258,7 +261,8 @@ func (s *Service) applyBodyweight(ctx context.Context, userID string, c Change) 
 			weight = excluded.weight,
 			recorded_at = excluded.recorded_at,
 			updated_at = excluded.updated_at,
-			deleted_at = excluded.deleted_at`,
+			deleted_at = excluded.deleted_at
+		WHERE excluded.updated_at >= bodyweight.updated_at`,
 		c.ID, userID, d.Weight, d.RecordedAt, nz(d.CreatedAt, c.UpdatedAt), c.UpdatedAt, deletedAt(c)); err != nil {
 		return false, err
 	}
