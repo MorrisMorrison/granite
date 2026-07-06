@@ -1,0 +1,11 @@
+# Keep the build context small and never ship host artifacts into the image.
+# (Host node_modules would otherwise clobber the ones pnpm installs in-stage.)
+**/node_modules
+.git
+**/build
+**/.svelte-kit
+apps/mobile/e2e/.tmp
+*.db*
+apps/docs/dist
+reviews/
+**/*.tsbuildinfo

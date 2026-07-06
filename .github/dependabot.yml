@@ -37,6 +37,11 @@ updates:
       day: "monday"
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # Pin the Node base to its current major — a node 24→26 bump broke the
+      # build once; only take node majors deliberately, not from dependabot.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions workflows
   - package-ecosystem: "github-actions"
@@ -48,4 +53,4 @@ updates:
       prefix: "chore(ci)"
     groups:
       actions:
-        update-types: ["minor", "patch"]
+        update-types: ["major", "minor", "patch"]

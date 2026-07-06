@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'apps/docs/**'
+      - 'apps/api/openapi.yaml'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
