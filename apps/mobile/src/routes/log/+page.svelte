@@ -9,7 +9,8 @@
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { restAlert } from '$lib/restAlert';
 	import { SET_TYPES, setLabel } from '$lib/sets';
-	import { roundToLoadable } from '$lib/calc';
+	import { roundDeload } from '$lib/calc';
+	import { createRestTimer } from '$lib/restTimer';
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
@@ -58,7 +59,7 @@
 		for (const ex of exercises) {
 			for (const s of ex.sets) {
 				const base = deloadBase[s.uid];
-				if (base != null && base > 0) s.weight = roundToLoadable(base * factor, unit);
+				if (base != null && base > 0) s.weight = roundDeload(base * factor, unit);
 			}
 		}
 	}
@@ -143,34 +144,58 @@
 		if (s.is_completed) startRest(prefs.current.restSeconds);
 	}
 
-	// --- rest timer ---
+	// --- rest timer (wall-clock: tracks an absolute end time, so it stays accurate
+	// while the phone is locked/backgrounded — see restTimer.ts) ---
+	const timer = createRestTimer();
 	let restRemaining = $state(0);
 	let restActive = $state(false);
 	let restInterval: ReturnType<typeof setInterval> | null = null;
 
-	function startRest(seconds: number) {
-		restRemaining = seconds;
-		restActive = true;
-		if (restInterval) clearInterval(restInterval);
-		restInterval = setInterval(() => {
-			restRemaining -= 1;
-			if (restRemaining <= 0) {
-				restAlert(); // buzz + beep when the rest period ends
-				stopRest();
-			}
-		}, 1000);
+	// Mirror the timer's state into the reactive vars the UI reads.
+	function sync() {
+		restRemaining = timer.remaining();
+		restActive = timer.active();
 	}
-	function bumpRest(delta: number) {
-		restRemaining = Math.max(0, restRemaining + delta);
-	}
-	function stopRest() {
-		restActive = false;
-		if (restInterval) {
+	// Recompute against the wall clock; fire the alert on the expiry transition.
+	function refresh() {
+		if (timer.tick(Date.now())) restAlert(); // buzz + beep when the rest period ends
+		sync();
+		if (!timer.active() && restInterval) {
 			clearInterval(restInterval);
 			restInterval = null;
 		}
 	}
-	onDestroy(stopRest);
+
+	function startRest(seconds: number) {
+		timer.start(seconds);
+		if (!restInterval) restInterval = setInterval(refresh, 1000);
+		sync();
+	}
+	function bumpRest(delta: number) {
+		timer.bump(delta);
+		sync();
+	}
+	function stopRest() {
+		timer.stop();
+		if (restInterval) {
+			clearInterval(restInterval);
+			restInterval = null;
+		}
+		sync();
+	}
+
+	// On resume (unlock/foreground) recompute immediately so a rest that elapsed
+	// while backgrounded expires at once instead of waiting for the next tick.
+	function onVisible() {
+		if (document.visibilityState === 'visible') refresh();
+	}
+	onMount(() => {
+		document.addEventListener('visibilitychange', onVisible);
+	});
+	onDestroy(() => {
+		document.removeEventListener('visibilitychange', onVisible);
+		stopRest();
+	});
 
 	function fmt(s: number) {
 		return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

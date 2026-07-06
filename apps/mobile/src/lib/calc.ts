@@ -62,6 +62,18 @@ export function roundToLoadable(weight: number, unit: WeightUnit): number {
 	return bar + Math.round((weight - bar) / inc) * inc;
 }
 
+/**
+ * Round a deloaded weight. For barbell-range weights (≥ bar) this is loadable
+ * barbell math; for sub-bar weights (dumbbells, machines, light accessories) it
+ * rounds to the small increment (2.5 kg / 5 lb) instead of flooring to the bar —
+ * so a 12 kg dumbbell deloaded −10% lands near 10.5, not 20. Never below 0.
+ */
+export function roundDeload(weight: number, unit: WeightUnit): number {
+	if (weight >= BAR[unit]) return roundToLoadable(weight, unit);
+	const inc = 2 * PLATES[unit][PLATES[unit].length - 1]; // 2.5 kg / 5 lb
+	return Math.max(0, Math.round(weight / inc) * inc);
+}
+
 export interface WarmupSet {
 	pct: number;
 	weight: number;
