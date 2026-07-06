@@ -8,7 +8,7 @@ export interface SessionStat {
 	top_weight: number | null; // heaviest weight lifted that session
 	top_reps: number | null; // reps at that heaviest set
 	best_1rm: number | null; // best estimated 1RM (Epley), kg
-	volume: number; // sum(weight × reps) over completed sets, kg
+	volume: number; // sum(weight × reps) over completed working (non-warm-up) sets, kg
 }
 
 export interface ExerciseProgress {
@@ -23,6 +23,7 @@ export interface ExerciseProgress {
 interface SetData {
 	weight: number | null;
 	reps: number | null;
+	set_type?: string;
 	is_completed?: boolean;
 }
 interface WorkoutData {
@@ -84,7 +85,9 @@ export function computeExerciseProgress(
 			for (const s of ex.sets ?? []) {
 				if (s.is_completed === false) continue; // completed sets only (undefined counts)
 				counted = true;
-				if (s.weight != null && s.reps != null) volume += s.weight * s.reps;
+				// Volume is working-set tonnage only — warm-ups don't count (matches analytics.ts).
+				if (s.set_type !== 'warmup' && s.weight != null && s.reps != null)
+					volume += s.weight * s.reps;
 				if (s.weight != null && (topWeight == null || s.weight > topWeight)) {
 					topWeight = s.weight;
 					topReps = s.reps;

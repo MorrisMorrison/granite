@@ -58,13 +58,22 @@
 	const totalSets = $derived(
 		workout ? workout.exercises.reduce((n, e) => n + e.sets.length, 0) : 0
 	);
-	// Volume in kg, converted to the display unit and rounded.
+	// Volume in kg, converted to the display unit and rounded. Working-set tonnage
+	// only: completed (unchecked skipped) and not a warm-up — matches stats/analytics.
 	const totalVolume = $derived(
 		workout
 			? Math.round(
 					kgToDisplay(
 						workout.exercises.reduce(
-							(vol, e) => vol + e.sets.reduce((s, set) => s + (set.weight ?? 0) * (set.reps ?? 0), 0),
+							(vol, e) =>
+								vol +
+								e.sets.reduce(
+									(s, set) =>
+										set.is_completed !== false && set.set_type !== 'warmup'
+											? s + (set.weight ?? 0) * (set.reps ?? 0)
+											: s,
+									0
+								),
 							0
 						),
 						unit

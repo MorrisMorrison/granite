@@ -31,18 +31,27 @@ async function workoutsForAnalytics(): Promise<AnalyticsWorkout[]> {
 			start_time?: number;
 			exercises?: {
 				exercise_id?: string;
-				sets?: { set_type?: string; weight?: number | null; reps?: number | null }[];
+				sets?: {
+					set_type?: string;
+					weight?: number | null;
+					reps?: number | null;
+					is_completed?: boolean;
+				}[];
 			}[];
 		};
 		return {
 			start_time: d.start_time ?? 0,
 			exercises: (d.exercises ?? []).map((e) => ({
 				exercise_id: e.exercise_id ?? '',
-				sets: (e.sets ?? []).map((s) => ({
-					set_type: s.set_type ?? 'normal',
-					weight: s.weight ?? null,
-					reps: s.reps ?? null
-				}))
+				// Only completed sets feed analytics; a missing flag counts as completed
+				// (matches stats.ts). analytics.ts then drops warm-ups → the shared predicate.
+				sets: (e.sets ?? [])
+					.filter((s) => s.is_completed !== false)
+					.map((s) => ({
+						set_type: s.set_type ?? 'normal',
+						weight: s.weight ?? null,
+						reps: s.reps ?? null
+					}))
 			}))
 		};
 	});
@@ -53,11 +62,6 @@ export async function muscleSets(weeks: number, now = Date.now()): Promise<Muscl
 	const [workouts, exs] = await Promise.all([workoutsForAnalytics(), listExercises()]);
 	const muscle = new Map(exs.map((e) => [e.id, e.primary_muscle]));
 	return setsPerMuscle(workouts, (id) => muscle.get(id) ?? 'Other', now, weeks);
-}
-
-/** Working sets per muscle group this week (busiest first). */
-export async function muscleSetsThisWeek(now = Date.now()): Promise<MuscleSets[]> {
-	return muscleSets(1, now);
 }
 
 /** Working-set tonnage (kg) per week over the recent weeks (oldest first). */
