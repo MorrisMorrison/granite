@@ -13,7 +13,7 @@ cmd/granite/         # main entrypoint (the server binary)
 cmd/gen-openapi/     # writes openapi.yaml from the Huma API definition
 cmd/seed-demo/       # creates a demo account with sample data (idempotent)
 internal/
-  apperr/            # typed error taxonomy → HTTP status + {error, code, details} envelope
+  apperr/            # typed error taxonomy → HTTP status (Huma emits RFC7807 problem JSON)
   auth/              # password hashing, JWTs, refresh tokens, personal API tokens
   config/            # env-var config
   db/                # SQLite open + migrations (sqlc-generated queries; see sqlc.yaml)
