@@ -12,6 +12,7 @@
 	import { roundDeload } from '$lib/calc';
 	import { createRestTimer } from '$lib/restTimer';
 	import { displayToKg, kgToDisplay } from '$lib/units';
+	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '$lib/workoutDraft';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
@@ -29,6 +30,7 @@
 		exercise_id: string;
 		name: string;
 		notes?: string; // carried from the routine, shown as a cue
+		rest_seconds?: number; // per-exercise rest from the routine; drives the timer over the global pref
 		sets: DraftSet[];
 		prev?: { weight: number | null; reps: number | null }[]; // last session's sets (kg)
 	}
@@ -39,7 +41,10 @@
 	let saving = $state(false);
 	let error = $state('');
 	let fromRoutineId: string | undefined = $state(undefined);
-	const startTime = Date.now();
+	let startTime = $state(Date.now());
+	// Set once a draft has been offered/dismissed on mount, so the auto-save $effect
+	// doesn't clobber a persisted draft before we've had the chance to restore it.
+	let draftReady = $state(false);
 
 	const setTypes = SET_TYPES;
 	const unit = $derived(prefs.current.weightUnit);
@@ -139,9 +144,10 @@
 		exercises = exercises.filter((e) => e.uid !== uid);
 	}
 
-	function toggleComplete(s: DraftSet) {
+	function toggleComplete(ex: DraftExercise, s: DraftSet) {
 		s.is_completed = !s.is_completed;
-		if (s.is_completed) startRest(prefs.current.restSeconds);
+		// Prefer the routine exercise's own rest; fall back to the global default.
+		if (s.is_completed) startRest(ex.rest_seconds && ex.rest_seconds > 0 ? ex.rest_seconds : prefs.current.restSeconds);
 	}
 
 	// --- rest timer (wall-clock: tracks an absolute end time, so it stays accurate
@@ -206,7 +212,10 @@
 	);
 
 	function cancel() {
-		if (exercises.length === 0 || confirm('Discard this workout?')) void goto('/');
+		if (exercises.length === 0 || confirm('Discard this workout?')) {
+			clearDraft();
+			void goto('/');
+		}
 	}
 
 	async function finish() {
@@ -234,6 +243,7 @@
 					}))
 				}))
 			});
+			clearDraft(); // the workout is saved; drop the in-progress draft
 			await goto('/history');
 		} catch (e) {
 			error = (e as Error).message;
@@ -256,6 +266,7 @@
 			exercise_id: ex.exercise_id,
 			name: nameOf(ex.exercise_id),
 			notes: ex.notes,
+			rest_seconds: ex.rest_seconds,
 			sets: ex.sets.map((s) => ({
 				uid: crypto.randomUUID(),
 				set_type: s.set_type,
@@ -267,10 +278,57 @@
 		for (const ex of exercises) void attachPrev(ex);
 	}
 
+	// Restore a persisted draft into the reactive state, then re-fetch last-session hints.
+	function restoreDraft(d: WorkoutDraft) {
+		title = d.title;
+		notes = d.notes;
+		startTime = d.startTime;
+		fromRoutineId = d.fromRoutineId;
+		exercises = d.exercises;
+		for (const ex of exercises) void attachPrev(ex);
+	}
+
 	onMount(() => {
+		const draft = loadDraft();
+		if (draft && confirm('You have an unfinished workout. Resume it?')) {
+			restoreDraft(draft);
+			draftReady = true;
+			return;
+		}
+		if (draft) clearDraft(); // declined — start fresh
 		const routineId = page.url.searchParams.get('routine');
-		if (routineId) void prefillFromRoutine(routineId);
-		else void openPicker();
+		if (routineId) void prefillFromRoutine(routineId).finally(() => (draftReady = true));
+		else {
+			void openPicker();
+			draftReady = true;
+		}
+	});
+
+	// Auto-persist the in-progress workout on any meaningful change, so a back-swipe,
+	// tab eviction, or reload doesn't discard it. Cheap: just serializes the state.
+	// Gated on draftReady so it can't overwrite a stored draft before restore runs.
+	$effect(() => {
+		if (!draftReady) return;
+		saveDraft({
+			title,
+			notes,
+			startTime,
+			fromRoutineId,
+			exercises: exercises.map((ex) => ({
+				uid: ex.uid,
+				exercise_id: ex.exercise_id,
+				name: ex.name,
+				notes: ex.notes,
+				rest_seconds: ex.rest_seconds,
+				sets: ex.sets.map((s) => ({
+					uid: s.uid,
+					set_type: s.set_type,
+					weight: s.weight,
+					reps: s.reps,
+					is_completed: s.is_completed
+				}))
+			}))
+		});
 	});
 </script>
 
@@ -331,7 +389,7 @@
 					<input
 						type="checkbox"
 						checked={s.is_completed}
-						onchange={() => toggleComplete(s)}
+						onchange={() => toggleComplete(ex, s)}
 						data-testid="set-complete"
 					/>
 					<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
