@@ -34,7 +34,6 @@
 
 	/* Motion */
 	--dur-fast: 120ms;
-	--dur: 200ms;
 	--ease: cubic-bezier(0.2, 0, 0, 1);
 
 	/* Layout */
@@ -123,47 +122,6 @@ textarea::placeholder {
 
 button {
 	font: inherit;
-}
-
-.btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.5rem;
-	padding: 0.7rem 1.1rem;
-	background: var(--accent);
-	color: var(--accent-text);
-	border: none;
-	border-radius: var(--radius-md);
-	font-weight: 600;
-	cursor: pointer;
-	transition:
-		background var(--dur-fast) var(--ease),
-		transform var(--dur-fast) var(--ease);
-}
-
-.btn:hover {
-	background: var(--accent-hover);
-}
-
-.btn:active {
-	transform: scale(0.98);
-}
-
-.btn:disabled {
-	opacity: 0.55;
-	cursor: default;
-	transform: none;
-}
-
-.btn-ghost {
-	background: transparent;
-	color: var(--text);
-	border: 1px solid var(--border-strong);
-}
-
-.btn-ghost:hover {
-	background: var(--elevated);
 }
 
 .error {
