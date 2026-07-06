@@ -27,7 +27,7 @@ COPY --from=web-builder /src/apps/mobile/build/ ./internal/webui/dist/
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/granite ./cmd/granite
 
 # Stage 3 — minimal runtime
-FROM alpine:3.21
+FROM alpine:3.24
 RUN apk --no-cache add ca-certificates
 WORKDIR /app
 COPY --from=api-builder /out/granite ./granite
