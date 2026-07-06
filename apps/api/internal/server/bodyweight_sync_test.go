@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 )
@@ -79,6 +80,17 @@ func TestImportBodyweight(t *testing.T) {
 	})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("import = %d: %s", rec.Code, rec.Body)
+	}
+	var res struct {
+		Imported struct {
+			Bodyweight int `json:"bodyweight"`
+		} `json:"imported"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("decode import response: %v", err)
+	}
+	if res.Imported.Bodyweight != 1 {
+		t.Fatalf("imported bodyweight count = %d, want 1", res.Imported.Bodyweight)
 	}
 	c := findChange(pull(t, h, token, 0).Changes, "imp1")
 	if c == nil || c.Data["weight"].(float64) != 77.5 {

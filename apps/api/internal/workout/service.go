@@ -67,11 +67,11 @@ type Workout struct {
 
 type WorkoutSetInput struct {
 	SetType     string   `json:"set_type,omitempty"`
-	Weight      *float64 `json:"weight,omitempty"`
-	Reps        *int     `json:"reps,omitempty"`
-	RPE         *float64 `json:"rpe,omitempty"`
-	Duration    *int     `json:"duration,omitempty"`
-	Distance    *float64 `json:"distance,omitempty"`
+	Weight      *float64 `json:"weight,omitempty" minimum:"0"`
+	Reps        *int     `json:"reps,omitempty" minimum:"0"`
+	RPE         *float64 `json:"rpe,omitempty" minimum:"0" maximum:"10"`
+	Duration    *int     `json:"duration,omitempty" minimum:"0"`
+	Distance    *float64 `json:"distance,omitempty" minimum:"0"`
 	IsCompleted bool     `json:"is_completed,omitempty"`
 }
 

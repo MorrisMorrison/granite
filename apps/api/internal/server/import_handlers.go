@@ -33,10 +33,11 @@ type importInput struct {
 type importOutput struct {
 	Body struct {
 		Imported struct {
-			Exercises int `json:"exercises"`
-			Folders   int `json:"folders"`
-			Routines  int `json:"routines"`
-			Workouts  int `json:"workouts"`
+			Exercises  int `json:"exercises"`
+			Folders    int `json:"folders"`
+			Routines   int `json:"routines"`
+			Workouts   int `json:"workouts"`
+			Bodyweight int `json:"bodyweight"`
 		} `json:"imported"`
 	}
 }
@@ -108,6 +109,8 @@ func (s *Server) handleImport(ctx context.Context, in *importInput) (*importOutp
 			out.Body.Imported.Routines++
 		case syncpkg.EntityWorkout:
 			out.Body.Imported.Workouts++
+		case syncpkg.EntityBodyweight:
+			out.Body.Imported.Bodyweight++
 		}
 	}
 	return out, nil
