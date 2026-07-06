@@ -19,6 +19,24 @@ async function reconcileServerInstance(): Promise<void> {
 		if (!serverId) return;
 		const seen = await localStore.getServerId();
 		if (seen && seen !== serverId) {
+			// Different DB → the stale cache + cursor must go. But if there are queued
+			// local changes, they belong to the *old* server and can't be pushed there
+			// anymore; the wipe would drop them silently. Best-effort: try one push at
+			// the new server first, and warn if anything is still pending afterwards so
+			// the loss is at least surfaced rather than silent.
+			if (await localStore.hasPending()) {
+				try {
+					await sync(localStore, createSyncApi(api()));
+				} catch {
+					/* offline / rejected — fall through to the warning below */
+				}
+				if (await localStore.hasPending()) {
+					console.warn(
+						'[sync] server instance changed with unsynced local changes still queued; ' +
+							'these could not be pushed and will be discarded by the reset.'
+					);
+				}
+			}
 			await localStore.clear(); // different DB → drop the stale cache + cursor
 		}
 		await localStore.setServerId(serverId);
@@ -62,4 +80,21 @@ export async function resync(): Promise<SyncResult> {
  */
 export async function resetLocalData(): Promise<void> {
 	await localStore.clear();
+}
+
+/** Whether the local outbox has changes not yet confirmed by the server. Guards
+ *  destructive wipes (logout) from silently dropping unsynced work. */
+export function hasPending(): Promise<boolean> {
+	return localStore.hasPending();
+}
+
+/** Ask the browser to make the local store persistent so it isn't evicted under
+ *  storage pressure — the offline-first source of truth lives here. Best-effort and
+ *  guarded: unsupported environments (and non-browser test runs) are a no-op. */
+export function requestPersistentStorage(): void {
+	try {
+		void navigator?.storage?.persist?.();
+	} catch {
+		/* not supported / not a browser — ignore */
+	}
 }
