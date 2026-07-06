@@ -30,7 +30,7 @@
 </script>
 
 <div class="records">
-	{#each rows as r (r.exerciseId + r.at)}
+	{#each rows as r, i (`${r.exerciseId}-${r.at}-${i}`)}
 		<ListRow
 			href={`/exercises/${r.exerciseId}`}
 			title={r.exerciseName}

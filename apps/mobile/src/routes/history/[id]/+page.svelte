@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getWorkout, type WorkoutDetail } from '$lib/repo/workouts';
+	import { getWorkout, deleteWorkout, type WorkoutDetail } from '$lib/repo/workouts';
 	import { nearestBodyweight } from '$lib/repo/bodyweight';
 	import { syncNow } from '$lib/sync';
 	import { prefs } from '$lib/stores/prefs.svelte';
 	import { kgToDisplay } from '$lib/units';
 	import { setLabel } from '$lib/sets';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 
 	const id = page.params.id!;
@@ -33,6 +35,12 @@
 			/* offline — keep local */
 		}
 	});
+
+	async function remove() {
+		if (!confirm('Delete this workout? This cannot be undone.')) return;
+		await deleteWorkout(id);
+		await goto('/history');
+	}
 
 	const unit = $derived(prefs.current.weightUnit);
 	function w(kg: number | null): string {
@@ -113,7 +121,7 @@
 				<p class="muted">No exercises were logged in this session.</p>
 			{/if}
 
-			{#each workout.exercises as ex (ex.exercise_id)}
+			{#each workout.exercises as ex (ex.id)}
 				<section class="card ex" data-testid="wd-exercise">
 					<div class="ex-head">
 						<a
@@ -153,6 +161,12 @@
 					<p>{workout.notes}</p>
 				</section>
 			{/if}
+
+			<div class="danger-zone">
+				<Button variant="destructive" icon="trash" onclick={remove} testid="btn-delete-workout">
+					Delete workout
+				</Button>
+			</div>
 		</div>
 	{/if}
 </main>
@@ -214,6 +228,9 @@
 	.set-row.warmup .set-no {
 		color: var(--warning);
 		font-weight: 600;
+	}
+	.danger-zone {
+		margin-top: 1.5rem;
 	}
 	.notes p {
 		margin: 0.25rem 0 0;

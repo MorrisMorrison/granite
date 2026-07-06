@@ -18,6 +18,7 @@ vi.mock('$lib/sync', () => ({ syncNow: vi.fn(() => Promise.resolve({} as never))
 
 import {
 	createRoutine,
+	deleteRoutine,
 	duplicateRoutine,
 	getRoutine,
 	listRoutines,
@@ -143,5 +144,19 @@ describe('updateRoutine', () => {
 		const id = await createRoutine({ title: 'X', notes: '', folder_id: 'fa', exercises: [] });
 		await updateRoutine(id, { title: 'X', notes: '', folder_id: null, exercises: [] });
 		expect((await getRoutine(id))!.folder_id).toBeNull();
+	});
+});
+
+describe('deleteRoutine', () => {
+	it('writes a tombstone and hides the routine from the list and detail', async () => {
+		const id = await createRoutine({ title: 'Legs', notes: '', folder_id: null, exercises: [] });
+		expect(await listRoutines()).toHaveLength(1);
+
+		await deleteRoutine(id);
+
+		const rec = await backing.get('routine', id);
+		expect(rec?.deleted).toBe(true);
+		expect(await listRoutines()).toHaveLength(0);
+		expect(await getRoutine(id)).toBeNull();
 	});
 });

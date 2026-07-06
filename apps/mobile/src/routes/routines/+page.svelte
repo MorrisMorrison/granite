@@ -4,6 +4,7 @@
 		listRoutines,
 		setRoutineFolder,
 		duplicateRoutine,
+		deleteRoutine,
 		type RoutineRow
 	} from '$lib/repo/routines';
 	import {
@@ -96,6 +97,13 @@
 	}
 	async function duplicate() {
 		if (moveSheet.routineId) await duplicateRoutine(moveSheet.routineId);
+		closeMoveSheet();
+		await load();
+	}
+	async function removeRoutine() {
+		if (!moveSheet.routineId) return;
+		if (!confirm(`Delete routine "${moveSheet.title ?? ''}"? This cannot be undone.`)) return;
+		await deleteRoutine(moveSheet.routineId);
 		closeMoveSheet();
 		await load();
 	}
@@ -207,6 +215,11 @@
 		<li>
 			<button class="move-item" onclick={duplicate} data-testid="btn-duplicate-routine">
 				<Icon name="plus" size={16} /> Duplicate
+			</button>
+		</li>
+		<li>
+			<button class="move-item danger" onclick={removeRoutine} data-testid="btn-delete-routine">
+				<Icon name="trash" size={16} /> Delete
 			</button>
 		</li>
 	</ul>
@@ -325,5 +338,14 @@
 	}
 	.move-item:hover {
 		color: var(--accent);
+	}
+	.move-item.danger {
+		color: var(--danger);
+	}
+	.move-item.danger :global(svg) {
+		color: var(--danger);
+	}
+	.move-item.danger:hover {
+		color: var(--danger);
 	}
 </style>
