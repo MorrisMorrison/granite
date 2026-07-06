@@ -5,12 +5,55 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 
+	"github.com/MorrisMorrison/granite/apps/api/internal/apperr"
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
+
+// validate rejects incoming changes that the REST services would 400 on, so the
+// sync write path can't persist data that bypassed the domain rules. Returns an
+// apperr.Validation (→ 400) on bad input. Deletes carry no meaningful payload,
+// so they skip content validation.
+func validate(c Change) error {
+	if c.Deleted {
+		return nil
+	}
+	switch c.Entity {
+	case EntityRoutine:
+		var d routineData
+		if err := json.Unmarshal(c.Data, &d); err != nil {
+			return apperr.Validation("invalid routine data")
+		}
+		if strings.TrimSpace(d.Title) == "" {
+			return apperr.Validation("routine title is required")
+		}
+		for _, ex := range d.Exercises {
+			for _, st := range ex.Sets {
+				if st.SetType != "" && !validSetTypes[st.SetType] {
+					return apperr.Validation("invalid set_type: " + st.SetType)
+				}
+			}
+		}
+	case EntityWorkout:
+		var d workoutData
+		if err := json.Unmarshal(c.Data, &d); err != nil {
+			return apperr.Validation("invalid workout data")
+		}
+		// A workout title is optional (unlike a routine), so it is not required.
+		for _, ex := range d.Exercises {
+			for _, st := range ex.Sets {
+				if st.SetType != "" && !validSetTypes[st.SetType] {
+					return apperr.Validation("invalid set_type: " + st.SetType)
+				}
+			}
+		}
+	}
+	return nil
+}
 
 func (s *Service) inTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)

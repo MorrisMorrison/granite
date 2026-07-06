@@ -14,10 +14,20 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
+
+// clockSkew bounds how far ahead of the server clock a client-supplied
+// updated_at may be. A future-clocked device is clamped to now+clockSkew so it
+// can't make its records permanently win last-write-wins.
+const clockSkew = 5 * time.Minute
+
+// validSetTypes mirrors the routine/workout REST services — the sync write path
+// must reject the same values they would 400 on.
+var validSetTypes = map[string]bool{"normal": true, "warmup": true, "drop": true, "failure": true}
 
 // Entity identifiers, ordered by foreign-key dependency for push apply / pull return.
 const (
@@ -47,12 +57,13 @@ type Change struct {
 
 // Service implements pull/push over the user's syncable data.
 type Service struct {
-	db *sql.DB
-	q  *sqlc.Queries
+	db  *sql.DB
+	q   *sqlc.Queries
+	now func() time.Time
 }
 
 func NewService(db *sql.DB, q *sqlc.Queries) *Service {
-	return &Service{db: db, q: q}
+	return &Service{db: db, q: q, now: time.Now}
 }
 
 // Pull returns all of the user's changes with server_seq > since, in FK-dependency
@@ -192,6 +203,14 @@ func (s *Service) CurrentSeq(ctx context.Context, userID string) (int64, error) 
 }
 
 func (s *Service) apply(ctx context.Context, userID string, c Change) (bool, error) {
+	if err := validate(c); err != nil {
+		return false, err
+	}
+	// Clamp a future-clocked client so it can't permanently win LWW: bound
+	// updated_at to now+skew before the compare/upsert. Applied to every entity.
+	if maxTS := s.now().Add(clockSkew).UnixMilli(); c.UpdatedAt > maxTS {
+		c.UpdatedAt = maxTS
+	}
 	switch c.Entity {
 	case EntityExercise:
 		return s.applyExercise(ctx, userID, c)
