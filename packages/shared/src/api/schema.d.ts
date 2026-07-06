@@ -609,6 +609,8 @@ export interface components {
         };
         ImportedStruct: {
             /** Format: int64 */
+            bodyweight: number;
+            /** Format: int64 */
             exercises: number;
             /** Format: int64 */
             folders: number;

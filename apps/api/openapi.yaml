@@ -280,6 +280,7 @@ components:
           type: string
         rest_seconds:
           format: int64
+          minimum: 0
           type: integer
         sets:
           items:
@@ -522,6 +523,9 @@ components:
     ImportedStruct:
       additionalProperties: false
       properties:
+        bodyweight:
+          format: int64
+          type: integer
         exercises:
           format: int64
           type: integer
@@ -539,6 +543,7 @@ components:
         - folders
         - routines
         - workouts
+        - bodyweight
       type: object
     ListExercisesOutputBody:
       additionalProperties: false
@@ -826,15 +831,20 @@ components:
           type: string
         target_duration:
           format: int64
+          minimum: 0
           type: integer
         target_reps:
           format: int64
+          minimum: 0
           type: integer
         target_rpe:
           format: double
+          maximum: 10
+          minimum: 0
           type: number
         target_weight:
           format: double
+          minimum: 0
           type: number
       type: object
     SyncPullInputBody:
@@ -1166,22 +1176,28 @@ components:
       properties:
         distance:
           format: double
+          minimum: 0
           type: number
         duration:
           format: int64
+          minimum: 0
           type: integer
         is_completed:
           type: boolean
         reps:
           format: int64
+          minimum: 0
           type: integer
         rpe:
           format: double
+          maximum: 10
+          minimum: 0
           type: number
         set_type:
           type: string
         weight:
           format: double
+          minimum: 0
           type: number
       type: object
   securitySchemes:

@@ -79,16 +79,16 @@ type FolderInput struct {
 
 type SetInput struct {
 	SetType        string   `json:"set_type,omitempty"`
-	TargetWeight   *float64 `json:"target_weight,omitempty"`
-	TargetReps     *int     `json:"target_reps,omitempty"`
-	TargetRPE      *float64 `json:"target_rpe,omitempty"`
-	TargetDuration *int     `json:"target_duration,omitempty"`
+	TargetWeight   *float64 `json:"target_weight,omitempty" minimum:"0"`
+	TargetReps     *int     `json:"target_reps,omitempty" minimum:"0"`
+	TargetRPE      *float64 `json:"target_rpe,omitempty" minimum:"0" maximum:"10"`
+	TargetDuration *int     `json:"target_duration,omitempty" minimum:"0"`
 }
 
 type ExerciseInput struct {
 	ExerciseID    string     `json:"exercise_id"`
 	Notes         string     `json:"notes,omitempty"`
-	RestSeconds   int        `json:"rest_seconds,omitempty"`
+	RestSeconds   int        `json:"rest_seconds,omitempty" minimum:"0"`
 	SupersetGroup *int       `json:"superset_group,omitempty"`
 	Sets          []SetInput `json:"sets,omitempty"`
 }
