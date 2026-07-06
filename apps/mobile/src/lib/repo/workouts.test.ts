@@ -19,7 +19,7 @@ vi.mock('$lib/local/store', () => ({
 const { syncNow } = vi.hoisted(() => ({ syncNow: vi.fn(() => Promise.resolve()) }));
 vi.mock('$lib/sync', () => ({ syncNow }));
 
-import { getWorkout, listWorkouts, logWorkout } from './workouts';
+import { deleteWorkout, getWorkout, listWorkouts, logWorkout } from './workouts';
 
 let n = 0;
 beforeEach(() => {
@@ -118,5 +118,36 @@ describe('getWorkout', () => {
 
 	it('returns null for a missing workout', async () => {
 		expect(await getWorkout('nope')).toBeNull();
+	});
+
+	it('gives each exercise entry a unique id so the same exercise can appear twice', async () => {
+		const id = await logWorkout({
+			start_time: 1,
+			end_time: null,
+			exercises: [
+				{ exercise_id: 'ex1', sets: [] },
+				{ exercise_id: 'ex1', sets: [] }
+			]
+		});
+		const wd = await getWorkout(id);
+		expect(wd!.exercises).toHaveLength(2);
+		expect(wd!.exercises[0].exercise_id).toBe('ex1');
+		expect(wd!.exercises[1].exercise_id).toBe('ex1');
+		expect(wd!.exercises[0].id).not.toBe(wd!.exercises[1].id);
+	});
+});
+
+describe('deleteWorkout', () => {
+	it('writes a tombstone and hides the workout from the list and detail', async () => {
+		const id = await logWorkout({ title: 'Push', start_time: 1000, end_time: 2000, exercises: [] });
+		expect(await listWorkouts()).toHaveLength(1);
+
+		await deleteWorkout(id);
+
+		const rec = await backing.get('workout', id);
+		expect(rec?.deleted).toBe(true);
+		expect(await listWorkouts()).toHaveLength(0);
+		expect(await getWorkout(id)).toBeNull();
+		expect(syncNow).toHaveBeenCalled();
 	});
 });

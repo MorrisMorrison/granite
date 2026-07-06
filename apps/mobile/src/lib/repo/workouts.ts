@@ -33,6 +33,7 @@ export interface WorkoutSetDetail {
 	is_completed: boolean;
 }
 export interface WorkoutExerciseDetail {
+	id: string; // per-entry unique id (the same exercise can appear twice in one workout)
 	exercise_id: string;
 	name: string;
 	sets: WorkoutSetDetail[];
@@ -59,6 +60,7 @@ export async function getWorkout(id: string): Promise<WorkoutDetail | null> {
 		start_time?: number;
 		end_time?: number | null;
 		exercises?: {
+			id?: string;
 			exercise_id: string;
 			sets?: { set_type?: string; weight?: number | null; reps?: number | null; is_completed?: boolean }[];
 		}[];
@@ -69,7 +71,8 @@ export async function getWorkout(id: string): Promise<WorkoutDetail | null> {
 		notes: d.notes ?? '',
 		start_time: d.start_time ?? 0,
 		end_time: d.end_time ?? null,
-		exercises: (d.exercises ?? []).map((ex) => ({
+		exercises: (d.exercises ?? []).map((ex, i) => ({
+			id: ex.id ?? `${ex.exercise_id}-${i}`,
 			exercise_id: ex.exercise_id,
 			name: nameOf(ex.exercise_id),
 			sets: (ex.sets ?? []).map((s) => ({
@@ -140,4 +143,12 @@ export async function logWorkout(input: LogWorkoutInput): Promise<string> {
 	await localStore.localWrite(change);
 	void syncNow().catch(() => {}); // pushes online; stays queued in the outbox offline
 	return id;
+}
+
+/** Soft-delete a logged workout. Saves a tombstone locally + syncs. */
+export async function deleteWorkout(id: string): Promise<void> {
+	const now = Date.now();
+	const change: Change = { entity: 'workout', id, updated_at: now, deleted: true, data: {} };
+	await localStore.localWrite(change);
+	void syncNow().catch(() => {});
 }

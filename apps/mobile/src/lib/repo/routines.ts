@@ -142,6 +142,14 @@ export async function updateRoutine(id: string, input: RoutineInput): Promise<vo
 	await writeRoutine(id, Date.now(), d.created_at ?? Date.now(), folderId, d.order_index ?? 0, input);
 }
 
+/** Soft-delete a routine. Saves a tombstone locally + syncs. */
+export async function deleteRoutine(id: string): Promise<void> {
+	const now = Date.now();
+	const change: Change = { entity: 'routine', id, updated_at: now, deleted: true, data: {} };
+	await localStore.localWrite(change);
+	void syncNow().catch(() => {});
+}
+
 async function writeRoutine(
 	id: string,
 	updatedAt: number,
