@@ -27,17 +27,23 @@ COPY --from=web-builder /src/apps/mobile/build/ ./internal/webui/dist/
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/granite ./cmd/granite
 
 # Stage 3 — minimal runtime
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates curl
+FROM alpine:3.21
+RUN apk --no-cache add ca-certificates
 WORKDIR /app
 COPY --from=api-builder /out/granite ./granite
 
 ENV PORT=8080
 ENV GRANITE_DB_PATH=/data/granite.db
-RUN mkdir -p /data
+
+# Run as a non-root user; give it ownership of the data volume mountpoint.
+RUN addgroup -S granite && adduser -S -G granite granite \
+	&& mkdir -p /data && chown granite:granite /data
+USER granite
+
 EXPOSE 8080
 
+# busybox wget (already in the alpine base) — no extra package to install.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-	CMD curl -fsS "http://localhost:${PORT}/healthz" || exit 1
+	CMD wget -qO- "http://localhost:${PORT}/healthz" || exit 1
 
 CMD ["./granite"]

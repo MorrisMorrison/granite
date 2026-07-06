@@ -62,8 +62,9 @@ docker compose up -d
 Open `GRANITE_BASE_URL` and **register** — the first account is always allowed, even with registration
 closed (leave `GRANITE_ALLOW_REGISTRATION=false` to keep further signups off). That's it.
 
-- **Your data** is the single file in the `granite-data` volume (`/data/granite.db`). Back it up by
-  copying it, or use **Settings → Export** (restore via `POST /api/v1/import`). Migrations run on start.
+- **Your data** is the single file in the `granite-data` volume (`/data/granite.db`). Back it up with
+  the container stopped (or via `sqlite3 granite.db .backup` — don't copy a live WAL database), or use
+  **Settings → Export** (restore via `POST /api/v1/import`). Migrations run on start.
 - **API reference:** every instance serves an interactive reference at **`/docs`** and the spec at
   **`/openapi.yaml`**.
 - **Update:** `docker compose pull && docker compose up -d`.

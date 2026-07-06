@@ -81,8 +81,10 @@ can always be created**, so a personal instance needs no extra steps to bootstra
 
 ## Backups & data ownership
 
-- **Backups** are trivial: snapshot the **single SQLite file** (e.g. a scheduled copy, or use a tool
-  like Litestream for continuous replication). No DB dump tooling required.
+- **Backups** are trivial: it's a **single SQLite file**. Back it up with the container **stopped**, or
+  take a hot copy with `sqlite3 granite.db .backup backup.db` — don't just `cp` a live database, since
+  WAL mode keeps recent writes in a side file and a raw copy can be inconsistent. For continuous,
+  always-safe replication use a tool like Litestream. No DB dump tooling required.
 - **In-app export**: `GET /api/v1/export` (Settings → Export) returns a complete JSON of your data —
   true "own your data," independent of file-level backups.
 - **Restore**: either replace the SQLite file from a backup, or `POST /api/v1/import` an export JSON
@@ -116,9 +118,3 @@ stays light even with the whole history synced.
   (distroless/alpine).
 - Built and published by **GitHub Actions** (public repo → free CI). Images published to a registry
   (e.g. GHCR) so self-hosters can `docker pull`, or build from source.
-
-## Scaling beyond a household (optional, later)
-
-If anyone ever runs a larger shared instance, the storage layer is designed behind an interface so a
-**PostgreSQL** backend can be slotted in without touching the app logic (see
-[ADR-0004](decisions/0004-sqlite-everywhere.md)). Not needed for the target use case.
