@@ -73,17 +73,24 @@ func TestPushEmptyRoutineTitleRejected(t *testing.T) {
 	}
 }
 
-// FIX 1 — an empty workout title is rejected, nothing persisted.
-func TestPushEmptyWorkoutTitleRejected(t *testing.T) {
-	s, _, uid, _ := newTestService(t)
+// A workout title is OPTIONAL (unlike a routine) — a titleless workout must sync
+// fine (regression guard: an earlier version wrongly rejected it, breaking offline
+// sync of untitled workouts).
+func TestPushTitlelessWorkoutAccepted(t *testing.T) {
+	s, _, uid, exID := newTestService(t)
 	id := "wo-notitle"
-	assertValidation(t, s, uid, mkChange(EntityWorkout, id, 1000, false, workoutData{
+	if _, err := s.Push(context.Background(), uid, []Change{mkChange(EntityWorkout, id, 1000, false, workoutData{
 		Title: "", StartTime: 1000,
-	}))
-
+		Exercises: []workoutExerciseData{{
+			ID: "we-1", ExerciseID: exID, OrderIndex: 0,
+			Sets: []workoutSetData{{ID: "ws-1", OrderIndex: 0, SetType: "normal"}},
+		}},
+	})}); err != nil {
+		t.Fatalf("titleless workout should sync, got %v", err)
+	}
 	changes, _ := mustPull(t, s, uid, 0)
-	if findChange(changes, id) != nil {
-		t.Fatal("titleless workout was persisted despite validation error")
+	if findChange(changes, id) == nil {
+		t.Fatal("titleless workout was not persisted")
 	}
 }
 

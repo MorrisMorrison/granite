@@ -43,9 +43,7 @@ func validate(c Change) error {
 		if err := json.Unmarshal(c.Data, &d); err != nil {
 			return apperr.Validation("invalid workout data")
 		}
-		if strings.TrimSpace(d.Title) == "" {
-			return apperr.Validation("workout title is required")
-		}
+		// A workout title is optional (unlike a routine), so it is not required.
 		for _, ex := range d.Exercises {
 			for _, st := range ex.Sets {
 				if st.SetType != "" && !validSetTypes[st.SetType] {
