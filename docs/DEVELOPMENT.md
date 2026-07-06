@@ -10,7 +10,8 @@ granite/
 ├─ apps/
 │  ├─ api/      # Go backend — REST API, sync engine, SQLite; embeds the web build
 │  ├─ mobile/   # SvelteKit app (static SPA / PWA); Capacitor wrappers planned for iOS/Android
-│  └─ mcp/      # Model Context Protocol server (read + opt-in write tools)
+│  ├─ mcp/      # Model Context Protocol server (read + opt-in write tools)
+│  └─ docs/     # Astro Starlight documentation site (renders these docs + the OpenAPI reference)
 ├─ packages/
 │  └─ shared/   # TS: generated API client (from OpenAPI), shared types, sync engine
 ├─ deploy/      # docker-compose.yml + .env.example (self-hosting)
