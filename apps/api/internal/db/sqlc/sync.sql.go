@@ -286,6 +286,7 @@ ON CONFLICT(id) DO UPDATE SET
     name = excluded.name, exercise_type = excluded.exercise_type, primary_muscle = excluded.primary_muscle,
     secondary_muscles = excluded.secondary_muscles, equipment = excluded.equipment, instructions = excluded.instructions,
     is_archived = excluded.is_archived, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= exercises.updated_at
 `
 
 type UpsertExerciseParams struct {
@@ -327,6 +328,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
     folder_id = excluded.folder_id, title = excluded.title, notes = excluded.notes,
     order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= routines.updated_at
 `
 
 type UpsertRoutineParams struct {
@@ -361,6 +363,7 @@ INSERT INTO routine_folders (id, user_id, name, order_index, created_at, updated
 VALUES (?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
     name = excluded.name, order_index = excluded.order_index, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= routine_folders.updated_at
 `
 
 type UpsertRoutineFolderParams struct {
@@ -392,6 +395,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
     routine_id = excluded.routine_id, title = excluded.title, notes = excluded.notes,
     start_time = excluded.start_time, end_time = excluded.end_time, updated_at = excluded.updated_at, deleted_at = excluded.deleted_at
+WHERE excluded.updated_at >= workouts.updated_at
 `
 
 type UpsertWorkoutParams struct {

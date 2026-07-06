@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/MorrisMorrison/granite/apps/api/internal/db/sqlc"
 	"github.com/MorrisMorrison/granite/apps/api/internal/sqlnull"
 )
 
@@ -94,12 +95,12 @@ type bodyweightData struct {
 
 // --- child loading (for pull) -----------------------------------------------
 
-func (s *Service) loadRoutineChildren(ctx context.Context, routineID string) ([]routineExerciseData, error) {
-	exs, err := s.q.ListRoutineExercises(ctx, routineID)
+func (s *Service) loadRoutineChildren(ctx context.Context, q *sqlc.Queries, routineID string) ([]routineExerciseData, error) {
+	exs, err := q.ListRoutineExercises(ctx, routineID)
 	if err != nil {
 		return nil, err
 	}
-	sets, err := s.q.ListRoutineSetsForRoutine(ctx, routineID)
+	sets, err := q.ListRoutineSetsForRoutine(ctx, routineID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,12 +126,12 @@ func (s *Service) loadRoutineChildren(ctx context.Context, routineID string) ([]
 	return out, nil
 }
 
-func (s *Service) loadWorkoutChildren(ctx context.Context, workoutID string) ([]workoutExerciseData, error) {
-	exs, err := s.q.ListWorkoutExercises(ctx, workoutID)
+func (s *Service) loadWorkoutChildren(ctx context.Context, q *sqlc.Queries, workoutID string) ([]workoutExerciseData, error) {
+	exs, err := q.ListWorkoutExercises(ctx, workoutID)
 	if err != nil {
 		return nil, err
 	}
-	sets, err := s.q.ListWorkoutSetsForWorkout(ctx, workoutID)
+	sets, err := q.ListWorkoutSetsForWorkout(ctx, workoutID)
 	if err != nil {
 		return nil, err
 	}
