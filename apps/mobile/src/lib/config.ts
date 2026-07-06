@@ -13,7 +13,3 @@ export function getServerUrl(): string {
 	if (typeof window !== 'undefined') return window.location.origin;
 	return 'http://localhost:8080';
 }
-
-export function setServerUrl(url: string): void {
-	if (typeof localStorage !== 'undefined') localStorage.setItem(SERVER_KEY, url);
-}
