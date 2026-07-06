@@ -5,6 +5,7 @@ import {
 	estimate1RM,
 	platesPerSide,
 	repTargets,
+	roundDeload,
 	roundToLoadable,
 	warmupSets,
 	warmupTargetSets
@@ -59,6 +60,39 @@ describe('roundToLoadable', () => {
 	it('uses lb bar + increments', () => {
 		expect(defaultBar('lb')).toBe(45);
 		expect(roundToLoadable(103, 'lb')).toBe(105);
+	});
+});
+
+describe('roundDeload', () => {
+	it('deloads a barbell weight to a loadable barbell total', () => {
+		// 100kg −10% = 90 → already loadable
+		expect(roundDeload(90, 'kg')).toBe(90);
+		// a value ≥ bar still rounds to a loadable barbell weight
+		expect(roundDeload(61, 'kg')).toBe(60);
+	});
+
+	it('rounds sub-bar weights to the small increment, NOT up to the bar', () => {
+		// 12kg dumbbell −10% = 10.8 → 10 (nearest 2.5), never floored to the 20kg bar
+		expect(roundDeload(10.8, 'kg')).toBeCloseTo(10);
+		expect(roundDeload(10.8, 'kg')).toBeLessThan(20);
+		// lands on the 2.5 grid
+		expect(roundDeload(11.3, 'kg')).toBeCloseTo(12.5);
+		// lb: nearest 5, below the 45lb bar
+		expect(roundDeload(22, 'lb')).toBe(20);
+	});
+
+	it('never returns below 0', () => {
+		expect(roundDeload(0.5, 'kg')).toBeGreaterThanOrEqual(0);
+		expect(roundDeload(1, 'kg')).toBeGreaterThanOrEqual(0);
+	});
+
+	it('matches the deload flow: factor 0.9 on 100 and 12', () => {
+		const factor = 0.9;
+		expect(roundDeload(100 * factor, 'kg')).toBe(90);
+		const light = roundDeload(12 * factor, 'kg'); // 10.8 → 10 on the 2.5 grid
+		expect(light).toBeGreaterThanOrEqual(10);
+		expect(light).toBeLessThanOrEqual(11);
+		expect(light).not.toBe(20);
 	});
 });
 
