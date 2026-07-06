@@ -22,9 +22,10 @@ adopts the components.
 
 ## Components (`apps/mobile/src/lib/components/ui/`)
 Built **as they're first applied** to a screen (no unused code), shadcn-flavored. The current set:
-`Icon` (inline SVG set) · `TabBar` (bottom nav) · `Button` (primary/secondary/outline/ghost/destructive,
+`Icon` (inline SVG set) · `IconButton` · `TabBar` (bottom nav) · `Button` (primary/secondary/outline/ghost/destructive,
 sizes, block, loading, icon, href) · `ListRow` (tappable row: title/subtitle/trailing) · `Badge` ·
-`PageHeader` · `EmptyState` · `BackLink` · `Sheet` (bottom sheet, e.g. the exercise picker).
+`PageHeader` · `EmptyState` · `BackLink` · `Sheet` (bottom sheet, e.g. the exercise picker) ·
+`RestInput` (rest-timer entry) · `Calendar` (history heatmap) · `LineChart` + `Sparkline` (stat trends).
 
 ## Navigation & structure
 - **Bottom tab bar** — Today / Routines / History / Exercises (icons + blue active state).

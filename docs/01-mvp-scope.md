@@ -5,38 +5,42 @@ Everything is judged against that.
 
 ## In scope (MVP)
 
+> **Status:** the MVP cut below has **shipped** (roadmap Phases 1–5 — see [08-roadmap](08-roadmap.md)).
+> The boxes are checked to reflect that; the list is kept as the record of what "MVP" meant.
+
 ### Exercises
-- [ ] Built-in exercise library (a seed set of common exercises with muscle groups + equipment).
-- [ ] Create / edit / delete **custom exercises**.
-- [ ] Exercise types: weight × reps, reps only, duration, (distance later).
+- [x] Built-in exercise library (a seed set of common exercises with muscle groups + equipment).
+- [x] Create / edit / delete **custom exercises**.
+- [x] Exercise types: weight × reps, reps only, duration, (distance later).
 
 ### Routines
-- [ ] Create / edit / delete routines (a planned workout: ordered exercises, planned sets/targets).
-- [ ] Reorder exercises and sets; supersets (grouping).
-- [ ] Organize routines into folders.
+- [x] Create / edit / delete routines (a planned workout: ordered exercises, planned sets/targets).
+- [x] Reorder exercises and sets; supersets (grouping).
+- [x] Organize routines into folders.
 
 ### Logging a workout
-- [ ] Start a workout from a routine **or** empty/freestyle.
-- [ ] Log sets fast: weight, reps, set type (warmup/normal/drop/failure), mark complete.
-- [ ] "Previous" values shown inline (what you did last time) for quick entry.
-- [ ] **Rest timer** with a notification when rest ends (works with screen locked).
-- [ ] Edit/finish a workout; per-exercise and per-workout notes.
-- [ ] Full **offline** logging — no network required at any point.
+- [x] Start a workout from a routine **or** empty/freestyle.
+- [x] Log sets fast: weight, reps, set type (warmup/normal/drop/failure), mark complete.
+- [x] "Previous" values shown inline (what you did last time) for quick entry.
+- [x] **Rest timer** with a notification when rest ends (works with screen locked).
+- [x] Edit/finish a workout; per-exercise and per-workout notes.
+- [x] Full **offline** logging — no network required at any point.
 
 ### History & stats (minimal but real)
-- [ ] Workout history list; open a past workout.
-- [ ] Per-exercise history + a simple progress chart (e.g. estimated 1RM / top set over time).
-- [ ] Basic personal records (PRs) per exercise.
+- [x] Workout history list; open a past workout.
+- [x] Per-exercise history + a simple progress chart (e.g. estimated 1RM / top set over time).
+- [x] Basic personal records (PRs) per exercise.
 
 ### Sync & accounts
-- [ ] Single-server **account** (email + password) — see ADR-0006.
-- [ ] **Offline-first sync**: local SQLite is the source of truth on-device; changes sync to the
-      server and pull down on other devices. Conflict policy = last-write-wins per record.
-- [ ] Data **export** (JSON) — no lock-in, on day one.
+- [x] Single-server **account** (email + password) — see ADR-0006.
+- [x] **Offline-first sync**: the device-local store is the source of truth on-device (SQLite on the
+      server, IndexedDB in the web/PWA client — see [ADR-0010](decisions/0010-web-local-store-indexeddb.md));
+      changes sync to the server and pull down on other devices. Conflict policy = last-write-wins per record.
+- [x] Data **export** (JSON) — no lock-in, on day one.
 
 ### Self-hosting
-- [ ] One container (Go binary serving API + embedded web app + SQLite file); config via env vars.
-- [ ] `docker-compose.yml` + a short setup doc.
+- [x] One container (Go binary serving API + embedded web app + SQLite file); config via env vars.
+- [x] `docker-compose.yml` + a short setup doc.
 
 ## Out of scope for MVP (but planned — see roadmap)
 
