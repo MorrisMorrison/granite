@@ -455,7 +455,7 @@
 
 <div class="footer">
 	<div class="container footer-inner">
-		<Button variant="ghost" onclick={cancel} testid="btn-cancel-workout">Cancel</Button>
+		<Button variant="ghost" size="sm" onclick={cancel} testid="btn-cancel-workout">Cancel</Button>
 		{#if restActive}
 			<div class="rest">
 				<button class="link" onclick={() => bumpRest(-15)}>-15</button>
@@ -466,7 +466,7 @@
 		{:else}
 			<span class="muted">{completedCount} set{completedCount === 1 ? '' : 's'} done</span>
 		{/if}
-		<Button onclick={finish} disabled={saving} testid="btn-finish-workout">
+		<Button size="sm" onclick={finish} disabled={saving} testid="btn-finish-workout">
 			{saving ? 'Saving…' : 'Finish'}
 		</Button>
 	</div>
@@ -600,13 +600,19 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding-top: 0.6rem;
-		padding-bottom: 0.6rem;
+		gap: 0.5rem; /* min spacing so the row never collides when it's tight */
+		/* Tighter side padding than the page container so the bar fits on
+		   small phones (Cancel · rest controls · Finish must stay one row). */
+		padding: 0.6rem 0.75rem;
 	}
 	.rest {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+	.rest .link {
+		font-size: 0.85rem;
 	}
 	.rest-time {
 		display: inline-flex;
