@@ -79,8 +79,13 @@ per-IP brute-force limits.
 generate one with `openssl rand -base64 48`. Registration defaults **closed**, but the **first account
 can always be created**, so a personal instance needs no extra steps to bootstrap.
 
-## Backups & data ownership
+## Storage & backups
 
+- **Bind mounts just work.** The compose above uses a named Docker volume, which Docker chowns to the
+  container automatically. If you prefer a host directory instead (`-v /opt/granite/data:/data`), it'll
+  typically be root-owned and unwritable by the non-root app — so the image **chowns the data dir to its
+  app user on startup**. A plain `sudo mkdir -p /opt/granite/data` + bind mount is enough; no manual
+  `chown` needed. (Running with `--user` skips this and just uses the uid you provide.)
 - **Backups** are trivial: it's a **single SQLite file**. Back it up with the container **stopped**, or
   take a hot copy with `sqlite3 granite.db .backup backup.db` — don't just `cp` a live database, since
   WAL mode keeps recent writes in a side file and a raw copy can be inconsistent. For continuous,

@@ -28,17 +28,22 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/granite
 
 # Stage 3 — minimal runtime
 FROM alpine:3.24
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates su-exec
 WORKDIR /app
 COPY --from=api-builder /out/granite ./granite
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENV PORT=8080
 ENV GRANITE_DB_PATH=/data/granite.db
 
-# Run as a non-root user; give it ownership of the data volume mountpoint.
+# Create the non-root user that owns the data and runs the app. The container
+# starts as root so the entrypoint can chown a (root-owned) bind-mounted /data,
+# then drops to `granite` via su-exec — see docker-entrypoint.sh. Named volumes
+# are chowned by Docker from this mountpoint's owner; bind mounts are fixed at
+# startup. (uid/gid are assigned by adduser -S and referenced by name everywhere.)
 RUN addgroup -S granite && adduser -S -G granite granite \
 	&& mkdir -p /data && chown granite:granite /data
-USER granite
 
 EXPOSE 8080
 
@@ -46,4 +51,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
 	CMD wget -qO- "http://localhost:${PORT}/healthz" || exit 1
 
+# Start as root, chown /data, then drop to the granite user (docker-entrypoint.sh).
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["./granite"]

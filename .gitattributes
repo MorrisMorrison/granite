@@ -1,0 +1,4 @@
+# Shell scripts and the Dockerfile must stay LF — a CRLF shebang breaks the
+# container entrypoint ("/bin/sh^M: bad interpreter") and CRLF breaks RUN lines.
+*.sh text eol=lf
+Dockerfile text eol=lf
