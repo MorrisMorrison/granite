@@ -137,7 +137,11 @@ func Seed(database *sql.DB) (bool, error) {
 	}
 
 	for cycle := 0; cycle < 3; cycle++ {
-		d := 42 - cycle*14 // ~6, 4, 2 weeks ago (older → newer)
+		// ~4.5 / 2.5 / this week (older → newer). The newest cycle ends today
+		// (Legs at d-4 == 0 days ago) so the current calendar month always has
+		// workouts — the History screenshot showcases the calendar regardless of
+		// which day of the month the demo/screenshots are generated.
+		d := 32 - cycle*14
 		bench := 60.0 + float64(cycle)*2.5
 		squat := 80.0 + float64(cycle)*5
 		dead := 100.0 + float64(cycle)*5
