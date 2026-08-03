@@ -18,9 +18,9 @@
 	},
 	"devDependencies": {
 		"@codecov/vite-plugin": "^2.0.1",
-		"@playwright/test": "^1.62.0",
+		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.70.1",
+		"@sveltejs/kit": "^2.70.2",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/svelte": "^5.4.2",
@@ -28,9 +28,9 @@
 		"fake-indexeddb": "^6.2.5",
 		"jsdom": "^29.1.1",
 		"svelte": "^5.56.8",
-		"svelte-check": "^4.7.3",
+		"svelte-check": "^4.7.4",
 		"typescript": "^6.0.3",
-		"vite": "^8.1.5",
+		"vite": "^8.2.0",
 		"vitest": "^4.1.10"
 	},
 	"dependencies": {

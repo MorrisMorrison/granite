@@ -17,13 +17,13 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.18.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "openapi-fetch": "^0.17.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@granite/shared": "workspace:*",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
   }
