@@ -23,8 +23,8 @@
   },
   "devDependencies": {
     "@granite/shared": "workspace:*",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.4.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }

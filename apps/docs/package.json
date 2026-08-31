@@ -11,12 +11,12 @@
 		"preview": "astro preview"
 	},
 	"dependencies": {
-		"@astrojs/starlight": "^0.41.5",
-		"astro": "^7.1.6",
-		"starlight-openapi": "^0.26.0"
+		"@astrojs/starlight": "^0.41.9",
+		"astro": "^7.2.9",
+		"starlight-openapi": "^0.26.1"
 	},
 	"devDependencies": {
 		"astro-mermaid": "^2.1.0",
-		"mermaid": "^11.16.0"
+		"mermaid": "^11.17.2"
 	}
 }
