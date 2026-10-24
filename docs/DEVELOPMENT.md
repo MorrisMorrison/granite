@@ -48,6 +48,11 @@ The dev scripts set **`GRANITE_ENV=dev`**, which makes the server **auto-seed th
 (`demo@granite.local` / `demodata`) with routines and a few weeks of history on startup — no need to run
 `seed-demo` by hand. It's idempotent, and only happens in dev (`GRANITE_ENV` defaults to `prod`).
 
+**`GRANITE_AUTH_RATE_LIMIT`** sets the per-IP requests/minute on `/api/v1/auth/*` (default `30`, a
+brute-force defense; the server refuses to start on a non-positive or non-integer value). It's a test knob: the
+Playwright server (`e2e/serve.mjs`) raises it because the whole suite registers from `127.0.0.1`.
+Leave it unset in production.
+
 ## Build & test (Makefile)
 
 ```sh
