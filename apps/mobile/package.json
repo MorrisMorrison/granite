@@ -20,7 +20,7 @@
 		"@codecov/vite-plugin": "^2.0.1",
 		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/svelte": "^5.4.2",
