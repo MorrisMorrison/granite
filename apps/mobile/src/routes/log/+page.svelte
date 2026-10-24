@@ -9,13 +9,15 @@
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { restAlert } from '#lib/restAlert.ts';
 	import { SET_TYPES, setLabel } from '#lib/sets.ts';
-	import { roundDeload } from '#lib/calc.ts';
+	import { isBarbell, roundDeload } from '#lib/calc.ts';
 	import { createRestTimer } from '#lib/restTimer.ts';
 	import { displayToKg, kgToDisplay } from '#lib/units.ts';
 	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '#lib/workoutDraft.ts';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
+	import PlateSheet from '#lib/components/PlateSheet.svelte';
+	import IconButton from '#lib/components/ui/IconButton.svelte';
 
 	interface DraftSet {
 		uid: string;
@@ -98,10 +100,20 @@
 	// Create a custom exercise mid-picker, then drop it straight into the workout.
 	async function createAndAdd(input: ExerciseInput) {
 		const id = await createExercise(input);
+		if (isBarbell(input.equipment)) barbellIds = new Set([...barbellIds, id]);
 		const name = input.name.trim();
 		library = [...library, { id, name, primary_muscle: input.primary_muscle.trim() }];
 		addExercise({ id, name });
 	}
+
+	// --- plate calculator (barbell exercises only, on demand) ---
+	let barbellIds = $state(new Set<string>());
+	let platesFor = $state<string | null>(null); // uid of the exercise whose sheet is open
+	let plateBar = $state<number | null>(null); // bar override, kept for the session
+	onMount(async () => {
+		const all = await listExercises();
+		barbellIds = new Set(all.filter((e) => isBarbell(e.equipment)).map((e) => e.id));
+	});
 
 	// Load the exercise's last performance to hint targets (shown as input placeholders).
 	async function attachPrev(ex: DraftExercise) {
@@ -351,8 +363,29 @@
 		<section class="card ex">
 			<div class="ex-head">
 				<strong>{ex.name}</strong>
-				<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
+				<div class="ex-actions">
+					{#if barbellIds.has(ex.exercise_id)}
+						<IconButton
+							name="exercises"
+							label="Plate calculator"
+							size={18}
+							onclick={() => (platesFor = ex.uid)}
+							testid="btn-plates"
+						/>
+					{/if}
+					<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
+				</div>
 			</div>
+			{#if barbellIds.has(ex.exercise_id)}
+				<PlateSheet
+					open={platesFor === ex.uid}
+					title={`Plates · ${ex.name}`}
+					bind:sets={ex.sets}
+					{unit}
+					bind:bar={plateBar}
+					onclose={() => (platesFor = null)}
+				/>
+			{/if}
 			{#if ex.notes}<p class="ex-note muted">{ex.notes}</p>{/if}
 			<div class="set-head muted">
 				<span>Set</span><span>Type</span><span>Weight ({unit})</span><span>Reps</span><span>✓</span><span></span>
@@ -486,6 +519,11 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.5rem;
+	}
+	.ex-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 	}
 	.set-head,
 	.set-row {

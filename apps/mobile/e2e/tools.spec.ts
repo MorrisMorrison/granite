@@ -10,7 +10,7 @@ test('calculators: plate breakdown, 1RM, and warm-ups', async ({ page }) => {
 
 	// Plates: 100 on a 20 bar → 25 + 15 per side (default unit kg).
 	await page.getByTestId('field-plate-target').fill('100');
-	await expect(page.getByTestId('plate-result')).toContainText('25');
+	await expect(page.getByTestId('plate-result')).toContainText('Each side 25 + 15');
 
 	// 1RM: 100 × 5 → ~117.
 	await page.getByTestId('field-1rm-weight').fill('100');
