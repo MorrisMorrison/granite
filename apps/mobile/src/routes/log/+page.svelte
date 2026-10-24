@@ -492,8 +492,18 @@
 		margin-bottom: 1rem;
 		font-size: 0.85rem;
 	}
+	/* The global form styles make selects full-width; here that squeezed the hint onto
+	   two lines on phones. Size the select to its content and keep the hint on one line. */
+	.deload select {
+		width: auto;
+		flex: none;
+	}
 	.deload .hint {
 		font-size: 0.75rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
 	}
 	.session-notes {
 		width: 100%;
