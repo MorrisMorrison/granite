@@ -1,8 +1,8 @@
-import { api } from '$lib/api/client';
-import { tokens } from '$lib/api/tokens';
-import { refreshExerciseLibrary } from '$lib/repo/exercises';
-import { prefs } from '$lib/stores/prefs.svelte';
-import { hasPending, requestPersistentStorage, resetLocalData, syncNow } from '$lib/sync';
+import { api } from '#lib/api/client.ts';
+import { tokens } from '#lib/api/tokens.ts';
+import { refreshExerciseLibrary } from '#lib/repo/exercises.ts';
+import { prefs } from '#lib/stores/prefs.svelte.ts';
+import { hasPending, requestPersistentStorage, resetLocalData, syncNow } from '#lib/sync/index.ts';
 
 export interface CurrentUser {
 	id: string;

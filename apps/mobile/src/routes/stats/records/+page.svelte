@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { allTimeRecordsBoard, type AllTimeRecordRow } from '$lib/repo/analytics';
-	import { syncNow } from '$lib/sync';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import RecordList from '$lib/components/RecordList.svelte';
+	import { allTimeRecordsBoard, type AllTimeRecordRow } from '#lib/repo/analytics.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import RecordList from '#lib/components/RecordList.svelte';
 
 	let records = $state<AllTimeRecordRow[]>([]);
 	let loading = $state(true);

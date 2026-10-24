@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { listExercises, createExercise, type ExerciseInput } from '$lib/repo/exercises';
-	import { listFolders, type FolderRow } from '$lib/repo/folders';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { displayToKg, kgToDisplay } from '$lib/units';
-	import { SET_TYPES, setLabel } from '$lib/sets';
-	import { warmupTargetSets } from '$lib/calc';
-	import Button from '$lib/components/ui/Button.svelte';
-	import ExercisePicker from '$lib/components/ExercisePicker.svelte';
-	import RestInput from '$lib/components/ui/RestInput.svelte';
+	import { listExercises, createExercise, type ExerciseInput } from '#lib/repo/exercises.ts';
+	import { listFolders, type FolderRow } from '#lib/repo/folders.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { displayToKg, kgToDisplay } from '#lib/units.ts';
+	import { SET_TYPES, setLabel } from '#lib/sets.ts';
+	import { warmupTargetSets } from '#lib/calc.ts';
+	import Button from '#lib/components/ui/Button.svelte';
+	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
+	import RestInput from '#lib/components/ui/RestInput.svelte';
 
 	interface DraftSet {
 		uid: string;

@@ -1,12 +1,13 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '#lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { goto, preloadCode } from '$app/navigation';
 	import { page } from '$app/state';
-	import { auth } from '$lib/stores/auth.svelte';
-	import TabBar from '$lib/components/ui/TabBar.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
+	import { routes } from '$app/manifest';
+	import { auth } from '#lib/stores/auth.svelte.ts';
+	import TabBar from '#lib/components/ui/TabBar.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
 
 	let { children } = $props();
 
@@ -16,20 +17,8 @@
 		void auth.init();
 		// Warm every screen's code while online so each route works offline on first
 		// visit (the service worker caches what's fetched). Best-effort.
-		for (const path of [
-			'/',
-			'/login',
-			'/register',
-			'/log',
-			'/routines',
-			'/routines/new',
-			'/routines/_',
-			'/exercises',
-			'/exercises/_',
-			'/history',
-			'/settings'
-		]) {
-			void preloadCode(path).catch(() => {});
+		for (const route of routes) {
+			if (route.page) void preloadCode(route.id).catch(() => {});
 		}
 	});
 

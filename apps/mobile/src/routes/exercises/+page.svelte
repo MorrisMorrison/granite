@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { listExercises, refreshExerciseLibrary, type ExerciseRow } from '$lib/repo/exercises';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import { filterExercises } from '$lib/exerciseSearch';
+	import { listExercises, refreshExerciseLibrary, type ExerciseRow } from '#lib/repo/exercises.ts';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import ListRow from '#lib/components/ui/ListRow.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import { filterExercises } from '#lib/exerciseSearch.ts';
 
 	let exercises = $state<ExerciseRow[]>([]);
 	let loading = $state(true);

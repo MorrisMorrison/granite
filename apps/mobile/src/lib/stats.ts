@@ -1,5 +1,5 @@
 // Pure progress/PR aggregation over workout records — no storage imports, so it's
-// trivially unit-testable. The store wrapper lives in $lib/repo/stats.
+// trivially unit-testable. The store wrapper lives in #lib/repo/stats.
 
 /** Per-session aggregates for one exercise (weights in kg, as stored). */
 export interface SessionStat {

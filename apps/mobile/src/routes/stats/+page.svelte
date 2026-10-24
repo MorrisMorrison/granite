@@ -7,16 +7,16 @@
 		topLiftsTrend,
 		type PersonalRecordRow,
 		type TopLiftRow
-	} from '$lib/repo/analytics';
-	import type { MuscleSets, WeeklyVolume } from '$lib/analytics';
-	import { syncNow } from '$lib/sync';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { kgToDisplay } from '$lib/units';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import LineChart from '$lib/components/ui/LineChart.svelte';
-	import Sparkline from '$lib/components/ui/Sparkline.svelte';
-	import RecordList from '$lib/components/RecordList.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	} from '#lib/repo/analytics.ts';
+	import type { MuscleSets, WeeklyVolume } from '#lib/analytics.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { kgToDisplay } from '#lib/units.ts';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import LineChart from '#lib/components/ui/LineChart.svelte';
+	import Sparkline from '#lib/components/ui/Sparkline.svelte';
+	import RecordList from '#lib/components/RecordList.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 
 	let muscles = $state<MuscleSets[]>([]);
 	let volume = $state<WeeklyVolume[]>([]);

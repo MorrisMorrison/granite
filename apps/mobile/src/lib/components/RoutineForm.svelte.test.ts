@@ -11,9 +11,9 @@ const { listExercises, listFolders, createExercise } = vi.hoisted(() => ({
 	listFolders: vi.fn(() => Promise.resolve([{ id: 'f1', name: 'Strength', order_index: 0 }])),
 	createExercise: vi.fn(() => Promise.resolve('new-ex-id'))
 }));
-vi.mock('$lib/repo/exercises', () => ({ listExercises, createExercise }));
-vi.mock('$lib/repo/folders', () => ({ listFolders }));
-vi.mock('$lib/stores/prefs.svelte', () => ({ prefs: { current: { weightUnit: 'kg', restSeconds: 90 } } }));
+vi.mock('#lib/repo/exercises.ts', () => ({ listExercises, createExercise }));
+vi.mock('#lib/repo/folders.ts', () => ({ listFolders }));
+vi.mock('#lib/stores/prefs.svelte.ts', () => ({ prefs: { current: { weightUnit: 'kg', restSeconds: 90 } } }));
 
 import RoutineForm from './RoutineForm.svelte';
 

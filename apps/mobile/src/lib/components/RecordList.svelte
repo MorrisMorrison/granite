@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import { kgToDisplay } from '$lib/units';
-	import type { WeightUnit } from '$lib/stores/prefs.svelte';
+	import ListRow from '#lib/components/ui/ListRow.svelte';
+	import { kgToDisplay } from '#lib/units.ts';
+	import type { WeightUnit } from '#lib/stores/prefs.svelte.ts';
 
 	// A list of e1RM records/PRs. Used for both Recent PRs and the all-time board.
 	interface Row {
