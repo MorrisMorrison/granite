@@ -6,19 +6,13 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import { filterExercises } from '$lib/exerciseSearch';
 
 	let exercises = $state<ExerciseRow[]>([]);
 	let loading = $state(true);
 	let query = $state('');
 
-	// Filter by name or primary muscle (case-insensitive). Empty query = all.
-	const filtered = $derived.by(() => {
-		const q = query.trim().toLowerCase();
-		if (!q) return exercises;
-		return exercises.filter(
-			(e) => e.name.toLowerCase().includes(q) || e.primary_muscle.toLowerCase().includes(q)
-		);
-	});
+	const filtered = $derived(filterExercises(exercises, query));
 
 	onMount(async () => {
 		exercises = await listExercises();

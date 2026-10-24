@@ -17,7 +17,10 @@
 	$effect(() => {
 		if (open) {
 			lastFocused = (document.activeElement as HTMLElement) ?? null;
-			void tick().then(() => dialogEl?.focus());
+			// Prefer a child marked data-autofocus (e.g. a search field), else the dialog.
+			void tick().then(() =>
+				(dialogEl?.querySelector<HTMLElement>('[data-autofocus]') ?? dialogEl)?.focus()
+			);
 		} else if (lastFocused) {
 			lastFocused.focus();
 			lastFocused = null;
