@@ -5,12 +5,12 @@ const { getMock, postMock, tokensMock } = vi.hoisted(() => ({
 	postMock: vi.fn(),
 	tokensMock: { access: vi.fn(), refresh: vi.fn(), set: vi.fn(), clear: vi.fn() }
 }));
-vi.mock('$lib/api/client', () => ({ api: () => ({ GET: getMock, POST: postMock }) }));
-vi.mock('$lib/api/tokens', () => ({ tokens: tokensMock }));
+vi.mock('#lib/api/client.ts', () => ({ api: () => ({ GET: getMock, POST: postMock }) }));
+vi.mock('#lib/api/tokens.ts', () => ({ tokens: tokensMock }));
 
 // Bootstrap side effects are exercised elsewhere; here they just need to be inert.
-vi.mock('$lib/repo/exercises', () => ({ refreshExerciseLibrary: vi.fn(() => Promise.resolve()) }));
-vi.mock('$lib/stores/prefs.svelte', () => ({ prefs: { load: vi.fn(() => Promise.resolve()) } }));
+vi.mock('#lib/repo/exercises.ts', () => ({ refreshExerciseLibrary: vi.fn(() => Promise.resolve()) }));
+vi.mock('#lib/stores/prefs.svelte.ts', () => ({ prefs: { load: vi.fn(() => Promise.resolve()) } }));
 const { syncNowMock, resetLocalDataMock, hasPendingMock, requestPersistentStorageMock } = vi.hoisted(
 	() => ({
 		syncNowMock: vi.fn(() => Promise.resolve()),
@@ -19,7 +19,7 @@ const { syncNowMock, resetLocalDataMock, hasPendingMock, requestPersistentStorag
 		requestPersistentStorageMock: vi.fn()
 	})
 );
-vi.mock('$lib/sync', () => ({
+vi.mock('#lib/sync/index.ts', () => ({
 	syncNow: syncNowMock,
 	resetLocalData: resetLocalDataMock,
 	hasPending: hasPendingMock,

@@ -1,7 +1,7 @@
 import { createGraniteClient } from '@granite/shared';
 
-import { getServerUrl } from '$lib/config';
-import { tokens } from '$lib/api/tokens';
+import { getServerUrl } from '#lib/config.ts';
+import { tokens } from '#lib/api/tokens.ts';
 
 // Dedupe concurrent refreshes: all clients share one token pair, so a burst of
 // 401s should trigger a single refresh, not one per request.

@@ -1,12 +1,12 @@
-import { localStore } from '$lib/local/store';
+import { localStore } from '#lib/local/store.ts';
 import {
 	computeExerciseProgress,
 	computeLastPerformance,
 	type ExerciseProgress,
 	type LastPerformance
-} from '$lib/stats';
+} from '#lib/stats.ts';
 
-export type { ExerciseProgress, SessionStat, LastPerformance } from '$lib/stats';
+export type { ExerciseProgress, SessionStat, LastPerformance } from '#lib/stats.ts';
 
 /** Progress + PRs for one exercise from the local store (offline-ok). */
 export async function exerciseProgress(exerciseId: string): Promise<ExerciseProgress> {

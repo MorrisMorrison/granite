@@ -1,13 +1,11 @@
-/// <reference types="@sveltejs/kit" />
-/// <reference lib="webworker" />
-
-import { build, files, prerendered } from '$service-worker';
-
-const sw = self as unknown as ServiceWorkerGlobalScope;
+import { self as sw } from '$app/service-worker';
+import { immutable, assets, prerendered } from '$app/manifest';
 
 const CACHE = 'granite-v1';
 // Shell + all hashed app chunks + static files, so every route loads offline.
-const PRECACHE = ['/', ...build, ...files, ...prerendered];
+// Manifest paths are relative to the base path, which is the root here (like the
+// '/' and '/_app/immutable/' checks below assume).
+const PRECACHE = ['/', ...[...immutable, ...assets, ...prerendered].map((f) => `/${f.path}`)];
 
 sw.addEventListener('install', (event) => {
 	// Cache entries individually (not addAll) so one transient failure can't abort

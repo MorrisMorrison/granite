@@ -1,7 +1,7 @@
 import { createSyncApi, sync, type SyncResult } from '@granite/shared';
 
-import { api } from '$lib/api/client';
-import { localStore } from '$lib/local/store';
+import { api } from '#lib/api/client.ts';
+import { localStore } from '#lib/local/store.ts';
 
 let running: Promise<SyncResult> | null = null;
 

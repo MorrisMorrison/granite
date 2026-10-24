@@ -2,7 +2,7 @@ import { render } from '@testing-library/svelte';
 import { fireEvent } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 import Calendar from './Calendar.svelte';
-import { startOfDay } from '$lib/calendar';
+import { startOfDay } from '#lib/calendar.ts';
 
 // A day in the current month (small day numbers are safe for every month).
 const thisMonth = (day: number) => {

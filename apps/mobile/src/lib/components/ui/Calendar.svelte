@@ -7,7 +7,7 @@
 		monthGrid,
 		monthLabel,
 		startOfDay
-	} from '$lib/calendar';
+	} from '#lib/calendar.ts';
 
 	let {
 		dates = [],

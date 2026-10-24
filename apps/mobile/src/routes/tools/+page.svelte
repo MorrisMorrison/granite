@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { defaultBar, estimate1RM, platesPerSide, repTargets, warmupSets } from '$lib/calc';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { defaultBar, estimate1RM, platesPerSide, repTargets, warmupSets } from '#lib/calc.ts';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 
 	const unit = $derived(prefs.current.weightUnit);
 

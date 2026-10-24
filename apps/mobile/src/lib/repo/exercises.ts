@@ -1,6 +1,6 @@
-import { api } from '$lib/api/client';
-import { localStore } from '$lib/local/store';
-import { syncNow } from '$lib/sync';
+import { api } from '#lib/api/client.ts';
+import { localStore } from '#lib/local/store.ts';
+import { syncNow } from '#lib/sync/index.ts';
 import type { Change } from '@granite/shared';
 
 export interface ExerciseRow {

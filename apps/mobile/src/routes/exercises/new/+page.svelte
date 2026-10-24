@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { createExercise, type ExerciseInput } from '$lib/repo/exercises';
-	import ExerciseForm from '$lib/components/ExerciseForm.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import { createExercise, type ExerciseInput } from '#lib/repo/exercises.ts';
+	import ExerciseForm from '#lib/components/ExerciseForm.svelte';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
 
 	async function create(input: ExerciseInput) {
 		await createExercise(input);

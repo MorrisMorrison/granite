@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { version } from '$app/environment';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { api } from '$lib/api/client';
-	import { resync, syncNow, resetLocalData } from '$lib/sync';
-	import { buildHevyImport } from '$lib/hevy';
-	import { getServerUrl } from '$lib/config';
+	import { version } from '$app/env';
+	import { auth } from '#lib/stores/auth.svelte.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { api } from '#lib/api/client.ts';
+	import { resync, syncNow, resetLocalData } from '#lib/sync/index.ts';
+	import { buildHevyImport } from '#lib/hevy.ts';
+	import { getServerUrl } from '#lib/config.ts';
 	import type { paths } from '@granite/shared';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Sheet from '$lib/components/ui/Sheet.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Sheet from '#lib/components/ui/Sheet.svelte';
+	import IconButton from '#lib/components/ui/IconButton.svelte';
 
 	interface TokenRow {
 		id: string;

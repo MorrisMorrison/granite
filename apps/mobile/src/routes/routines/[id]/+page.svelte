@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getRoutine, updateRoutine, type RoutineDetail, type RoutineInput } from '$lib/repo/routines';
-	import RoutineForm from '$lib/components/RoutineForm.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import { getRoutine, updateRoutine, type RoutineDetail, type RoutineInput } from '#lib/repo/routines.ts';
+	import RoutineForm from '#lib/components/RoutineForm.svelte';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
 
 	const id = page.params.id!;
 

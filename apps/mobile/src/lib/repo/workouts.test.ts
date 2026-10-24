@@ -3,12 +3,12 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Change } from '@granite/shared';
 
-import { IdbSyncStore } from '$lib/local/idb-store';
+import { IdbSyncStore } from '#lib/local/idb-store.ts';
 
 // Each test runs against a fresh IndexedDB-backed store (unique name), with the
 // fire-and-forget sync stubbed out — we're testing local read/write shaping.
 let backing: IdbSyncStore;
-vi.mock('$lib/local/store', () => ({
+vi.mock('#lib/local/store.ts', () => ({
 	localStore: {
 		list: (e: string) => backing.list(e),
 		get: (e: string, id: string) => backing.get(e, id),
@@ -17,7 +17,7 @@ vi.mock('$lib/local/store', () => ({
 	}
 }));
 const { syncNow } = vi.hoisted(() => ({ syncNow: vi.fn(() => Promise.resolve()) }));
-vi.mock('$lib/sync', () => ({ syncNow }));
+vi.mock('#lib/sync/index.ts', () => ({ syncNow }));
 
 import { deleteWorkout, getWorkout, listWorkouts, logWorkout } from './workouts';
 

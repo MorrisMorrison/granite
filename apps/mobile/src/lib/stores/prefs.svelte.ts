@@ -1,4 +1,4 @@
-import { api } from '$lib/api/client';
+import { api } from '#lib/api/client.ts';
 
 export type WeightUnit = 'kg' | 'lb';
 

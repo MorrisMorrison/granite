@@ -3,10 +3,10 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Change } from '@granite/shared';
 
-import { IdbSyncStore } from '$lib/local/idb-store';
+import { IdbSyncStore } from '#lib/local/idb-store.ts';
 
 let backing: IdbSyncStore;
-vi.mock('$lib/local/store', () => ({
+vi.mock('#lib/local/store.ts', () => ({
 	localStore: {
 		list: (e: string) => backing.list(e),
 		get: (e: string, id: string) => backing.get(e, id),

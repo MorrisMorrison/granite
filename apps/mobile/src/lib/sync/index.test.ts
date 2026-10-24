@@ -14,8 +14,8 @@ const { syncFn, createSyncApi, setCursor, getMock, getServerId, setServerId, cle
 		hasPending: vi.fn(() => Promise.resolve(false))
 	}));
 vi.mock('@granite/shared', () => ({ sync: syncFn, createSyncApi }));
-vi.mock('$lib/api/client', () => ({ api: vi.fn(() => ({ GET: getMock })) }));
-vi.mock('$lib/local/store', () => ({
+vi.mock('#lib/api/client.ts', () => ({ api: vi.fn(() => ({ GET: getMock })) }));
+vi.mock('#lib/local/store.ts', () => ({
 	localStore: { setCursor, getServerId, setServerId, clear, hasPending }
 }));
 

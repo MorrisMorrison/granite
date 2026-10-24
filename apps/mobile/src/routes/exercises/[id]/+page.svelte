@@ -2,16 +2,16 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getExercise, archiveExercise, type ExerciseRow } from '$lib/repo/exercises';
-	import { exerciseProgress, type ExerciseProgress } from '$lib/repo/stats';
-	import { syncNow } from '$lib/sync';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { kgToDisplay } from '$lib/units';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import LineChart from '$lib/components/ui/LineChart.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import { getExercise, archiveExercise, type ExerciseRow } from '#lib/repo/exercises.ts';
+	import { exerciseProgress, type ExerciseProgress } from '#lib/repo/stats.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { kgToDisplay } from '#lib/units.ts';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import LineChart from '#lib/components/ui/LineChart.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
 
 	const id = page.params.id!;
 	let ex = $state<ExerciseRow | null>(null);

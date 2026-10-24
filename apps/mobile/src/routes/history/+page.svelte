@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { listWorkouts, type WorkoutSummary } from '$lib/repo/workouts';
-	import { syncNow } from '$lib/sync';
-	import { startOfDay } from '$lib/calendar';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Calendar from '$lib/components/ui/Calendar.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
+	import { listWorkouts, type WorkoutSummary } from '#lib/repo/workouts.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import { startOfDay } from '#lib/calendar.ts';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Calendar from '#lib/components/ui/Calendar.svelte';
+	import ListRow from '#lib/components/ui/ListRow.svelte';
 
 	let workouts = $state<WorkoutSummary[]>([]);
 	let loading = $state(true);

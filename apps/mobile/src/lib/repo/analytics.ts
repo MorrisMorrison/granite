@@ -1,4 +1,4 @@
-import { localStore } from '$lib/local/store';
+import { localStore } from '#lib/local/store.ts';
 import { listExercises } from './exercises';
 import {
 	setsPerMuscle,
@@ -12,7 +12,7 @@ import {
 	type PersonalRecord,
 	type AllTimeRecord,
 	type TopLift
-} from '$lib/analytics';
+} from '#lib/analytics.ts';
 
 export interface PersonalRecordRow extends PersonalRecord {
 	exerciseName: string;

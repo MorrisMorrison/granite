@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/Button.svelte';
-	import type { ExerciseInput } from '$lib/repo/exercises';
+	import Button from '#lib/components/ui/Button.svelte';
+	import type { ExerciseInput } from '#lib/repo/exercises.ts';
 
 	let {
 		initialName = '',

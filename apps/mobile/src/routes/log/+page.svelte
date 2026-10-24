@@ -2,20 +2,20 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { listExercises, createExercise, type ExerciseInput } from '$lib/repo/exercises';
-	import { getRoutine } from '$lib/repo/routines';
-	import { logWorkout } from '$lib/repo/workouts';
-	import { lastPerformance } from '$lib/repo/stats';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { restAlert } from '$lib/restAlert';
-	import { SET_TYPES, setLabel } from '$lib/sets';
-	import { roundDeload } from '$lib/calc';
-	import { createRestTimer } from '$lib/restTimer';
-	import { displayToKg, kgToDisplay } from '$lib/units';
-	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '$lib/workoutDraft';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
-	import ExercisePicker from '$lib/components/ExercisePicker.svelte';
+	import { listExercises, createExercise, type ExerciseInput } from '#lib/repo/exercises.ts';
+	import { getRoutine } from '#lib/repo/routines.ts';
+	import { logWorkout } from '#lib/repo/workouts.ts';
+	import { lastPerformance } from '#lib/repo/stats.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { restAlert } from '#lib/restAlert.ts';
+	import { SET_TYPES, setLabel } from '#lib/sets.ts';
+	import { roundDeload } from '#lib/calc.ts';
+	import { createRestTimer } from '#lib/restTimer.ts';
+	import { displayToKg, kgToDisplay } from '#lib/units.ts';
+	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '#lib/workoutDraft.ts';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
+	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
 
 	interface DraftSet {
 		uid: string;
