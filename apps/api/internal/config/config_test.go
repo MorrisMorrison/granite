@@ -74,3 +74,31 @@ func TestLoadInvalidBoolFallsBackToDefault(t *testing.T) {
 		t.Error("an unparseable bool should fall back to the default (false)")
 	}
 }
+
+func TestLoadAuthRateLimit(t *testing.T) {
+	t.Setenv("GRANITE_JWT_SECRET", strings.Repeat("x", 32))
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.AuthRateLimit != DefaultAuthRateLimit {
+		t.Errorf("AuthRateLimit default = %d, want %d", cfg.AuthRateLimit, DefaultAuthRateLimit)
+	}
+
+	t.Setenv("GRANITE_AUTH_RATE_LIMIT", "5000")
+	cfg, err = Load()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.AuthRateLimit != 5000 {
+		t.Errorf("AuthRateLimit = %d, want 5000 (env override)", cfg.AuthRateLimit)
+	}
+
+	for _, bad := range []string{"lots", "0", "-1", "1.5"} {
+		t.Setenv("GRANITE_AUTH_RATE_LIMIT", bad)
+		if _, err := Load(); err == nil {
+			t.Errorf("GRANITE_AUTH_RATE_LIMIT=%q: expected an error", bad)
+		}
+	}
+}

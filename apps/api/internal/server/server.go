@@ -17,6 +17,7 @@ import (
 
 	"github.com/MorrisMorrison/granite/apps/api/gate"
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
+	"github.com/MorrisMorrison/granite/apps/api/internal/config"
 	"github.com/MorrisMorrison/granite/apps/api/internal/exercise"
 	"github.com/MorrisMorrison/granite/apps/api/internal/routine"
 	syncpkg "github.com/MorrisMorrison/granite/apps/api/internal/sync"
@@ -43,6 +44,8 @@ type Server struct {
 	// trustedProxy gates middleware.RealIP; off by default so a directly-exposed
 	// instance won't trust client-supplied X-Forwarded-For for rate limiting.
 	trustedProxy bool
+	// authRateLimit is the per-IP requests/minute on /api/v1/auth/*.
+	authRateLimit int
 }
 
 // Option configures a Server; options are applied after defaults in New.
@@ -64,9 +67,19 @@ func WithTrustedProxy(trusted bool) Option {
 	return func(s *Server) { s.trustedProxy = trusted }
 }
 
+// WithAuthRateLimit sets the per-IP requests/minute on the auth endpoints
+// (default config.DefaultAuthRateLimit). Non-positive values are ignored.
+func WithAuthRateLimit(perMinute int) Option {
+	return func(s *Server) {
+		if perMinute > 0 {
+			s.authRateLimit = perMinute
+		}
+	}
+}
+
 // New constructs a Server. allowedOrigins is the CORS allow-list.
 func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, syncSvc *syncpkg.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string, opts ...Option) *Server {
-	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler(), gate: gate.AllowAll{}}
+	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler(), gate: gate.AllowAll{}, authRateLimit: config.DefaultAuthRateLimit}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -108,7 +121,7 @@ func (s *Server) setupRouter(allowedOrigins []string) {
 	// Per-IP rate limits: a strict bucket on the auth endpoints (brute-force defense)
 	// and a generous bucket on the rest of the API (DoS / amplification defense — the
 	// token-auth path hashes + hits the DB on every authenticated request).
-	authLimiter := httprate.LimitByIP(30, time.Minute)
+	authLimiter := httprate.LimitByIP(s.authRateLimit, time.Minute)
 	apiLimiter := httprate.LimitByIP(600, time.Minute)
 	r.Use(func(next http.Handler) http.Handler {
 		limitedAuth := authLimiter(next)
