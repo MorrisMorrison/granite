@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import favicon from '$lib/assets/favicon.svg';
+	import { auth } from '#lib/stores/auth.svelte.ts';
+	import Button from '#lib/components/ui/Button.svelte';
+	import favicon from '#lib/assets/favicon.svg';
 
 	let email = $state('');
 	let password = $state('');

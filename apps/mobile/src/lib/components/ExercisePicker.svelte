@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { ExerciseInput } from '$lib/repo/exercises';
-	import { filterExercises } from '$lib/exerciseSearch';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Sheet from '$lib/components/ui/Sheet.svelte';
-	import ExerciseForm from '$lib/components/ExerciseForm.svelte';
+	import type { ExerciseInput } from '#lib/repo/exercises.ts';
+	import { filterExercises } from '#lib/exerciseSearch.ts';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Sheet from '#lib/components/ui/Sheet.svelte';
+	import ExerciseForm from '#lib/components/ExerciseForm.svelte';
 
 	interface PickerExercise {
 		id: string;

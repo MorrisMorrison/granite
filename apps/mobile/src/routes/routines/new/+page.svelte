@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { createRoutine, type RoutineInput } from '$lib/repo/routines';
-	import RoutineForm from '$lib/components/RoutineForm.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import { createRoutine, type RoutineInput } from '#lib/repo/routines.ts';
+	import RoutineForm from '#lib/components/RoutineForm.svelte';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
 
 	async function create(payload: RoutineInput) {
 		await createRoutine(payload);

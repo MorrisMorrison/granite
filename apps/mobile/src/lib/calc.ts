@@ -1,6 +1,6 @@
 // Pure gym-math helpers (no storage/UI imports) — trivially unit-testable. The
 // /tools screen is a thin layer over these.
-import type { WeightUnit } from '$lib/stores/prefs.svelte';
+import type { WeightUnit } from '#lib/stores/prefs.svelte.ts';
 
 // Loadable plates per side, largest first.
 const PLATES: Record<WeightUnit, number[]> = {

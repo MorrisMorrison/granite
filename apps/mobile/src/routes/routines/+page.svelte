@@ -6,22 +6,22 @@
 		duplicateRoutine,
 		deleteRoutine,
 		type RoutineRow
-	} from '$lib/repo/routines';
+	} from '#lib/repo/routines.ts';
 	import {
 		listFolders,
 		createFolder,
 		renameFolder,
 		deleteFolder,
 		type FolderRow
-	} from '$lib/repo/folders';
-	import { syncNow } from '$lib/sync';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Sheet from '$lib/components/ui/Sheet.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
+	} from '#lib/repo/folders.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import ListRow from '#lib/components/ui/ListRow.svelte';
+	import IconButton from '#lib/components/ui/IconButton.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import Sheet from '#lib/components/ui/Sheet.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
 
 	let folders = $state<FolderRow[]>([]);
 	let routines = $state<RoutineRow[]>([]);

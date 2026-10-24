@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { listRoutines, type RoutineRow } from '$lib/repo/routines';
-	import { listWorkouts } from '$lib/repo/workouts';
-	import { listBodyweight } from '$lib/repo/bodyweight';
-	import { computeHomeStats, type HomeStats } from '$lib/stats';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { kgToDisplay } from '$lib/units';
-	import { syncNow } from '$lib/sync';
-	import Button from '$lib/components/ui/Button.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import { auth } from '#lib/stores/auth.svelte.ts';
+	import { listRoutines, type RoutineRow } from '#lib/repo/routines.ts';
+	import { listWorkouts } from '#lib/repo/workouts.ts';
+	import { listBodyweight } from '#lib/repo/bodyweight.ts';
+	import { computeHomeStats, type HomeStats } from '#lib/stats.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { kgToDisplay } from '#lib/units.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import Button from '#lib/components/ui/Button.svelte';
+	import ListRow from '#lib/components/ui/ListRow.svelte';
+	import IconButton from '#lib/components/ui/IconButton.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 
 	let routines = $state<RoutineRow[]>([]);
 	let stats = $state<HomeStats | null>(null);

@@ -2,15 +2,15 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getWorkout, deleteWorkout, type WorkoutDetail } from '$lib/repo/workouts';
-	import { nearestBodyweight } from '$lib/repo/bodyweight';
-	import { syncNow } from '$lib/sync';
-	import { prefs } from '$lib/stores/prefs.svelte';
-	import { kgToDisplay } from '$lib/units';
-	import { setLabel } from '$lib/sets';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
+	import { getWorkout, deleteWorkout, type WorkoutDetail } from '#lib/repo/workouts.ts';
+	import { nearestBodyweight } from '#lib/repo/bodyweight.ts';
+	import { syncNow } from '#lib/sync/index.ts';
+	import { prefs } from '#lib/stores/prefs.svelte.ts';
+	import { kgToDisplay } from '#lib/units.ts';
+	import { setLabel } from '#lib/sets.ts';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
 
 	const id = page.params.id!;
 	let workout = $state<WorkoutDetail | null>(null);

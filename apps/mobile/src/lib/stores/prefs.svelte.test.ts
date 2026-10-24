@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { getMock, patchMock } = vi.hoisted(() => ({ getMock: vi.fn(), patchMock: vi.fn() }));
-vi.mock('$lib/api/client', () => ({ api: () => ({ GET: getMock, PATCH: patchMock }) }));
+vi.mock('#lib/api/client.ts', () => ({ api: () => ({ GET: getMock, PATCH: patchMock }) }));
 
 import { prefs } from './prefs.svelte';
 

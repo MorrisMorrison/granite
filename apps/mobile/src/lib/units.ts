@@ -1,4 +1,4 @@
-import type { WeightUnit } from '$lib/stores/prefs.svelte';
+import type { WeightUnit } from '#lib/stores/prefs.svelte.ts';
 
 const LB_PER_KG = 2.2046226218;
 

@@ -7,9 +7,9 @@
 		updateExercise,
 		type ExerciseInput,
 		type ExerciseRow
-	} from '$lib/repo/exercises';
-	import ExerciseForm from '$lib/components/ExerciseForm.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
+	} from '#lib/repo/exercises.ts';
+	import ExerciseForm from '#lib/components/ExerciseForm.svelte';
+	import BackLink from '#lib/components/ui/BackLink.svelte';
 
 	const id = page.params.id!;
 	let ex = $state<ExerciseRow | null>(null);

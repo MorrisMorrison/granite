@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { joinDuration, splitDuration } from '$lib/duration';
+	import { joinDuration, splitDuration } from '#lib/duration.ts';
 
 	let { value = $bindable(0), testid }: { value?: number; testid?: string } = $props();
 
