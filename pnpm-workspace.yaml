@@ -9,3 +9,10 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: true
+
+# Security overrides for transitive deps whose parent pins a vulnerable version.
+# Drop each entry once the parent ships a release with the fix.
+overrides:
+  # httpsnippet (via starlight-openapi, docs site) pins form-data 4.0.4
+  # (GHSA-hmw2-7cc7-3qxx, fixed in 4.0.6).
+  httpsnippet>form-data: ^4.0.6
