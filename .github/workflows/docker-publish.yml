@@ -18,6 +18,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest   # PUBLIC repo → GitHub-hosted only (never self-hosted)
+    timeout-minutes: 30      # a normal multi-arch build takes ~10 min; fail fast if it hangs
     permissions:
       contents: read
       packages: write
@@ -26,7 +27,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up QEMU (for arm64 cross-build)
+      - name: Set up QEMU (arm64 runtime stage only; build stages run natively)
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Buildx
