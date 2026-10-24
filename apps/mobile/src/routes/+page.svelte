@@ -8,6 +8,8 @@
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { kgToDisplay } from '#lib/units.ts';
 	import { syncNow } from '#lib/sync/index.ts';
+	import { install } from '#lib/stores/install.svelte.ts';
+	import { installText, shouldOffer } from '#lib/install.ts';
 	import Button from '#lib/components/ui/Button.svelte';
 	import ListRow from '#lib/components/ui/ListRow.svelte';
 	import IconButton from '#lib/components/ui/IconButton.svelte';
@@ -54,6 +56,14 @@
 		(auth.user?.display_name?.trim() || auth.user?.email?.split('@')[0] || '').trim()
 	);
 	const greeting = $derived(`Ready to train${name ? `, ${name}` : ''}?`);
+
+	// Suggest the home screen once there's a first workout (never on a first visit).
+	const offerInstall = $derived(shouldOffer({
+		platform: install.platform,
+		standalone: install.standalone,
+		dismissed: install.dismissed,
+		workouts: stats?.total ?? 0
+	}));
 </script>
 
 <svelte:head><title>Granite</title></svelte:head>
@@ -106,6 +116,27 @@
 		</section>
 	{/if}
 
+	{#if offerInstall}
+		<section class="install card" data-testid="install-card" aria-labelledby="install-title">
+			<h2 id="install-title">Keep Granite on your home screen</h2>
+			<p>{@html installText(install.platform, install.canPrompt)}</p>
+			<div class="install-actions">
+				{#if install.canPrompt}
+					<Button size="sm" icon="download" onclick={() => install.install()} testid="btn-install-card">
+						Install
+					</Button>
+				{:else if install.platform !== 'ios'}
+					<Button size="sm" variant="outline" onclick={() => (install.sheetOpen = true)} testid="btn-install-how">
+						Show me how
+					</Button>
+				{/if}
+				<Button size="sm" variant="ghost" onclick={() => install.dismiss()} testid="btn-install-dismiss">
+					No thanks
+				</Button>
+			</div>
+		</section>
+	{/if}
+
 	<a class="bw-link" href="/bodyweight" data-testid="bodyweight-link">
 		<span class="muted">Bodyweight</span>
 		<span class="bw-val">
@@ -115,6 +146,38 @@
 </main>
 
 <style>
+	.install {
+		margin-top: 1rem;
+		padding: 0.9rem 1rem;
+	}
+	.install h2 {
+		margin: 0 0 0.35rem;
+		font-size: 0.95rem;
+		font-weight: 600;
+	}
+	.install p {
+		margin: 0 0 0.75rem;
+		font-size: 0.85rem;
+		color: var(--muted);
+		line-height: 1.45;
+	}
+	.install p :global(b) {
+		color: var(--text);
+	}
+	.install p :global(.share-icon) {
+		width: 1em;
+		height: 1em;
+		vertical-align: -0.12em;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.install-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
 	.bw-link {
 		display: flex;
 		align-items: center;

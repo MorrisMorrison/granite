@@ -17,6 +17,9 @@ async function shot(page: Page, name: string) {
 
 test('capture README screenshots', async ({ page }) => {
 	mkdirSync(OUT, { recursive: true });
+	// The capture runs on an emulated phone, where Today would show the home-screen card;
+	// dismiss it so the README shows the screen itself.
+	await page.addInitScript(() => localStorage.setItem('granite:install-dismissed', 'readme'));
 
 	// Log in as the demo account (rich demo data → populated screens).
 	await page.goto('/login');
