@@ -6,6 +6,9 @@
 	import { page } from '$app/state';
 	import { routes } from '$app/manifest';
 	import { auth } from '#lib/stores/auth.svelte.ts';
+	import { install } from '#lib/stores/install.svelte.ts';
+	import { offersButton } from '#lib/install.ts';
+	import InstallSheet from '#lib/components/InstallSheet.svelte';
 	import TabBar from '#lib/components/ui/TabBar.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 
@@ -15,6 +18,7 @@
 
 	onMount(() => {
 		void auth.init();
+		install.init();
 		// Warm every screen's code while online so each route works offline on first
 		// visit (the service worker caches what's fetched). Best-effort.
 		for (const route of routes) {
@@ -47,6 +51,17 @@
 			<div class="appbar-inner">
 				<a class="brand" href="/"><img class="logo" src={favicon} alt="" />Granite</a>
 				<div class="appbar-actions">
+					{#if offersButton(install)}
+						<button
+							class="iconbtn"
+							onclick={() => install.install()}
+							aria-label="Add to Home Screen"
+							title="Add to Home Screen"
+							data-testid="btn-install"
+						>
+							<Icon name="download" size={20} />
+						</button>
+					{/if}
 					<a class="iconbtn" href="/exercises" aria-label="Exercise library" data-testid="nav-exercises">
 						<Icon name="exercises" size={20} />
 					</a>
@@ -67,6 +82,7 @@
 	{#if auth.isAuthenticated && page.url.pathname !== '/log'}
 		<TabBar />
 	{/if}
+	<InstallSheet />
 {/if}
 
 <style>
