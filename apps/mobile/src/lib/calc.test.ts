@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
 	defaultBar,
 	estimate1RM,
+	formatPlates,
+	isBarbell,
+	plateStep,
 	platesPerSide,
 	repTargets,
 	roundDeload,
@@ -28,6 +31,37 @@ describe('platesPerSide', () => {
 
 	it('returns just the bar with no plates at bar weight', () => {
 		expect(platesPerSide(20, 20, 'kg')).toMatchObject({ plates: [], leftover: 0, belowBar: false });
+	});
+});
+
+describe('formatPlates', () => {
+	it('groups repeated plates, largest first', () => {
+		expect(formatPlates([20, 20, 2.5])).toBe('2×20 + 2.5');
+		expect(formatPlates([25, 15])).toBe('25 + 15');
+	});
+
+	it('is empty for no plates', () => {
+		expect(formatPlates([])).toBe('');
+	});
+});
+
+describe('plateStep', () => {
+	it('is one smallest plate pair per unit', () => {
+		expect(plateStep('kg')).toBe(2.5);
+		expect(plateStep('lb')).toBe(5);
+	});
+});
+
+describe('isBarbell', () => {
+	it('matches barbell equipment case-insensitively', () => {
+		expect(isBarbell('Barbell')).toBe(true);
+		expect(isBarbell(' barbell ')).toBe(true);
+	});
+
+	it('rejects other or missing equipment', () => {
+		expect(isBarbell('Dumbbell')).toBe(false);
+		expect(isBarbell('')).toBe(false);
+		expect(isBarbell(null)).toBe(false);
 	});
 });
 

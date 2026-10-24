@@ -1,22 +1,10 @@
 <script lang="ts">
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
-	import { defaultBar, estimate1RM, platesPerSide, repTargets, warmupSets } from '#lib/calc.ts';
+	import { estimate1RM, repTargets, warmupSets } from '#lib/calc.ts';
 	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import PlateBreakdown from '#lib/components/PlateBreakdown.svelte';
 
 	const unit = $derived(prefs.current.weightUnit);
-
-	// --- Plates per side ---
-	let plateTarget = $state<number | null>(null);
-	let plateBar = $state<number | null>(null);
-	const barWeight = $derived(plateBar ?? defaultBar(unit));
-	const plates = $derived(
-		plateTarget != null && plateTarget > 0 ? platesPerSide(plateTarget, barWeight, unit) : null
-	);
-	function groupPlates(ps: number[]): string {
-		const counts = new Map<number, number>();
-		for (const p of ps) counts.set(p, (counts.get(p) ?? 0) + 1);
-		return [...counts.entries()].map(([w, n]) => `${n}×${w}`).join('   ');
-	}
 
 	// --- Estimated 1RM ---
 	let rmWeight = $state<number | null>(null);
@@ -36,39 +24,7 @@
 
 	<section class="card calc">
 		<h2>Plates per side</h2>
-		<div class="row">
-			<label
-				>Target ({unit})
-				<input
-					type="number"
-					inputmode="decimal"
-					bind:value={plateTarget}
-					data-testid="field-plate-target"
-				/>
-			</label>
-			<label
-				>Bar
-				<input
-					type="number"
-					inputmode="decimal"
-					placeholder={String(defaultBar(unit))}
-					bind:value={plateBar}
-					data-testid="field-plate-bar"
-				/>
-			</label>
-		</div>
-		{#if plates}
-			<p class="result" data-testid="plate-result">
-				{#if plates.belowBar}
-					Below the bar weight.
-				{:else if plates.plates.length === 0}
-					Just the bar.
-				{:else}
-					<strong>{groupPlates(plates.plates)}</strong> {unit} each side{#if plates.leftover > 0}
-						· {plates.leftover} {unit} short{/if}
-				{/if}
-			</p>
-		{/if}
+		<PlateBreakdown {unit} />
 	</section>
 
 	<section class="card calc">

@@ -35,6 +35,23 @@ export function platesPerSide(total: number, bar: number, unit: WeightUnit): Pla
 	return { plates, leftover: Math.round(rem * 100) / 100, belowBar: false };
 }
 
+/** Per-side plates as a compact string, largest first: [20, 20, 2.5] → "2×20 + 2.5". */
+export function formatPlates(plates: number[]): string {
+	const counts = new Map<number, number>();
+	for (const p of plates) counts.set(p, (counts.get(p) ?? 0) + 1);
+	return [...counts.entries()].map(([w, n]) => (n > 1 ? `${n}×${w}` : `${w}`)).join(' + ');
+}
+
+/** The smallest total-weight change a plate pair allows (2 × the smallest common plate). */
+export function plateStep(unit: WeightUnit): number {
+	return unit === 'kg' ? 2.5 : 5;
+}
+
+/** Whether an exercise's equipment is a barbell (built-ins use "Barbell"; custom is free text). */
+export function isBarbell(equipment: string | null | undefined): boolean {
+	return (equipment ?? '').trim().toLowerCase() === 'barbell';
+}
+
 /** Epley estimated 1-rep max from a weight × reps set. */
 export function estimate1RM(weight: number, reps: number): number {
 	if (weight <= 0 || reps <= 0) return 0;
