@@ -7,8 +7,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-// registerServerInfoRoutes wires the instance-info endpoint used by clients to
-// detect a server reset (and reconcile their local cache).
+// registerServerInfoRoutes wires the public identity check and the instance-info
+// endpoint clients use to detect a server reset.
 func (s *Server) registerServerInfoRoutes(a huma.API) {
 	huma.Register(a, huma.Operation{
 		OperationID: "serverInfo",
@@ -18,6 +18,14 @@ func (s *Server) registerServerInfoRoutes(a huma.API) {
 		Tags:        []string{"Server"},
 		Security:    bearerSecurity,
 	}, s.handleServerInfo)
+
+	huma.Register(a, huma.Operation{
+		OperationID: "info",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/info",
+		Summary:     "Public identity check (lets an app confirm it reached a Granite server)",
+		Tags:        []string{"Server"},
+	}, s.handleInfo)
 }
 
 type serverInfoOutput struct {
@@ -34,5 +42,23 @@ func (s *Server) handleServerInfo(ctx context.Context, _ *struct{}) (*serverInfo
 	}
 	out := &serverInfoOutput{}
 	out.Body.InstanceID = id
+	return out, nil
+}
+
+// APIVersion is bumped when clients (the native apps) start relying on newer
+// server behaviour; the app refuses servers below its minimum.
+const APIVersion = 1
+
+type infoOutput struct {
+	Body struct {
+		Name       string `json:"name"`
+		APIVersion int    `json:"api_version"`
+	}
+}
+
+func (s *Server) handleInfo(_ context.Context, _ *struct{}) (*infoOutput, error) {
+	out := &infoOutput{}
+	out.Body.Name = "granite"
+	out.Body.APIVersion = APIVersion
 	return out, nil
 }
