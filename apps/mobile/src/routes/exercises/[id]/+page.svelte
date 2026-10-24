@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getExercise, archiveExercise, type ExerciseRow } from '#lib/repo/exercises.ts';
+	import { getExercise, archiveExercise, restoreExercise, type ExerciseRow } from '#lib/repo/exercises.ts';
 	import { exerciseProgress, type ExerciseProgress } from '#lib/repo/stats.ts';
 	import { syncNow } from '#lib/sync/index.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
@@ -42,6 +42,12 @@
 		await goto('/exercises');
 	}
 
+	async function restore() {
+		if (!ex) return;
+		await restoreExercise(ex.id);
+		await load();
+	}
+
 	const unit = $derived(prefs.current.weightUnit);
 	function w(kg: number | null): string {
 		const v = kgToDisplay(kg, unit);
@@ -70,6 +76,7 @@
 		<div class="head" data-testid="exercise-detail">
 			<h1>{ex.name}</h1>
 			{#if ex.is_builtin}<Badge>built-in</Badge>{/if}
+			{#if ex.is_archived}<Badge>archived</Badge>{/if}
 		</div>
 		<p class="muted sub">
 			{ex.primary_muscle}{ex.primary_muscle && ex.exercise_type ? ' · ' : ''}{ex.exercise_type}
@@ -84,13 +91,23 @@
 					href={`/exercises/${ex.id}/edit`}
 					testid="btn-edit-exercise">Edit</Button
 				>
-				<Button
-					variant="outline"
-					size="sm"
-					icon="trash"
-					onclick={archive}
-					testid="btn-archive-exercise">Archive</Button
-				>
+				{#if ex.is_archived}
+					<Button
+						variant="outline"
+						size="sm"
+						icon="restore"
+						onclick={restore}
+						testid="btn-restore-exercise">Restore</Button
+					>
+				{:else}
+					<Button
+						variant="outline"
+						size="sm"
+						icon="trash"
+						onclick={archive}
+						testid="btn-archive-exercise">Archive</Button
+					>
+				{/if}
 			</div>
 		{/if}
 

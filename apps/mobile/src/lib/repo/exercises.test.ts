@@ -24,7 +24,9 @@ import {
 	refreshExerciseLibrary,
 	createExercise,
 	updateExercise,
-	archiveExercise
+	archiveExercise,
+	restoreExercise,
+	listArchivedExercises
 } from './exercises';
 
 let n = 0;
@@ -121,9 +123,21 @@ describe('custom exercise CRUD', () => {
 		expect((await getExercise(id))?.is_archived).toBe(true); // history still resolves it
 	});
 
-	it('update/archive are no-ops for a missing id', async () => {
+	it('lists archived exercises and restores one back into the library', async () => {
+		const id = await createExercise({ name: 'Zercher Squat', exercise_type: 'weight_reps', primary_muscle: 'Quadriceps' });
+		await archiveExercise(id);
+		expect((await listArchivedExercises()).map((e) => e.name)).toContain('Zercher Squat');
+
+		await restoreExercise(id);
+		expect((await listExercises()).map((e) => e.name)).toContain('Zercher Squat');
+		expect((await listArchivedExercises()).map((e) => e.name)).not.toContain('Zercher Squat');
+		expect((await getExercise(id))?.is_archived).toBe(false);
+	});
+
+	it('update/archive/restore are no-ops for a missing id', async () => {
 		await updateExercise('absent', { name: 'x', exercise_type: 'weight_reps', primary_muscle: 'Chest' });
 		await archiveExercise('absent');
+		await restoreExercise('absent');
 		expect(await getExercise('absent')).toBeNull();
 	});
 });
