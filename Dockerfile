@@ -1,8 +1,14 @@
 # Granite production image: one static Go binary that serves the JSON API *and*
 # the embedded SvelteKit web app from a single origin, over a SQLite file.
 
+# The two build stages run on the build machine's native platform: the web build
+# is architecture-independent and Go cross-compiles via TARGETOS/TARGETARCH. So a
+# multi-arch build never runs Node or Go under QEMU emulation (slow, and Node has
+# crashed there with "Illegal instruction", hanging the build). Only the small
+# runtime stage is emulated.
+
 # Stage 1 — build the SvelteKit SPA (pnpm workspace)
-FROM node:24-alpine AS web-builder
+FROM --platform=$BUILDPLATFORM node:24-alpine AS web-builder
 RUN corepack enable
 WORKDIR /src
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -17,14 +23,15 @@ ENV PUBLIC_GIT_SHA=$GIT_SHA
 RUN pnpm --filter mobile build
 
 # Stage 2 — build the Go binary with the web build embedded (CGO-free static)
-FROM golang:1.27-alpine AS api-builder
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS api-builder
+ARG TARGETOS TARGETARCH
 WORKDIR /src
 COPY apps/api/go.mod apps/api/go.sum ./
 RUN go mod download
 COPY apps/api/ ./
 # Replace the committed placeholder with the real web build before embedding.
 COPY --from=web-builder /src/apps/mobile/build/ ./internal/webui/dist/
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/granite ./cmd/granite
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/granite ./cmd/granite
 
 # Stage 3 — minimal runtime
 FROM alpine:3.24
