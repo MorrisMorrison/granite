@@ -1,4 +1,4 @@
-import { render } from '@testing-library/svelte';
+import { render, waitFor } from '@testing-library/svelte';
 import { fireEvent } from '@testing-library/dom';
 import { createRawSnippet } from 'svelte';
 import { describe, expect, it, vi } from 'vitest';
@@ -43,5 +43,16 @@ describe('Sheet', () => {
 		render(Sheet, { props: { open: true, onclose, children: body('x') } });
 		await fireEvent.keyDown(window, { key: 'Escape' });
 		expect(onclose).toHaveBeenCalledTimes(1);
+	});
+
+	it('focuses the dialog on open', async () => {
+		const { getByRole } = render(Sheet, { props: { open: true, onclose: () => {}, children: body('x') } });
+		await waitFor(() => expect(document.activeElement).toBe(getByRole('dialog')));
+	});
+
+	it('focuses a data-autofocus child instead when present', async () => {
+		const field = createRawSnippet(() => ({ render: () => '<input data-autofocus aria-label="q" />' }));
+		const { getByLabelText } = render(Sheet, { props: { open: true, onclose: () => {}, children: field } });
+		await waitFor(() => expect(document.activeElement).toBe(getByLabelText('q')));
 	});
 });

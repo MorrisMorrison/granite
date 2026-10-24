@@ -14,9 +14,8 @@
 	import { displayToKg, kgToDisplay } from '$lib/units';
 	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '$lib/workoutDraft';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Sheet from '$lib/components/ui/Sheet.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import ExerciseForm from '$lib/components/ExerciseForm.svelte';
+	import ExercisePicker from '$lib/components/ExercisePicker.svelte';
 
 	interface DraftSet {
 		uid: string;
@@ -73,10 +72,8 @@
 	let pickerOpen = $state(false);
 	let library = $state<{ id: string; name: string; primary_muscle: string }[]>([]);
 	let libraryLoaded = $state(false);
-	let creating = $state(false);
 
 	async function openPicker() {
-		creating = false;
 		pickerOpen = true;
 		if (!libraryLoaded) {
 			library = (await listExercises()).map((e) => ({
@@ -103,7 +100,6 @@
 		const id = await createExercise(input);
 		const name = input.name.trim();
 		library = [...library, { id, name, primary_muscle: input.primary_muscle.trim() }];
-		creating = false;
 		addExercise({ id, name });
 	}
 
@@ -415,40 +411,13 @@
 		></textarea>
 	{/if}
 
-	<Sheet
+	<ExercisePicker
 		open={pickerOpen}
-		title={creating ? 'New exercise' : 'Add exercise'}
-		onclose={() => {
-			pickerOpen = false;
-			creating = false;
-		}}
-	>
-		{#if creating}
-			<button type="button" class="link" onclick={() => (creating = false)}>← Back to list</button>
-			<ExerciseForm submitLabel="Create & add" onsubmit={createAndAdd} />
-		{:else if !libraryLoaded}
-			<p class="muted">Loading…</p>
-		{:else}
-			<Button
-				variant="outline"
-				block
-				icon="plus"
-				onclick={() => (creating = true)}
-				testid="btn-picker-new-exercise"
-			>
-				New exercise
-			</Button>
-			<ul class="lib">
-				{#each library as l (l.id)}
-					<li>
-						<button class="lib-item" onclick={() => addExercise(l)} data-testid="picker-exercise">
-							<span>{l.name}</span><span class="muted">{l.primary_muscle}</span>
-						</button>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</Sheet>
+		library={libraryLoaded ? library : null}
+		onpick={addExercise}
+		oncreate={createAndAdd}
+		onclose={() => (pickerOpen = false)}
+	/>
 
 	{#if error}<p class="error">{error}</p>{/if}
 </main>
@@ -568,25 +537,6 @@
 		color: var(--accent);
 		cursor: pointer;
 		font: inherit;
-	}
-	.lib {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		max-height: 18rem;
-		overflow: auto;
-	}
-	.lib-item {
-		width: 100%;
-		display: flex;
-		justify-content: space-between;
-		padding: 0.6rem 0.5rem;
-		background: none;
-		border: none;
-		border-bottom: 1px solid var(--border);
-		color: var(--text);
-		cursor: pointer;
-		text-align: left;
 	}
 	.footer {
 		position: fixed;
