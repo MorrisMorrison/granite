@@ -43,6 +43,15 @@ export async function listExercises(): Promise<ExerciseRow[]> {
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Archived custom exercises, alphabetical — so they can be found and restored. */
+export async function listArchivedExercises(): Promise<ExerciseRow[]> {
+	const records = await localStore.list('exercise');
+	return records
+		.map((c) => toRow(c.id, c.data as Partial<ExerciseRow>))
+		.filter((e) => e.is_archived)
+		.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 /** One exercise by id from the local store (incl. archived, so history resolves). */
 export async function getExercise(id: string): Promise<ExerciseRow | null> {
 	const rec = await localStore.get('exercise', id);
@@ -115,7 +124,16 @@ export async function updateExercise(id: string, input: ExerciseInput): Promise<
 
 /** Archive a custom exercise: hides it from the library/picker but keeps history
  *  intact (no hard delete). */
-export async function archiveExercise(id: string): Promise<void> {
+export function archiveExercise(id: string): Promise<void> {
+	return setArchived(id, true);
+}
+
+/** Restore an archived exercise to the library and picker. */
+export function restoreExercise(id: string): Promise<void> {
+	return setArchived(id, false);
+}
+
+async function setArchived(id: string, is_archived: boolean): Promise<void> {
 	const rec = await localStore.get('exercise', id);
 	if (!rec) return;
 	await localStore.localWrite({
@@ -123,7 +141,7 @@ export async function archiveExercise(id: string): Promise<void> {
 		id,
 		updated_at: Date.now(),
 		deleted: false,
-		data: { ...(rec.data as object), is_archived: true }
+		data: { ...(rec.data as object), is_archived }
 	});
 	void syncNow().catch(() => {});
 }
