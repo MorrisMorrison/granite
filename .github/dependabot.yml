@@ -28,6 +28,13 @@ updates:
     groups:
       npm:
         update-types: ["minor", "patch"]
+    ignore:
+      # Hold TypeScript on 6.x. TS 7 (the native compiler) has no JS compiler API
+      # yet: openapi-typescript (client generation) breaks on it, and svelte-check
+      # only supports it with TS 6 installed alongside plus an experimental flag.
+      # Take TS 7 deliberately once those tools support it directly.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   # Container image (root Dockerfile)
   - package-ecosystem: "docker"
