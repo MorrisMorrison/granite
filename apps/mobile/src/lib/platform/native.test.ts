@@ -71,6 +71,51 @@ describe('platform seam on a device', () => {
 		expect(schedule).not.toHaveBeenCalled();
 	});
 
+	it('a skip during a pending schedule leaves nothing scheduled', async () => {
+		const order: string[] = [];
+		schedule.mockImplementation(() => {
+			order.push('schedule');
+			return Promise.resolve();
+		});
+		cancel.mockImplementation(() => {
+			order.push('cancel');
+			return Promise.resolve();
+		});
+		let release!: (v: { display: string }) => void;
+		checkPermissions.mockImplementationOnce(() => new Promise((res) => (release = res)));
+		const s = scheduleRestEnd(5_000);
+		const c = cancelRestEnd();
+		await new Promise((r) => setTimeout(r, 10)); // let the unqueued path (if any) run ahead
+		release({ display: 'granted' });
+		await Promise.all([s, c]);
+		expect(order).toContain('schedule');
+		expect(order.indexOf('schedule')).toBeLessThan(order.lastIndexOf('cancel'));
+		expect(order[order.length - 1]).toBe('cancel');
+		schedule.mockImplementation(() => Promise.resolve());
+		cancel.mockImplementation(() => Promise.resolve());
+	});
+
+	it('plugin failures are swallowed and logged', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		try {
+			checkPermissions.mockResolvedValueOnce({ display: 'granted' });
+			schedule.mockRejectedValueOnce(new Error('boom'));
+			await expect(scheduleRestEnd(5_000)).resolves.toBeUndefined();
+			expect(warn).toHaveBeenCalledTimes(1);
+
+			keepAwakeOn.mockRejectedValueOnce(new Error('boom'));
+			await expect(keepAwake(true)).resolves.toBeUndefined();
+			expect(warn).toHaveBeenCalledTimes(2);
+
+			// a failed op does not wedge the queue
+			cancel.mockClear();
+			await cancelRestEnd();
+			expect(cancel).toHaveBeenCalledTimes(1);
+		} finally {
+			warn.mockRestore();
+		}
+	});
+
 	it('cancels and toggles keep-awake', async () => {
 		await cancelRestEnd();
 		expect(cancel).toHaveBeenCalledWith({ notifications: [{ id: 1 }] });
