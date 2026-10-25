@@ -27,10 +27,10 @@ dist/
 apps/api/internal/webui/dist/*
 !apps/api/internal/webui/dist/index.html
 
-# --- Capacitor native projects (generated; build artifacts) ---
-apps/mobile/android/
+# --- Capacitor native projects ---
+# The Android project is committed; its own android/.gitignore keeps build outputs and
+# synced web assets out. iOS is not generated yet.
 apps/mobile/ios/
-!apps/mobile/android/.gitkeep
 !apps/mobile/ios/.gitkeep
 
 # --- Go (apps/api) ---
