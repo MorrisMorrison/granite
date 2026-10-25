@@ -122,7 +122,7 @@ it stops accepting connections, drains in-flight requests (up to 15s), then clos
 ## Minimal footprint
 
 A single Go binary + a SQLite file comfortably runs on a Raspberry Pi, a NAS, or a small VPS/LXC. The
-heavy read/stat work happens on the **client** (each device has the full local SQLite), so the server
+heavy read/stat work happens on the **client** (each device keeps a full local copy in IndexedDB), so the server
 stays light even with the whole history synced.
 
 ## Image & build

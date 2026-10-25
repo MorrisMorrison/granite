@@ -77,8 +77,8 @@ Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and [`deploy
 
 The same app as a native Android build, with a rest-timer notification that works with the screen locked.
 For now, install a test build: download the `granite-debug-apk` artifact from the latest
-[Android CI run](https://github.com/MorrisMorrison/granite/actions/workflows/android.yml) on a PR. Signed
-APKs on GitHub Releases are coming. On first launch the app asks for your server address — use `http://`
+[Android CI run](https://github.com/MorrisMorrison/granite/actions/workflows/android.yml) on a PR (needs a
+GitHub login; artifacts expire after 14 days). Signed APKs on GitHub Releases are coming. On first launch the app asks for your server address — use `http://`
 for a plain-HTTP LAN server (HTTPS recommended). See [docs/06 — Mobile app](docs/06-mobile-app.md).
 
 ## Documentation
