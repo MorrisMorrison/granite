@@ -8,6 +8,7 @@
 		computeHomeStats,
 		lastDoneAt,
 		nextRoutine,
+		relativeDay,
 		weekDays,
 		type HomeStats,
 		type WeekDay
@@ -33,18 +34,24 @@
 
 	async function load() {
 		const [r, w, bw] = await Promise.all([listRoutines(), listWorkouts(), listBodyweight()]);
+		const now = Date.now();
+		const n = nextRoutine(r, w);
+		const count = n ? ((await getRoutine(n.id))?.exercises.length ?? 0) : null;
+		// Assign only after everything is fetched so the hero never mixes old and new data.
 		routines = r;
 		workouts = w;
-		const now = Date.now();
 		stats = computeHomeStats(w, now);
 		week = weekDays(w, now);
 		latestWeight = bw.length ? bw[0].weight : null;
-		const n = nextRoutine(r, w);
-		exerciseCount = n ? ((await getRoutine(n.id))?.exercises.length ?? 0) : null;
+		exerciseCount = count;
 	}
 
 	onMount(async () => {
-		await load();
+		try {
+			await load();
+		} catch {
+			/* local read failed — still sync, then retry below */
+		}
 		try {
 			await syncNow();
 			await load();
@@ -53,15 +60,10 @@
 		}
 	});
 
-	/** "today" | "yesterday" | "3 days ago" | "12 Oct" */
-	function when(ts: number): string {
-		const days = Math.floor((Date.now() - ts) / 86400000);
-		if (days <= 0) return 'today';
-		if (days === 1) return 'yesterday';
-		if (days < 7) return `${days} days ago`;
-		return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-	}
-	const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+	const lastSub = (w: WorkoutSummary) => {
+		const m = minutes(w);
+		return m ? `${relativeDay(w.start_time, Date.now())} · ${m} min` : relativeDay(w.start_time, Date.now());
+	};
 	const minutes = (w: WorkoutSummary) =>
 		w.end_time ? Math.max(1, Math.round((w.end_time - w.start_time) / 60000)) : null;
 
@@ -99,7 +101,7 @@
 			<p class="eyebrow">Next up</p>
 			<h2 class="hero-title">{next.title}</h2>
 			<p class="hero-meta">
-				{#if exerciseCount != null}{exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}{/if}{#if nextDone}{exerciseCount != null ? ' · ' : ''}last done {when(nextDone)}{/if}
+				{#if exerciseCount != null}{exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}{/if}{#if nextDone}{exerciseCount != null ? ' · ' : ''}last done {relativeDay(nextDone, Date.now()).toLowerCase()}{/if}
 			</p>
 			<Button href={`/log?routine=${next.id}`} icon="play" block testid="today-start-routine">
 				Start {next.title}
@@ -135,7 +137,7 @@
 			<p class="eyebrow">Last workout</p>
 			<p class="mini-main">{last ? last.title || 'Workout' : '—'}</p>
 			<p class="mini-sub">
-				{#if last}{cap(when(last.start_time))}{#if minutes(last)} · {minutes(last)} min{/if}{:else}Nothing logged yet{/if}
+				{#if last}{lastSub(last)}{:else}Nothing logged yet{/if}
 			</p>
 		</a>
 		<a class="mini" href="/bodyweight" data-testid="bodyweight-link">
@@ -211,7 +213,8 @@
 	}
 	.empty-link {
 		display: block;
-		margin-top: 0.75rem;
+		margin: 0.35rem 0 -0.4rem;
+		padding: 0.4rem;
 		text-align: center;
 		font-size: 0.85rem;
 		color: var(--muted);

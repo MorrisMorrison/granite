@@ -5,6 +5,7 @@ import {
 	computeLastPerformance,
 	lastDoneAt,
 	nextRoutine,
+	relativeDay,
 	weekDays
 } from './stats';
 
@@ -189,5 +190,22 @@ describe('weekDays', () => {
 		expect(days.map((d) => d.trained)).toEqual([true, false, true, false, false, false, false]);
 		expect(days.map((d) => d.today)).toEqual([false, false, true, false, false, false, false]);
 		expect(days.map((d) => d.future)).toEqual([false, false, false, true, true, true, true]);
+	});
+});
+
+describe('relativeDay', () => {
+	const now = new Date(2026, 9, 25, 0, 30).getTime();
+	it('uses calendar days, not elapsed hours', () => {
+		expect(relativeDay(new Date(2026, 9, 24, 23, 0).getTime(), now)).toBe('Yesterday');
+	});
+	it('same day is Today', () => {
+		expect(relativeDay(new Date(2026, 9, 25, 0, 5).getTime(), now)).toBe('Today');
+	});
+	it('2-6 calendar days ago', () => {
+		expect(relativeDay(new Date(2026, 9, 22, 23, 59).getTime(), now)).toBe('3 days ago');
+	});
+	it('7+ days is a short date', () => {
+		const s = relativeDay(new Date(2026, 9, 17, 12).getTime(), now);
+		expect(s).not.toMatch(/days ago|Today|Yesterday/);
 	});
 });

@@ -254,3 +254,16 @@ export function weekDays(workouts: { start_time: number }[], now: number): WeekD
 		};
 	});
 }
+
+/** Calendar-day label: "Today" | "Yesterday" | "3 days ago" (2–6) | "12 Oct" (≥7). */
+export function relativeDay(ts: number, now: number): string {
+	const a = new Date(ts);
+	a.setHours(0, 0, 0, 0);
+	const b = new Date(now);
+	b.setHours(0, 0, 0, 0);
+	const days = Math.round((b.getTime() - a.getTime()) / 86400000);
+	if (days <= 0) return 'Today';
+	if (days === 1) return 'Yesterday';
+	if (days < 7) return `${days} days ago`;
+	return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
