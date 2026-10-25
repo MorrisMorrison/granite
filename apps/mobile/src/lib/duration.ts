@@ -26,3 +26,10 @@ export function formatRest(totalSec: number): string {
 	const t = Math.max(0, Math.floor(totalSec));
 	return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
+
+/** Whole minutes a workout lasted, or null while it has no end (or under half a minute). */
+export function workoutMinutes(start: number, end: number | null | undefined): number | null {
+	if (!end) return null;
+	const m = Math.round((end - start) / 60000);
+	return m > 0 ? m : null;
+}

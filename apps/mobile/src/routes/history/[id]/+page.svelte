@@ -7,10 +7,12 @@
 	import { syncNow } from '#lib/sync/index.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { kgToDisplay } from '#lib/units.ts';
-	import { setLabel } from '#lib/sets.ts';
+	import { setBadge } from '#lib/sets.ts';
+	import { workoutMinutes } from '#lib/duration.ts';
 	import BackLink from '#lib/components/ui/BackLink.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
+	import SetBadge from '#lib/components/ui/SetBadge.svelte';
 
 	const id = page.params.id!;
 	let workout = $state<WorkoutDetail | null>(null);
@@ -47,21 +49,20 @@
 		const v = kgToDisplay(kg, unit);
 		return v == null ? '—' : String(v);
 	}
-	function fmtDate(ms: number): string {
-		return new Date(ms).toLocaleString(undefined, {
+	// "Tue 21 Oct 2026 · 18:30"
+	function fmtWhen(ms: number): string {
+		const d = new Date(ms);
+		const day = d.toLocaleDateString(undefined, {
 			weekday: 'short',
-			year: 'numeric',
-			month: 'short',
 			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
+			month: 'short',
+			year: 'numeric'
 		});
+		const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+		return `${day} · ${time}`;
 	}
-	function durationMin(wd: WorkoutDetail): number | null {
-		if (!wd.end_time) return null;
-		const m = Math.round((wd.end_time - wd.start_time) / 60000);
-		return m > 0 ? m : null;
-	}
+	const minutes = $derived(workout ? workoutMinutes(workout.start_time, workout.end_time) : null);
+	const bwDisplay = $derived(bodyweight != null ? kgToDisplay(bodyweight, unit) : null);
 
 	const totalSets = $derived(
 		workout ? workout.exercises.reduce((n, e) => n + e.sets.length, 0) : 0
@@ -101,21 +102,31 @@
 		<p class="error">Workout not found.</p>
 	{:else}
 		<div data-testid="workout-detail">
-			<h1>{workout.title || 'Workout'}</h1>
-			<p class="muted sub">
-				{fmtDate(workout.start_time)}{#if durationMin(workout)} · {durationMin(workout)} min{/if}
-			</p>
-			<p class="muted summary">
-				{workout.exercises.length} exercise{workout.exercises.length === 1 ? '' : 's'} · {totalSets} set{totalSets ===
-				1
-					? ''
-					: 's'} · {totalVolume} {unit} volume
-			</p>
-			{#if bodyweight != null}
-				<p class="muted summary" data-testid="wd-bodyweight">
-					Bodyweight {kgToDisplay(bodyweight, unit)} {unit}
-				</p>
-			{/if}
+			<header class="head">
+				<p class="eyebrow when">{fmtWhen(workout.start_time)}</p>
+				<h1>{workout.title || 'Workout'}</h1>
+			</header>
+
+			<section class="card summary" class:four={bwDisplay != null} aria-label="Summary">
+				<div class="stat">
+					<span class="eyebrow">Duration</span>
+					<span class="val">{minutes ? `${minutes} min` : '—'}</span>
+				</div>
+				<div class="stat">
+					<span class="eyebrow">Sets</span>
+					<span class="val">{totalSets}</span>
+				</div>
+				<div class="stat">
+					<span class="eyebrow">Volume</span>
+					<span class="val">{totalVolume.toLocaleString()} <small>{unit}</small></span>
+				</div>
+				{#if bwDisplay != null}
+					<div class="stat" data-testid="wd-bodyweight">
+						<span class="eyebrow">Bodyweight</span>
+						<span class="val">{bwDisplay} <small>{unit}</small></span>
+					</div>
+				{/if}
+			</section>
 
 			{#if workout.exercises.length === 0}
 				<p class="muted">No exercises were logged in this session.</p>
@@ -130,26 +141,25 @@
 							data-testid="wd-exercise-link"
 							title="View progress for {ex.name}"
 						>
-							<strong>{ex.name}</strong>
+							<span class="ex-name">{ex.name}</span>
 							<Icon name="chevron-right" size={16} />
 						</a>
-						<span class="muted">{ex.sets.length} set{ex.sets.length === 1 ? '' : 's'}</span>
+						<span class="ex-count">{ex.sets.length} set{ex.sets.length === 1 ? '' : 's'}</span>
 					</div>
-					<div class="set-head muted">
-						<span>Set</span><span>Type</span><span>{unit}</span><span>Reps</span><span>✓</span>
+					<div class="cols" aria-hidden="true">
+						<span>Set</span><span>{unit}</span><span>Reps</span><span></span>
 					</div>
 					{#each ex.sets as s, i (i)}
 						<div
 							class="set-row"
-							class:done={s.is_completed}
+							class:skipped={!s.is_completed}
 							class:warmup={s.set_type === 'warmup'}
 							data-testid="wd-set"
 						>
-							<span class="set-no">{setLabel(ex.sets, i)}</span>
-							<span>{s.set_type}</span>
-							<span>{w(s.weight)}</span>
-							<span>{s.reps ?? '—'}</span>
-							<span>{s.is_completed ? '✓' : ''}</span>
+							<SetBadge label={setBadge(ex.sets, i)} type={s.set_type} />
+							<span class="num">{w(s.weight)}</span>
+							<span class="num">{s.reps ?? '—'}</span>
+							<span class="note">{s.is_completed ? '' : 'skipped'}</span>
 						</div>
 					{/each}
 				</section>
@@ -157,13 +167,13 @@
 
 			{#if workout.notes}
 				<section class="card notes">
-					<div class="muted label">Notes</div>
-					<p>{workout.notes}</p>
+					<p class="eyebrow">Notes</p>
+					<p class="notes-text">{workout.notes}</p>
 				</section>
 			{/if}
 
 			<div class="danger-zone">
-				<Button variant="destructive" icon="trash" onclick={remove} testid="btn-delete-workout">
+				<Button variant="danger" icon="trash" block onclick={remove} testid="btn-delete-workout">
 					Delete workout
 				</Button>
 			</div>
@@ -172,73 +182,142 @@
 </main>
 
 <style>
-	h1 {
-		margin: 0;
+	.head {
+		margin: 0.25rem 0 1rem;
 	}
-	.sub {
-		margin: 0.25rem 0 0.1rem;
+	.when {
+		font-variant-numeric: tabular-nums;
+	}
+	.head h1 {
+		margin: 0.2rem 0 0;
+		font-size: 1.6rem;
+		font-weight: 650;
+		letter-spacing: -0.02em;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.summary {
-		font-size: 0.85rem;
-		margin: 0 0 1.25rem;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.75rem 0.5rem;
+		margin-bottom: 0.9rem;
+		padding: 0.85rem 1rem;
+	}
+	.summary.four {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	/* Four cells get cramped on small phones: wrap to 2 × 2. */
+	@media (max-width: 400px) {
+		.summary.four {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	.stat {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+	.val {
+		font-size: 1.05rem;
+		font-weight: 650;
+		letter-spacing: -0.01em;
+		font-variant-numeric: tabular-nums;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.val small {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--muted);
 	}
 	.ex {
-		margin-bottom: 1rem;
+		margin-bottom: 0.9rem;
+		padding: 0.85rem 0.9rem 0.6rem;
 	}
 	.ex-head {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		gap: 0.75rem;
 	}
 	.ex-link {
+		min-width: 0;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.2rem;
 		color: var(--text);
 		text-decoration: none;
 	}
-	.ex-link:hover {
-		color: var(--accent);
+	.ex-name {
+		min-width: 0;
+		font-weight: 650;
+		letter-spacing: -0.01em;
+		font-size: 1.02rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.ex-link :global(svg) {
+		flex-shrink: 0;
+		color: var(--faint);
+	}
+	.ex-link:hover :global(svg) {
+		color: var(--text);
+	}
+	.ex-count {
+		flex-shrink: 0;
+		font-size: 0.75rem;
 		color: var(--muted);
-	}
-	.set-head,
-	.set-row {
-		display: grid;
-		grid-template-columns: 1.5rem 5rem 1fr 1fr 1.5rem;
-		gap: 0.4rem;
-		align-items: center;
-		font-size: 0.85rem;
-	}
-	.set-head {
-		margin-bottom: 0.3rem;
-	}
-	.set-row {
-		margin-bottom: 0.3rem;
-		text-transform: capitalize;
-	}
-	.set-row.done {
-		opacity: 0.75;
-	}
-	.set-no {
 		font-variant-numeric: tabular-nums;
 	}
-	.set-row.warmup .set-no {
-		color: var(--warning);
+	.cols,
+	.set-row {
+		display: grid;
+		grid-template-columns: 2rem minmax(0, 1fr) minmax(0, 1fr) 3.5rem;
+		gap: 0.4rem;
+		align-items: center;
+	}
+	.cols {
+		margin: 0.6rem 0 0.35rem;
+		font-size: 0.65rem;
 		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--faint);
+		text-align: center;
+		white-space: nowrap;
+	}
+	.set-row {
+		min-height: 2.4rem;
+		margin-bottom: 0.15rem;
+	}
+	.num {
+		text-align: center;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.note {
+		text-align: right;
+		font-size: 0.72rem;
+		color: var(--faint);
+	}
+	/* Completed is the normal state; a set that wasn't done reads quieter. */
+	.set-row.skipped :global(.badge),
+	.set-row.skipped .num {
+		opacity: 0.45;
+	}
+	.notes {
+		margin-bottom: 0.9rem;
+	}
+	.notes-text {
+		margin: 0.35rem 0 0;
+		font-size: 0.92rem;
+		white-space: pre-wrap;
 	}
 	.danger-zone {
 		margin-top: 1.5rem;
-	}
-	.notes p {
-		margin: 0.25rem 0 0;
-		white-space: pre-wrap;
-	}
-	.notes .label {
-		font-size: 0.75rem;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
 	}
 </style>

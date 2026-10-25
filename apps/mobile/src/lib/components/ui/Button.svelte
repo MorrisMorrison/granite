@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import Icon from './Icon.svelte';
 
-	type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+	type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'danger';
 
 	let {
 		variant = 'primary',
@@ -112,5 +112,13 @@
 	.v-destructive {
 		background: var(--danger);
 		color: #fff;
+	}
+	/* Quiet destructive action: red text, no fill (like the delete items in the sheets). */
+	.v-danger {
+		background: transparent;
+		color: var(--danger);
+	}
+	.v-danger:hover {
+		background: color-mix(in srgb, var(--danger) 10%, transparent);
 	}
 </style>

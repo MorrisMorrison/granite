@@ -89,13 +89,13 @@
 </div>
 
 <style>
-	/* Sits in a card so it matches the workout rows below it. */
+	/* Sits in a card like the grouped workout lists below it. */
 	.cal {
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
-		padding: 0.75rem 0.85rem;
-		margin-bottom: 0.6rem;
+		padding: 0.75rem 0.9rem 0.85rem;
+		margin-bottom: 0.75rem;
 	}
 	.cal-hd {
 		display: flex;
@@ -104,18 +104,25 @@
 		margin-bottom: 0.45rem;
 	}
 	.cal-title {
-		font-size: 0.85rem;
-		font-weight: 600;
+		font-size: 0.88rem;
+		font-weight: 650;
+		letter-spacing: -0.01em;
+		font-variant-numeric: tabular-nums;
 	}
 	.nav {
 		background: transparent;
-		border: 1px solid var(--border);
+		border: none;
 		border-radius: var(--radius-sm);
-		color: var(--text);
-		width: 1.5rem;
-		height: 1.5rem;
+		color: var(--muted);
+		width: 1.75rem;
+		height: 1.75rem;
+		font-size: 1.1rem;
 		line-height: 1;
 		cursor: pointer;
+	}
+	.nav:not(:disabled):hover {
+		color: var(--text);
+		background: var(--elevated);
 	}
 	.nav:disabled {
 		opacity: 0.35;
@@ -128,8 +135,10 @@
 		text-align: center;
 	}
 	.dow {
-		font-size: 0.68rem;
-		color: var(--muted);
+		font-size: 0.65rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		color: var(--faint);
 		padding-bottom: 1px;
 	}
 	.day {
