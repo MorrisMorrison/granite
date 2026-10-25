@@ -12,9 +12,10 @@
 	import type { paths } from '@granite/shared';
 	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
-	import Badge from '#lib/components/ui/Badge.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import IconButton from '#lib/components/ui/IconButton.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 
 	interface TokenRow {
 		id: string;
@@ -252,46 +253,53 @@
 			day: 'numeric'
 		});
 	}
+
+	// "read+write · gra_ab12… · created 3 Oct 2026 · last used 5 Oct 2026"
+	function tokenMeta(t: TokenRow): string {
+		const used = t.last_used_at ? `last used ${fmtDate(t.last_used_at)}` : 'never used';
+		return `${isWrite(t) ? 'read+write' : 'read'} · ${t.prefix}… · created ${fmtDate(t.created_at)} · ${used}`;
+	}
 </script>
 
 <svelte:head><title>Settings · Granite</title></svelte:head>
 
 <main class="container">
-	<PageHeader title="Settings" />
+	<PageHeader title="Settings" eyebrow={auth.user?.email} />
 
-	<section class="block">
-		<h2>Account</h2>
-		<div class="card">
-			<div class="row">
-				<span class="muted">Email</span>
-				<span data-testid="settings-email">{auth.user?.email ?? '—'}</span>
+	<section class="block" aria-labelledby="s-account">
+		<h2 class="eyebrow label" id="s-account">Account</h2>
+		<div class="group">
+			<div class="group-row srow">
+				<span class="srow-label">Email</span>
+				<span class="srow-val" data-testid="settings-email">{auth.user?.email ?? '—'}</span>
 			</div>
-			<div class="row">
-				<span class="muted">Server</span>
-				<span class="mono">{getServerUrl()}</span>
+			<div class="group-row srow">
+				<span class="srow-label">Server</span>
+				<span class="srow-val mono">{getServerUrl()}</span>
+				{#if isNative()}
+					<Button variant="outline" size="sm" onclick={changeServer} testid="btn-settings-change-server">
+						Change server
+					</Button>
+				{/if}
 			</div>
-			{#if isNative()}
-				<div class="row">
-					<span></span>
-					<Button variant="outline" size="sm" onclick={changeServer} testid="btn-settings-change-server">Change server</Button>
-				</div>
-				{#if serverError}<p class="error" data-testid="change-server-error">{serverError}</p>{/if}
-			{/if}
-			<div class="row">
-				<span class="muted">Version</span>
-				<span class="mono" data-testid="app-version">{version}</span>
+			<div class="group-row srow">
+				<span class="srow-label">Version</span>
+				<span class="srow-val mono faint" data-testid="app-version">{version}</span>
 			</div>
 		</div>
+		{#if serverError}
+			<div class="msg"><FormError message={serverError} testid="change-server-error" /></div>
+		{/if}
 	</section>
 
-	<section class="block">
-		<h2>Preferences</h2>
-		<div class="card">
-			<div class="row">
-				<label class="muted" for="pref-unit">Weight unit</label>
+	<section class="block" aria-labelledby="s-prefs">
+		<h2 class="eyebrow label" id="s-prefs">Preferences</h2>
+		<div class="group">
+			<div class="group-row srow">
+				<label class="srow-label" for="pref-unit">Weight unit</label>
 				<select
 					id="pref-unit"
-					class="setting-control"
+					class="control compact"
 					value={prefs.current.weightUnit}
 					onchange={(e) => prefs.update({ weightUnit: e.currentTarget.value as 'kg' | 'lb' })}
 					data-testid="field-weight-unit"
@@ -300,11 +308,14 @@
 					<option value="lb">lb</option>
 				</select>
 			</div>
-			<div class="row">
-				<label class="muted" for="pref-rest">Default rest (seconds)</label>
+			<div class="group-row srow">
+				<label class="srow-label" for="pref-rest">
+					Default rest
+					<span class="group-row-sub">Seconds between sets</span>
+				</label>
 				<input
 					id="pref-rest"
-					class="setting-control"
+					class="control compact"
 					type="number"
 					inputmode="numeric"
 					min="0"
@@ -316,78 +327,80 @@
 		</div>
 	</section>
 
-	<section class="block">
-		<h2>Your data</h2>
-		<div class="card">
-			<p class="muted desc">
-				Export everything — routines, workouts, exercises — as a JSON file, or import a previous
-				Granite export. Importing merges by id (last write wins). You can also import a workout-history
-				CSV from another tracker.
-			</p>
-			{#if exportError}<p class="error">{exportError}</p>{/if}
-			{#if importError}<p class="error">{importError}</p>{/if}
-			{#if importMessage}<p class="success">{importMessage}</p>{/if}
-			<div class="actions">
-				<Button variant="outline" onclick={exportData} disabled={exporting} testid="btn-export">
-					{exporting ? 'Exporting…' : 'Export JSON'}
-				</Button>
-				<Button
-					variant="outline"
-					onclick={() => fileInput.click()}
-					disabled={importing}
-					testid="btn-import"
-				>
-					{importing ? 'Importing…' : 'Import JSON'}
-				</Button>
-				<Button
-					variant="outline"
-					onclick={() => hevyInput.click()}
-					disabled={hevyImporting}
-					testid="btn-import-hevy"
-				>
-					{hevyImporting ? 'Importing…' : 'Import from Hevy (CSV)'}
-				</Button>
-			</div>
-			<input
-				bind:this={fileInput}
-				type="file"
-				accept="application/json,.json"
-				onchange={onImportFile}
-				class="visually-hidden"
-				data-testid="field-import"
-			/>
-			<input
-				bind:this={hevyInput}
-				type="file"
-				accept="text/csv,.csv"
-				onchange={onHevyFile}
-				class="visually-hidden"
-				data-testid="field-import-hevy"
-			/>
+	<section class="block" aria-labelledby="s-data">
+		<h2 class="eyebrow label" id="s-data">Your data</h2>
+		<p class="desc">
+			Export everything — routines, workouts, exercises — as a JSON file, or import a previous
+			Granite export. Importing merges by id (last write wins). You can also import a workout-history
+			CSV from another tracker.
+		</p>
+		<div class="group">
+			<button class="group-row action" onclick={exportData} disabled={exporting} data-testid="btn-export">
+				<Icon name="download" size={18} />
+				<span class="group-row-body">{exporting ? 'Exporting…' : 'Export JSON'}</span>
+				<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
+			</button>
+			<button class="group-row action" onclick={() => fileInput.click()} disabled={importing} data-testid="btn-import">
+				<Icon name="upload" size={18} />
+				<span class="group-row-body">{importing ? 'Importing…' : 'Import JSON'}</span>
+				<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
+			</button>
+			<button
+				class="group-row action"
+				onclick={() => hevyInput.click()}
+				disabled={hevyImporting}
+				data-testid="btn-import-hevy"
+			>
+				<Icon name="upload" size={18} />
+				<span class="group-row-body">{hevyImporting ? 'Importing…' : 'Import from Hevy (CSV)'}</span>
+				<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
+			</button>
 		</div>
-		<div class="card" style="margin-top: 0.75rem;">
-			<p class="muted desc">
+		<input
+			bind:this={fileInput}
+			type="file"
+			accept="application/json,.json"
+			onchange={onImportFile}
+			class="sr-only"
+			tabindex="-1"
+			data-testid="field-import"
+		/>
+		<input
+			bind:this={hevyInput}
+			type="file"
+			accept="text/csv,.csv"
+			onchange={onHevyFile}
+			class="sr-only"
+			tabindex="-1"
+			data-testid="field-import-hevy"
+		/>
+		{#if exportError || importError || importMessage}
+			<div class="msg">
+				<FormError message={exportError} />
+				<FormError message={importError} />
+				{#if importMessage}<p class="success" role="status">{importMessage}</p>{/if}
+			</div>
+		{/if}
+
+		<div class="card reset">
+			<p class="desc">
 				Reset this device’s local copy and re-download from the server. Use this if you see duplicate
 				or stale data after a server change.
 			</p>
-			{#if resetError}<p class="error">{resetError}</p>{/if}
-			<div class="actions">
-				<Button
-					variant="outline"
-					onclick={onResetLocal}
-					disabled={resetting}
-					testid="btn-reset-local"
-				>
+			<FormError message={resetError} />
+			<div class="reset-btn">
+				<Button variant="danger" size="sm" onclick={onResetLocal} disabled={resetting} testid="btn-reset-local">
 					{resetting ? 'Resetting…' : 'Reset local data'}
 				</Button>
 			</div>
 		</div>
 	</section>
 
-	<section class="block">
+	<section class="block" aria-labelledby="s-tokens">
 		<div class="block-head">
-			<h2>API tokens</h2>
+			<h2 class="eyebrow" id="s-tokens">API tokens</h2>
 			<Button
+				variant="outline"
 				size="sm"
 				icon="plus"
 				onclick={() => (createSheet = { open: true, name: '', write: false })}
@@ -396,42 +409,29 @@
 				New
 			</Button>
 		</div>
-		<p class="muted desc">
+		<p class="desc">
 			Personal tokens for scripts and integrations. Read-only by default; grant write to log
 			workouts or edit routines.
 		</p>
-		{#if tokensError}<p class="error">{tokensError}</p>{/if}
+		{#if tokensError}<div class="msg top"><FormError message={tokensError} /></div>{/if}
 
-		{#if tokensLoading}
-			<p class="muted">Loading…</p>
-		{:else if tokens.length === 0}
-			<div class="card"><p class="muted" style="margin:0">No tokens yet.</p></div>
-		{:else}
-			<div class="list">
+		<div class="group">
+			{#if tokensLoading}
+				<p class="group-row empty">Loading…</p>
+			{:else if tokens.length === 0}
+				<p class="group-row empty">No tokens yet.</p>
+			{:else}
 				{#each tokens as t (t.id)}
-					<div class="token card" data-testid="token-row">
-						<div class="token-main">
-							<div class="token-name">
-								{t.name}
-								<Badge variant={isWrite(t) ? 'accent' : 'muted'}>
-									{isWrite(t) ? 'read+write' : 'read'}
-								</Badge>
-							</div>
-							<div class="muted token-meta">
-								<span class="mono">{t.prefix}…</span> · created {fmtDate(t.created_at)}
-								{#if t.last_used_at}· last used {fmtDate(t.last_used_at)}{:else}· never used{/if}
-							</div>
-						</div>
-						<IconButton
-							name="trash"
-							label="Revoke token"
-							onclick={() => revoke(t)}
-							testid="btn-revoke-token"
-						/>
+					<div class="group-row token" data-testid="token-row">
+						<span class="group-row-body">
+							<span class="group-row-title">{t.name}</span>
+							<span class="group-row-sub">{tokenMeta(t)}</span>
+						</span>
+						<IconButton name="trash" label={`Revoke ${t.name}`} onclick={() => revoke(t)} testid="btn-revoke-token" />
 					</div>
 				{/each}
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</section>
 </main>
 
@@ -441,142 +441,163 @@
 	title="New API token"
 	onclose={() => (createSheet = { open: false, name: '', write: false })}
 >
-	<label class="field-label" for="token-name">Name</label>
-	<input
-		id="token-name"
-		class="full"
-		placeholder="e.g. My script"
-		bind:value={createSheet.name}
-		data-testid="field-token-name"
-	/>
-	<label class="checkrow">
-		<input type="checkbox" bind:checked={createSheet.write} data-testid="field-token-write" />
-		Allow write access (log workouts, edit routines)
-	</label>
-	<Button block onclick={createToken} disabled={creating || !createSheet.name.trim()} testid="btn-create-token">
-		{creating ? 'Creating…' : 'Create token'}
-	</Button>
+	<div class="form">
+		<label class="field" for="token-name">
+			<span class="eyebrow">Name</span>
+			<input
+				id="token-name"
+				class="control"
+				placeholder="e.g. My script"
+				bind:value={createSheet.name}
+				data-testid="field-token-name"
+			/>
+		</label>
+		<label class="checkrow">
+			<input type="checkbox" bind:checked={createSheet.write} data-testid="field-token-write" />
+			<span class="checkrow-text">
+				Allow write access
+				<span class="field-hint">Log workouts, edit routines.</span>
+			</span>
+		</label>
+		<Button block onclick={createToken} disabled={creating || !createSheet.name.trim()} testid="btn-create-token">
+			{creating ? 'Creating…' : 'Create token'}
+		</Button>
+	</div>
 </Sheet>
 
 <!-- Token created — shown once -->
 <Sheet open={newToken !== null} title="Token created" onclose={() => (newToken = null)}>
-	<p class="muted desc">Copy it now — for security it won't be shown again.</p>
-	<div class="token-value mono" data-testid="new-token-value">{newToken}</div>
-	<Button block onclick={copyToken} icon={copied ? 'check' : undefined} testid="btn-copy-token">
-		{copied ? 'Copied' : 'Copy to clipboard'}
-	</Button>
+	<div class="form">
+		<p class="desc flush">Copy it now — for security it won't be shown again.</p>
+		<div class="token-value mono" data-testid="new-token-value">{newToken}</div>
+		<Button block onclick={copyToken} icon={copied ? 'check' : undefined} testid="btn-copy-token">
+			{copied ? 'Copied' : 'Copy to clipboard'}
+		</Button>
+	</div>
 </Sheet>
 
 <style>
 	.block {
-		margin-bottom: 1.75rem;
+		margin-bottom: 1.6rem;
+	}
+	.label {
+		margin: 0 0 0.45rem;
 	}
 	.block-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		margin-bottom: 0.6rem;
-	}
-	h2 {
-		font-size: 0.95rem;
-		font-weight: 600;
-		margin: 0 0 0.6rem;
-	}
-	.block-head h2 {
-		margin: 0;
+		margin-bottom: 0.45rem;
 	}
 	.desc {
+		margin: 0 0 0.6rem;
 		font-size: 0.85rem;
-		margin: 0 0 0.75rem;
+		line-height: 1.45;
+		color: var(--muted);
 	}
-	.row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.35rem 0;
+	.desc.flush {
+		margin: 0;
 	}
-	.setting-control {
-		width: 7rem;
-		text-align: right;
+	/* Settings row: label left, value or compact control right. */
+	.srow {
+		min-height: 3.1rem;
+		padding-right: 0.9rem;
 	}
-	.actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-top: 0.85rem;
-	}
-	.success {
-		color: var(--success);
-		font-size: 0.85rem;
-		margin: 0.25rem 0 0;
-	}
-	.visually-hidden {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		border: 0;
-	}
-	.list {
+	.srow-label {
+		flex: 1 0 auto;
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.1rem;
+		color: var(--text);
 	}
-	.token {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.85rem 1rem;
-	}
-	.token-main {
-		flex: 1;
+	.srow-val {
 		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		text-align: right;
+		color: var(--muted);
 	}
-	.token-name {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: 600;
-	}
-	.token-meta {
-		font-size: 0.8rem;
-		margin-top: 2px;
+	.faint {
+		color: var(--faint);
 	}
 	.mono {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.85rem;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.82rem;
 	}
-	.full {
-		width: 100%;
-	}
-	.field-label {
-		display: block;
-		font-size: 0.8rem;
+	.action > :global(svg) {
+		flex-shrink: 0;
 		color: var(--muted);
-		margin-bottom: 0.3rem;
+	}
+	.action:disabled > :global(svg) {
+		color: var(--faint);
+	}
+	.msg {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		margin-top: 0.6rem;
+	}
+	.msg.top {
+		margin: 0 0 0.6rem;
+	}
+	.success {
+		margin: 0;
+		font-size: 0.875rem;
+		color: var(--success);
+	}
+	.reset {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.6rem;
+		margin-top: 0.9rem;
+	}
+	.reset .desc {
+		margin: 0;
+	}
+	/* Pull the quiet danger button's padding into the card edge so its text lines up. */
+	.reset-btn {
+		margin-left: -0.8rem;
+	}
+	.empty {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.9rem;
+	}
+	.token {
+		padding-right: 0.4rem;
+	}
+	/* Token meta can be long (scope, prefix, two dates): wrap rather than cut it off. */
+	.token .group-row-sub {
+		white-space: normal;
+	}
+	.token :global(.ib) {
+		color: var(--faint);
 	}
 	.checkrow {
 		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.85rem;
-		color: var(--muted);
-		margin: 0.85rem 0;
+		align-items: flex-start;
+		gap: 0.65rem;
+		cursor: pointer;
+	}
+	.checkrow-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
 	}
 	.checkrow input {
-		width: auto;
+		flex-shrink: 0;
+		width: 1.15rem;
+		height: 1.15rem;
+		margin: 0.15rem 0 0;
+		accent-color: var(--accent);
 	}
 	.token-value {
 		word-break: break-all;
 		background: var(--elevated);
-		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
-		padding: 0.75rem;
-		margin-bottom: 0.85rem;
+		padding: 0.75rem 0.85rem;
 	}
 </style>
