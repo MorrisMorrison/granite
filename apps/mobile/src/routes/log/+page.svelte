@@ -180,7 +180,8 @@
 	function refresh() {
 		if (timer.tick(Date.now())) {
 			if (!nativeAlert) restAlert(); // buzz + beep when the rest period ends
-			else void cancelRestEnd(); // clear the delivered notification now we are back
+			// Rest is over: clear the native notification (delivered or still pending, e.g. inexact) either way.
+			void cancelRestEnd();
 			nativeAlert = false;
 		}
 		sync();
