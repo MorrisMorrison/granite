@@ -52,19 +52,21 @@ App code calls the seam, never Capacitor directly.
 - On success the URL is saved to `granite.serverUrl` (the key `getServerUrl()` already reads) and the
   app continues to login/register. Those screens show "Server: <host> · Change" on native.
 - **Changing server** signs out and clears local data (the existing reset), so data from two servers
-  never mixes.
+  never mixes. If sign-out is refused because changes haven't synced yet, the switch is refused too.
+- `/connect` exists only in the native app; on the web it redirects to login.
 - Errors, in plain words:
 
 | Situation | Message |
 |---|---|
 | Nothing answers / DNS / timeout | "No server answered at <host>. Check the address and your connection." |
-| Answers, but not Granite (no/odd `/api/v1/info`) | "That address doesn't look like a Granite server." |
-| Request blocked by CORS (old server) or `api_version` too low | "This Granite server needs an update to work with the app." |
+| Answers, but the identity check is blocked by CORS (any non-Granite site, or a Granite server that predates the app — browsers can't tell these apart) | "No current Granite server found at <host>. Check the address, or update the server." |
+| Identity check answers with something that isn't Granite | "That address doesn't look like a Granite server." |
+| `api_version` below the app's minimum | "This Granite server needs an update to work with the app." |
 
 ### Server changes
 - CORS allow-list = `GRANITE_BASE_URL` **plus** `https://localhost` (Android WebView) and
   `capacitor://localhost` (iOS, later). Always on, no setting.
-- New public endpoint `GET /api/v1/info` → `{ "name": "granite", "api_version": 1 }`.
+- New public endpoint `GET /api/v1/info` → `{ "name": "granite", "api_version": 1 }` (huma may add `$schema`).
   `api_version` is bumped when the app starts relying on newer server behaviour.
 
 ### Native features
