@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { PASSWORD } from './helpers';
 
 // The e2e build honours granite.forceNative, so the web build behaves like the app.
-test('native: connect → register → change server clears local data', async ({ page, baseURL }) => {
+test('native: connect → register → change server signs out and returns to /connect', async ({ page, baseURL }) => {
 	await page.addInitScript(() => localStorage.setItem('granite.forceNative', '1'));
 	await page.goto('/');
 	await expect(page).toHaveURL(/\/connect$/);
@@ -18,7 +18,7 @@ test('native: connect → register → change server clears local data', async (
 	await expect(page).toHaveURL(/\/login$/);
 	await expect(page.getByTestId('server-line')).toContainText(new URL(baseURL!).host);
 
-	// Register (logout on server change then wipes this device's local data).
+	// Register, then change server from Settings.
 	await page.goto('/register');
 	await page.getByTestId('field-email').fill(`native_${Date.now()}@test.local`);
 	await page.getByTestId('field-password').fill(PASSWORD);

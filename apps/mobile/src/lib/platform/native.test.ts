@@ -21,6 +21,7 @@ describe('platform seam on the web', () => {
 
 	it('honours the e2e override only in e2e builds', () => {
 		localStorage.setItem('granite.forceNative', '1');
+		vi.stubEnv('VITE_E2E', '');
 		expect(isNative()).toBe(false); // not an e2e build
 		vi.stubEnv('VITE_E2E', '1');
 		expect(isNative()).toBe(true);

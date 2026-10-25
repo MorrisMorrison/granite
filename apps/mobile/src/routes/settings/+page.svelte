@@ -57,6 +57,7 @@
 			serverError = 'Sync your changes first: some workouts haven’t reached the server yet.';
 			return;
 		}
+		// clearSession() just nulled the user, so the layout's auth effect also navigates to /login; this later goto supersedes it (SvelteKit cancels the earlier navigation).
 		await goto('/connect?change=1');
 	}
 	let fileInput: HTMLInputElement;
