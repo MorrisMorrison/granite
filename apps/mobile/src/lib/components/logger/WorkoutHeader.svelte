@@ -75,12 +75,6 @@
 		min-height: 1.6rem;
 	}
 	.eyebrow {
-		margin: 0;
-		font-size: 0.7rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--faint);
 		font-variant-numeric: tabular-nums;
 		min-width: 0;
 		overflow: hidden;

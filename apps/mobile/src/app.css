@@ -82,6 +82,16 @@ a {
 	padding: 1rem 1rem calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1.5rem);
 }
 
+/* Small uppercase label above a title, value or group (Today, logger, routines, stats). */
+.eyebrow {
+	margin: 0;
+	font-size: 0.7rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--faint);
+}
+
 .card {
 	background: var(--surface);
 	border: 1px solid var(--border);
