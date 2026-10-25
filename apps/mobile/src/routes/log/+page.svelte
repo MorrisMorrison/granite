@@ -8,6 +8,7 @@
 	import { lastPerformance } from '#lib/repo/stats.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { restAlert } from '#lib/restAlert.ts';
+	import { cancelRestEnd, keepAwake, scheduleRestEnd } from '#lib/platform/native.ts';
 	import { SET_TYPES, setLabel } from '#lib/sets.ts';
 	import { isBarbell, roundDeload } from '#lib/calc.ts';
 	import { createRestTimer } from '#lib/restTimer.ts';
@@ -184,10 +185,13 @@
 		timer.start(seconds);
 		if (!restInterval) restInterval = setInterval(refresh, 1000);
 		sync();
+		void scheduleRestEnd(timer.endsAt()!);
 	}
 	function bumpRest(delta: number) {
 		timer.bump(delta);
 		sync();
+		const at = timer.endsAt();
+		if (at) void scheduleRestEnd(at);
 	}
 	function stopRest() {
 		timer.stop();
@@ -196,6 +200,7 @@
 			restInterval = null;
 		}
 		sync();
+		void cancelRestEnd();
 	}
 
 	// On resume (unlock/foreground) recompute immediately so a rest that elapsed
@@ -205,10 +210,12 @@
 	}
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisible);
+		void keepAwake(true);
 	});
 	onDestroy(() => {
 		document.removeEventListener('visibilitychange', onVisible);
 		stopRest();
+		void keepAwake(false);
 	});
 
 	function fmt(s: number) {

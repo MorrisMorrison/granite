@@ -19,19 +19,40 @@ export function isNative(): boolean {
 
 const device = () => Capacitor.isNativePlatform();
 
+const REST_NOTIFICATION_ID = 1;
+
 /** Schedule the "rest over" notification at epoch-ms `at` (replaces a pending one). */
 export async function scheduleRestEnd(at: number): Promise<void> {
 	if (!device()) return;
-	void at;
+	const { LocalNotifications } = await import('@capacitor/local-notifications');
+	let { display } = await LocalNotifications.checkPermissions();
+	if (display === 'prompt' || display === 'prompt-with-rationale') {
+		({ display } = await LocalNotifications.requestPermissions());
+	}
+	if (display !== 'granted') return; // the in-app alert still fires while open
+	await LocalNotifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] });
+	await LocalNotifications.schedule({
+		notifications: [
+			{
+				id: REST_NOTIFICATION_ID,
+				title: 'Rest over',
+				body: 'Time for your next set.',
+				schedule: { at: new Date(at), allowWhileIdle: true }
+			}
+		]
+	});
 }
 
 /** Cancel a pending rest notification. */
 export async function cancelRestEnd(): Promise<void> {
 	if (!device()) return;
+	const { LocalNotifications } = await import('@capacitor/local-notifications');
+	await LocalNotifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] });
 }
 
 /** Keep the screen on (logger open) or let it sleep again. */
 export async function keepAwake(on: boolean): Promise<void> {
 	if (!device()) return;
-	void on;
+	const { KeepAwake } = await import('@capacitor-community/keep-awake');
+	await (on ? KeepAwake.keepAwake() : KeepAwake.allowSleep());
 }

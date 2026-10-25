@@ -61,3 +61,19 @@ describe('createRestTimer', () => {
 		expect(t.remaining()).toBe(0);
 	});
 });
+
+describe('endsAt', () => {
+	it('is the absolute end while running and null otherwise', () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(1_000_000);
+		const t = createRestTimer();
+		expect(t.endsAt()).toBeNull();
+		t.start(90);
+		expect(t.endsAt()).toBe(1_000_000 + 90_000);
+		t.bump(15);
+		expect(t.endsAt()).toBe(1_000_000 + 105_000);
+		t.stop();
+		expect(t.endsAt()).toBeNull();
+		vi.useRealTimers();
+	});
+});
