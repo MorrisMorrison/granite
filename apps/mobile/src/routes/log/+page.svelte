@@ -8,6 +8,7 @@
 	import { lastPerformance } from '#lib/repo/stats.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { restAlert } from '#lib/restAlert.ts';
+	import { cancelRestEnd, keepAwake, scheduleRestEnd } from '#lib/platform/native.ts';
 	import { SET_TYPES, setLabel } from '#lib/sets.ts';
 	import { isBarbell, roundDeload } from '#lib/calc.ts';
 	import { createRestTimer } from '#lib/restTimer.ts';
@@ -171,8 +172,18 @@
 		restActive = timer.active();
 	}
 	// Recompute against the wall clock; fire the alert on the expiry transition.
+	// True while a native notification is scheduled for the running rest: it alerts
+	// the user itself, so the in-app buzz + beep would be a second alert.
+	let nativeAlert = false;
+	// A skipped/restarted rest's late result must not decide the next rest's alert.
+	let restGen = 0;
 	function refresh() {
-		if (timer.tick(Date.now())) restAlert(); // buzz + beep when the rest period ends
+		if (timer.tick(Date.now())) {
+			if (!nativeAlert) restAlert(); // buzz + beep when the rest period ends
+			// Rest is over: clear the native notification (delivered or still pending, e.g. inexact) either way.
+			void cancelRestEnd();
+			nativeAlert = false;
+		}
 		sync();
 		if (!timer.active() && restInterval) {
 			clearInterval(restInterval);
@@ -181,21 +192,35 @@
 	}
 
 	function startRest(seconds: number) {
+		restGen++;
 		timer.start(seconds);
 		if (!restInterval) restInterval = setInterval(refresh, 1000);
 		sync();
+		const gen = restGen;
+		void scheduleRestEnd(timer.endsAt()!).then((ok) => {
+			if (gen === restGen) nativeAlert = ok;
+		});
 	}
 	function bumpRest(delta: number) {
 		timer.bump(delta);
 		sync();
+		const at = timer.endsAt();
+		const gen = restGen;
+		if (at)
+			void scheduleRestEnd(at).then((ok) => {
+				if (gen === restGen) nativeAlert = ok;
+			});
 	}
 	function stopRest() {
+		restGen++;
 		timer.stop();
 		if (restInterval) {
 			clearInterval(restInterval);
 			restInterval = null;
 		}
 		sync();
+		nativeAlert = false;
+		void cancelRestEnd();
 	}
 
 	// On resume (unlock/foreground) recompute immediately so a rest that elapsed
@@ -205,10 +230,12 @@
 	}
 	onMount(() => {
 		document.addEventListener('visibilitychange', onVisible);
+		void keepAwake(true);
 	});
 	onDestroy(() => {
 		document.removeEventListener('visibilitychange', onVisible);
 		stopRest();
+		void keepAwake(false);
 	});
 
 	function fmt(s: number) {

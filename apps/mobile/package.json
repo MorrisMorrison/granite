@@ -17,9 +17,11 @@
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"e2e": "playwright test",
-		"screenshots": "playwright test --config=playwright.screenshots.config.ts"
+		"screenshots": "playwright test --config=playwright.screenshots.config.ts",
+		"cap:sync": "vite build && cap sync android"
 	},
 	"devDependencies": {
+		"@capacitor/cli": "^8.5.3",
 		"@codecov/vite-plugin": "^2.0.1",
 		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-static": "^4.0.0",
@@ -37,7 +39,10 @@
 		"vitest": "^5.0.5"
 	},
 	"dependencies": {
+		"@capacitor-community/keep-awake": "^8.0.1",
+		"@capacitor/android": "^8.5.3",
 		"@capacitor/core": "^8.5.3",
+		"@capacitor/local-notifications": "^8.3.1",
 		"@granite/shared": "workspace:*",
 		"idb": "^8.0.3"
 	}

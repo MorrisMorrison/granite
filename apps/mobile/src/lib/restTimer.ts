@@ -11,6 +11,8 @@ export interface RestTimer {
 	start(seconds: number): void;
 	/** Shift the end time by `delta` seconds; remaining never drops below 0. */
 	bump(delta: number): void;
+	/** Absolute end (epoch ms) while running, else null — for scheduling a native alert. */
+	endsAt(): number | null;
 	/** Stop and clear the current rest period. */
 	stop(): void;
 	/**
@@ -30,6 +32,7 @@ export function createRestTimer(): RestTimer {
 	return {
 		remaining: () => remaining(),
 		active: () => running,
+		endsAt: () => (running ? endsAt : null),
 		start(seconds: number) {
 			endsAt = Date.now() + seconds * 1000;
 			running = true;
