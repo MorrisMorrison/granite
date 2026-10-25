@@ -44,24 +44,30 @@
 	}
 </script>
 
-<form class="ef" onsubmit={submit}>
-	<label class="ef-field">
-		<span>Name</span>
-		<input bind:value={name} placeholder="e.g. Cable Crossover" data-testid="field-exercise-name" />
+<form class="form ef" onsubmit={submit}>
+	<label class="field">
+		<span class="eyebrow">Name</span>
+		<input
+			class="control"
+			bind:value={name}
+			placeholder="e.g. Cable Crossover"
+			data-testid="field-exercise-name"
+		/>
 	</label>
 
-	<label class="ef-field">
-		<span>Type</span>
-		<select bind:value={exercise_type} data-testid="field-exercise-type">
+	<label class="field">
+		<span class="eyebrow">Type</span>
+		<select class="control" bind:value={exercise_type} data-testid="field-exercise-type">
 			<option value="weight_reps">Weight × reps</option>
 			<option value="reps_only">Reps only</option>
 			<option value="duration">Duration</option>
 		</select>
 	</label>
 
-	<label class="ef-field">
-		<span>Primary muscle</span>
+	<label class="field">
+		<span class="eyebrow">Primary muscle</span>
 		<input
+			class="control"
 			bind:value={primary_muscle}
 			list="muscle-list"
 			placeholder="e.g. Chest"
@@ -72,31 +78,28 @@
 		</datalist>
 	</label>
 
-	<label class="ef-field">
-		<span>Equipment <small>(optional)</small></span>
-		<input bind:value={equipment} placeholder="e.g. Dumbbell" data-testid="field-exercise-equipment" />
+	<label class="field">
+		<span class="eyebrow">Equipment <span class="field-opt">(optional)</span></span>
+		<input
+			class="control"
+			bind:value={equipment}
+			placeholder="e.g. Dumbbell"
+			data-testid="field-exercise-equipment"
+		/>
 	</label>
 
-	<Button type="submit" block disabled={!canSave || saving} testid="btn-save-exercise">
-		{saving ? 'Saving…' : submitLabel}
-	</Button>
+	<div class="ef-save">
+		<Button type="submit" block disabled={!canSave || saving} testid="btn-save-exercise">
+			{saving ? 'Saving…' : submitLabel}
+		</Button>
+	</div>
 </form>
 
 <style>
 	.ef {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
 		margin-top: 1rem;
 	}
-	.ef-field {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		font-size: 0.85rem;
-		color: var(--muted);
-	}
-	.ef-field small {
-		color: var(--faint);
+	.ef-save {
+		margin-top: 0.5rem;
 	}
 </style>

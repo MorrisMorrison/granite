@@ -43,10 +43,11 @@ test('archive a custom exercise, find it under Archived, and restore it', async 
 	await page.getByTestId('btn-save-exercise').click();
 	await expect(page).toHaveURL(/\/exercises$/);
 
-	// Archive it from its detail page.
+	// Archive it from its detail page's actions menu.
 	await page.getByTestId('field-exercise-search').fill('Zercher');
 	await page.getByTestId('exercise-row').filter({ hasText: 'Zercher Squat' }).click();
 	page.once('dialog', (d) => d.accept());
+	await page.getByTestId('btn-exercise-menu').click();
 	await page.getByTestId('btn-archive-exercise').click();
 	await expect(page).toHaveURL(/\/exercises$/);
 
@@ -56,8 +57,10 @@ test('archive a custom exercise, find it under Archived, and restore it', async 
 	await page.getByTestId('btn-show-archived').click();
 	await page.getByTestId('archived-exercise-row').filter({ hasText: 'Zercher Squat' }).click();
 
-	// Restore it, then it's back in the library.
+	// Restore it (menu), then it's back in the library.
+	await page.getByTestId('btn-exercise-menu').click();
 	await page.getByTestId('btn-restore-exercise').click();
+	await page.getByTestId('btn-exercise-menu').click();
 	await expect(page.getByTestId('btn-archive-exercise')).toBeVisible();
 	await page.goto('/exercises');
 	await page.getByTestId('field-exercise-search').fill('Zercher');
