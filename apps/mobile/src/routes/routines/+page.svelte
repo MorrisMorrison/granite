@@ -29,7 +29,11 @@
 	// Per-routine exercise count + last-done label. Filled in after the list has rendered
 	// (it needs one getRoutine per routine), so the list never waits on it.
 	let info = $state<Record<string, { count: number; last: string | null }>>({});
+	// loadInfo can run more than once (initial load + post-sync load); a slow earlier call
+	// must not overwrite the result of a newer one.
+	let infoGen = 0;
 	async function loadInfo(rows: RoutineRow[]) {
+		const gen = ++infoGen;
 		const ws = await listWorkouts();
 		const full = await Promise.all(rows.map((r) => getRoutine(r.id)));
 		const now = Date.now();
@@ -41,7 +45,7 @@
 				last: at == null ? null : relativeDayInline(at, now)
 			};
 		});
-		info = out;
+		if (gen === infoGen) info = out;
 	}
 
 	let folders = $state<FolderRow[]>([]);
