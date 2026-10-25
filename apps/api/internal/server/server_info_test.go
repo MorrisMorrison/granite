@@ -32,6 +32,14 @@ func TestServerInfoReturnsInstanceID(t *testing.T) {
 	}
 }
 
+func TestServerInfoRequiresAuth(t *testing.T) {
+	h, _ := newTestServer(t)
+	rec := doReq(t, h, http.MethodGet, "/api/v1/server-info", "", nil)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("server-info without a token = %d, want 401: %s", rec.Code, rec.Body)
+	}
+}
+
 func TestInfoIsPublicAndIdentifiesGranite(t *testing.T) {
 	h, _ := newTestServer(t)
 	rec := doReq(t, h, http.MethodGet, "/api/v1/info", "", nil) // no token

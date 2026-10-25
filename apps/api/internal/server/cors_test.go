@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/MorrisMorrison/granite/apps/api/internal/auth"
@@ -36,7 +37,7 @@ func preflight(h http.Handler, origin string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodOptions, "/api/v1/auth/login", nil)
 	req.Header.Set("Origin", origin)
 	req.Header.Set("Access-Control-Request-Method", http.MethodPost)
-	req.Header.Set("Access-Control-Request-Headers", "content-type")
+	req.Header.Set("Access-Control-Request-Headers", "authorization, content-type")
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 	return rec
@@ -47,6 +48,10 @@ func TestCORSAllowsNativeAppOrigins(t *testing.T) {
 	for _, origin := range []string{"https://granite.example.com", "https://localhost", "capacitor://localhost"} {
 		if got := preflight(h, origin).Header().Get("Access-Control-Allow-Origin"); got != origin {
 			t.Errorf("origin %s: Access-Control-Allow-Origin = %q, want %q", origin, got, origin)
+		}
+		rec := preflight(h, origin)
+		if allowed := rec.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(strings.ToLower(allowed), "authorization") {
+			t.Errorf("origin %s: Access-Control-Allow-Headers = %q, want it to include Authorization", origin, allowed)
 		}
 	}
 }
