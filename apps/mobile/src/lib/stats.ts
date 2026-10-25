@@ -181,3 +181,89 @@ export function computeHomeStats(workouts: { start_time: number }[], now: number
 		lastWorkoutAt: valid.length ? Math.max(...valid.map((w) => w.start_time)) : null
 	};
 }
+
+type RoutineLike = { id: string; title: string };
+type WorkoutLike = { routine_id?: string | null; title: string; start_time: number };
+
+// The routine a workout belongs to: by routine_id, else (older/imported workouts with none) an exact title match.
+function ownerOf<R extends RoutineLike>(routines: R[], w: WorkoutLike): R | null {
+	if (w.routine_id) return routines.find((r) => r.id === w.routine_id) ?? null;
+	return routines.find((r) => r.title === w.title) ?? null;
+}
+
+/** When a routine was last done (latest matching workout start_time), or null if never. */
+export function lastDoneAt(routine: RoutineLike, workouts: WorkoutLike[]): number | null {
+	let best: number | null = null;
+	for (const w of workouts) {
+		if (ownerOf([routine], w) && (best === null || w.start_time > best)) best = w.start_time;
+	}
+	return best;
+}
+
+/**
+ * The routine to suggest next: the least recently done routine in the same folder as the routine of
+ * your most recent workout (never-done routines first, ties in list order). Without history, or when
+ * the last workout wasn't from a routine, the first routine. A workout belongs to a routine by its
+ * `routine_id`, else by an exact title match (older/imported workouts have no routine_id).
+ */
+export function nextRoutine<R extends { id: string; title: string; folder_id: string | null }>(
+	routines: R[],
+	workouts: { routine_id?: string | null; title: string; start_time: number }[]
+): R | null {
+	if (routines.length === 0) return null;
+	let last: WorkoutLike | null = null;
+	for (const w of workouts) if (last === null || w.start_time > last.start_time) last = w;
+	const lastRoutine = last ? ownerOf(routines, last) : null;
+	if (!lastRoutine) return routines[0];
+	const group = routines.filter((r) => r.folder_id === lastRoutine.folder_id);
+	let pick = group[0];
+	let pickAt = lastDoneAt(pick, workouts) ?? -Infinity;
+	for (const r of group.slice(1)) {
+		const at = lastDoneAt(r, workouts) ?? -Infinity;
+		if (at < pickAt) {
+			pick = r;
+			pickAt = at;
+		}
+	}
+	return pick;
+}
+
+export interface WeekDay {
+	label: string;
+	trained: boolean;
+	today: boolean;
+	future: boolean;
+}
+
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+/** The current local week, Monday to Sunday: which days had a workout, which is today, which lie ahead. */
+export function weekDays(workouts: { start_time: number }[], now: number): WeekDay[] {
+	const start = new Date(mondayOf(now));
+	const todayIdx = (new Date(now).getDay() + 6) % 7;
+	const trainedKeys = new Set(
+		workouts.filter((w) => w.start_time > 0).map((w) => new Date(w.start_time).toDateString())
+	);
+	return DAY_LABELS.map((label, i) => {
+		const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+		return {
+			label,
+			trained: trainedKeys.has(d.toDateString()),
+			today: i === todayIdx,
+			future: i > todayIdx
+		};
+	});
+}
+
+/** Calendar-day label: "Today" | "Yesterday" | "3 days ago" (2–6) | "12 Oct" (≥7). */
+export function relativeDay(ts: number, now: number): string {
+	const a = new Date(ts);
+	a.setHours(0, 0, 0, 0);
+	const b = new Date(now);
+	b.setHours(0, 0, 0, 0);
+	const days = Math.round((b.getTime() - a.getTime()) / 86400000);
+	if (days <= 0) return 'Today';
+	if (days === 1) return 'Yesterday';
+	if (days < 7) return `${days} days ago`;
+	return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
