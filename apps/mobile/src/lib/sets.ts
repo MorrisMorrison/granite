@@ -16,3 +16,23 @@ export function setLabel(sets: { set_type: string }[], i: number): string {
 	for (let j = 0; j <= i; j++) if (sets[j].set_type !== 'warmup') n++;
 	return String(n);
 }
+
+/** Human names for the set-type picker. */
+export const SET_TYPE_LABEL: Record<SetType, string> = {
+	normal: 'Normal',
+	warmup: 'Warm-up',
+	top: 'Top set',
+	backoff: 'Back-off',
+	drop: 'Drop set',
+	failure: 'To failure'
+};
+
+const BADGE_LETTER: Record<string, string> = { warmup: 'W', drop: 'D', failure: 'F' };
+
+/**
+ * Short badge text for a set row in the logger: W / D / F for those types, otherwise the
+ * running work-set number (warm-ups don't count toward it).
+ */
+export function setBadge(sets: { set_type: string }[], i: number): string {
+	return BADGE_LETTER[sets[i]?.set_type] ?? setLabel(sets, i);
+}

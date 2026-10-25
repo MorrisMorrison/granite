@@ -267,3 +267,9 @@ export function relativeDay(ts: number, now: number): string {
 	if (days < 7) return `${days} days ago`;
 	return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
+
+/** relativeDay() for use mid-sentence ("last done …"): lowercases only the words, never a date. */
+export function relativeDayInline(ts: number, now: number): string {
+	const s = relativeDay(ts, now);
+	return /^(Today|Yesterday|\d+ days ago)$/.test(s) ? s.toLowerCase() : s;
+}

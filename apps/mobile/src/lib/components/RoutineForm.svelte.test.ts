@@ -2,7 +2,8 @@ import { render } from '@testing-library/svelte';
 import { fireEvent } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 
-const { listExercises, listFolders, createExercise } = vi.hoisted(() => ({
+const { listExercises, listFolders, createExercise, refreshExerciseLibrary } = vi.hoisted(() => ({
+	refreshExerciseLibrary: vi.fn(() => Promise.resolve()),
 	listExercises: vi.fn(() =>
 		Promise.resolve([
 			{ id: 'e1', name: 'Bench', primary_muscle: 'chest', exercise_type: 'weight', is_builtin: true }
@@ -11,7 +12,7 @@ const { listExercises, listFolders, createExercise } = vi.hoisted(() => ({
 	listFolders: vi.fn(() => Promise.resolve([{ id: 'f1', name: 'Strength', order_index: 0 }])),
 	createExercise: vi.fn(() => Promise.resolve('new-ex-id'))
 }));
-vi.mock('#lib/repo/exercises.ts', () => ({ listExercises, createExercise }));
+vi.mock('#lib/repo/exercises.ts', () => ({ listExercises, createExercise, refreshExerciseLibrary }));
 vi.mock('#lib/repo/folders.ts', () => ({ listFolders }));
 vi.mock('#lib/stores/prefs.svelte.ts', () => ({ prefs: { current: { weightUnit: 'kg', restSeconds: 90 } } }));
 
@@ -92,5 +93,23 @@ describe('RoutineForm', () => {
 		);
 		const payload = onsubmit.mock.calls[0][0] as { exercises: { exercise_id: string }[] };
 		expect(payload.exercises.map((e) => e.exercise_id)).toEqual(['new-ex-id']);
+	});
+});
+
+describe('RoutineForm on a fresh account', () => {
+	it('refreshes the library when the local list is empty, then shows the rows', async () => {
+		listExercises.mockReset();
+		listExercises
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([
+				{ id: 'e9', name: 'Squat', primary_muscle: 'legs', exercise_type: 'weight', is_builtin: true }
+			]);
+		refreshExerciseLibrary.mockClear();
+		const { getByTestId, findByTestId } = render(RoutineForm, {
+			props: { initialTitle: 'New', onsubmit: vi.fn() }
+		});
+		await fireEvent.click(getByTestId('btn-add-exercise'));
+		expect(await findByTestId('picker-exercise')).toBeTruthy();
+		expect(refreshExerciseLibrary).toHaveBeenCalledTimes(1);
 	});
 });

@@ -11,3 +11,18 @@ export function joinDuration(min: number | null | undefined, sec: number | null 
 	const s = Math.min(59, Math.max(0, Math.floor(sec ?? 0)));
 	return m * 60 + s;
 }
+
+/** Elapsed workout clock: `mm:ss`, or `h:mm:ss` past an hour. */
+export function formatElapsed(ms: number): string {
+	const t = Math.max(0, Math.floor(ms / 1000));
+	const h = Math.floor(t / 3600);
+	const m = Math.floor((t % 3600) / 60);
+	const s = String(t % 60).padStart(2, '0');
+	return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${String(m).padStart(2, '0')}:${s}`;
+}
+
+/** Rest countdown: `m:ss`. */
+export function formatRest(totalSec: number): string {
+	const t = Math.max(0, Math.floor(totalSec));
+	return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+}

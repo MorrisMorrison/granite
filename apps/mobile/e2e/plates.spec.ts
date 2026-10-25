@@ -15,6 +15,7 @@ test('logger plate calculator: barbell only, opens on the next set, writes back'
 	await page.getByTestId('set-complete').first().check();
 
 	// Opens on set 2 (the next one to load): 100 on a 20 bar → 25 + 15 per side.
+	await page.getByTestId('btn-ex-menu').click();
 	await page.getByTestId('btn-plates').click();
 	const chips = page.getByTestId('plate-set-chip');
 	await expect(chips.nth(1)).toHaveAttribute('aria-selected', 'true');
@@ -27,9 +28,11 @@ test('logger plate calculator: barbell only, opens on the next set, writes back'
 	await expect(page.getByTestId('input-weight').nth(1)).toHaveValue('102.5');
 	await expect(page.getByTestId('input-weight').nth(0)).toHaveValue('100');
 
-	// Non-barbell exercises get no plate button.
+	// Non-barbell exercises get no Plates item in their menu.
 	await page.getByTestId('btn-add-exercise').click();
 	await page.getByTestId('field-picker-search').fill('Dumbbell Row');
 	await page.getByTestId('picker-exercise').first().click();
-	await expect(page.getByTestId('btn-plates')).toHaveCount(1);
+	await page.getByTestId('btn-ex-menu').nth(1).click();
+	await expect(page.getByTestId('btn-plates')).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Remove exercise' })).toBeVisible();
 });

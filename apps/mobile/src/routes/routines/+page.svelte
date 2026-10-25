@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import {
 		listRoutines,
+		getRoutine,
 		setRoutineFolder,
 		duplicateRoutine,
 		deleteRoutine,
@@ -15,13 +16,37 @@
 		type FolderRow
 	} from '#lib/repo/folders.ts';
 	import { syncNow } from '#lib/sync/index.ts';
-	import ListRow from '#lib/components/ui/ListRow.svelte';
-	import IconButton from '#lib/components/ui/IconButton.svelte';
 	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
+	import { listWorkouts } from '#lib/repo/workouts.ts';
+	import { lastDoneAt, relativeDayInline } from '#lib/stats.ts';
+	import FolderGroup from '#lib/components/routines/FolderGroup.svelte';
+	import RoutineListItem from '#lib/components/routines/RoutineListItem.svelte';
+
+	// Per-routine exercise count + last-done label. Filled in after the list has rendered
+	// (it needs one getRoutine per routine), so the list never waits on it.
+	let info = $state<Record<string, { count: number; last: string | null }>>({});
+	// loadInfo can run more than once (initial load + post-sync load); a slow earlier call
+	// must not overwrite the result of a newer one.
+	let infoGen = 0;
+	async function loadInfo(rows: RoutineRow[]) {
+		const gen = ++infoGen;
+		const ws = await listWorkouts();
+		const full = await Promise.all(rows.map((r) => getRoutine(r.id)));
+		const now = Date.now();
+		const out: Record<string, { count: number; last: string | null }> = {};
+		rows.forEach((r, i) => {
+			const at = lastDoneAt(r, ws);
+			out[r.id] = {
+				count: full[i]?.exercises.length ?? 0,
+				last: at == null ? null : relativeDayInline(at, now)
+			};
+		});
+		if (gen === infoGen) info = out;
+	}
 
 	let folders = $state<FolderRow[]>([]);
 	let routines = $state<RoutineRow[]>([]);
@@ -44,6 +69,7 @@
 
 	async function load() {
 		[folders, routines] = await Promise.all([listFolders(), listRoutines()]);
+		void loadInfo(routines).catch(() => {}); // the counts are decoration; never block the list
 	}
 
 	onMount(async () => {
@@ -112,23 +138,13 @@
 <svelte:head><title>Routines · Granite</title></svelte:head>
 
 {#snippet routineRow(r: RoutineRow)}
-	<ListRow href={`/routines/${r.id}`} title={r.title} testid="routine-row">
-		{#snippet trailing()}
-			<IconButton
-				name="dots-vertical"
-				label="Routine actions"
-				onclick={() => openMove(r)}
-				testid="btn-routine-menu"
-			/>
-			<IconButton
-				name="play"
-				size={18}
-				label={`Start ${r.title}`}
-				href={`/log?routine=${r.id}`}
-				testid="btn-start-routine"
-			/>
-		{/snippet}
-	</ListRow>
+	<RoutineListItem
+		id={r.id}
+		title={r.title}
+		exerciseCount={info[r.id]?.count ?? null}
+		lastDone={info[r.id]?.last ?? null}
+		onmenu={() => openMove(r)}
+	/>
 {/snippet}
 
 <main class="container">
@@ -157,39 +173,25 @@
 		</EmptyState>
 	{:else}
 		{#each folders as f (f.id)}
-			<section class="folder" data-testid="folder">
-				<div class="folder-head">
-					<button class="folder-toggle" onclick={() => toggle(f.id)} data-testid="folder-toggle">
-						<Icon name={collapsed[f.id] ? 'chevron-right' : 'chevron-down'} size={16} />
-						<Icon name="folder" size={16} />
-						<span class="folder-name">{f.name}</span>
-						<span class="count">{groups.m.get(f.id)?.length ?? 0}</span>
-					</button>
-					<div class="folder-actions">
-						<IconButton name="edit" label="Rename folder" onclick={() => openRenameFolder(f)} />
-						<IconButton name="trash" label="Delete folder" onclick={() => removeFolder(f)} />
-					</div>
-				</div>
-				{#if !collapsed[f.id]}
-					<div class="list">
-						{#each groups.m.get(f.id) ?? [] as r (r.id)}
-							{@render routineRow(r)}
-						{/each}
-						{#if (groups.m.get(f.id)?.length ?? 0) === 0}
-							<p class="muted empty-folder">Empty — move a routine here.</p>
-						{/if}
-					</div>
-				{/if}
-			</section>
+			{@const rs = groups.m.get(f.id) ?? []}
+			<FolderGroup
+				name={f.name}
+				count={rs.length}
+				collapsed={!!collapsed[f.id]}
+				empty={rs.length === 0}
+				testid="folder"
+				ontoggle={() => toggle(f.id)}
+				onrename={() => openRenameFolder(f)}
+				ondelete={() => removeFolder(f)}
+			>
+				{#each rs as r (r.id)}{@render routineRow(r)}{/each}
+			</FolderGroup>
 		{/each}
 
 		{#if groups.ung.length > 0}
-			{#if folders.length > 0}<div class="ungrouped-label">Ungrouped</div>{/if}
-			<div class="list">
-				{#each groups.ung as r (r.id)}
-					{@render routineRow(r)}
-				{/each}
-			</div>
+			<FolderGroup name={folders.length > 0 ? 'Ungrouped' : ''}>
+				{#each groups.ung as r (r.id)}{@render routineRow(r)}{/each}
+			</FolderGroup>
 		{/if}
 	{/if}
 </main>
@@ -244,64 +246,6 @@
 	.hdr {
 		display: flex;
 		gap: 0.4rem;
-	}
-	.folder {
-		margin-bottom: 1.25rem;
-	}
-	.folder-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
-		margin-bottom: 0.5rem;
-	}
-	.folder-toggle {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		flex: 1;
-		min-width: 0;
-		background: none;
-		border: none;
-		color: var(--text);
-		cursor: pointer;
-		font: inherit;
-		font-weight: 600;
-		padding: 0.2rem 0;
-		text-align: left;
-	}
-	.folder-toggle :global(svg) {
-		color: var(--muted);
-		flex-shrink: 0;
-	}
-	.folder-name {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.count {
-		color: var(--faint);
-		font-weight: 500;
-		font-size: 0.85rem;
-	}
-	.folder-actions {
-		display: flex;
-		gap: 0.1rem;
-		flex-shrink: 0;
-	}
-	.list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.empty-folder {
-		font-size: 0.85rem;
-		margin: 0.1rem 0 0;
-	}
-	.ungrouped-label {
-		color: var(--muted);
-		font-size: 0.85rem;
-		margin: 0 0 0.5rem;
 	}
 	.folder-input {
 		width: 100%;

@@ -6,6 +6,7 @@ import {
 	lastDoneAt,
 	nextRoutine,
 	relativeDay,
+	relativeDayInline,
 	weekDays
 } from './stats';
 
@@ -207,5 +208,20 @@ describe('relativeDay', () => {
 	it('7+ days is a short date', () => {
 		const s = relativeDay(new Date(2026, 9, 17, 12).getTime(), now);
 		expect(s).not.toMatch(/days ago|Today|Yesterday/);
+	});
+});
+
+describe('relativeDayInline', () => {
+	const now = new Date(2026, 9, 25, 12).getTime();
+	it('lowercases the words', () => {
+		expect(relativeDayInline(new Date(2026, 9, 25, 8).getTime(), now)).toBe('today');
+		expect(relativeDayInline(new Date(2026, 9, 24, 8).getTime(), now)).toBe('yesterday');
+		expect(relativeDayInline(new Date(2026, 9, 22, 8).getTime(), now)).toBe('3 days ago');
+	});
+	it('leaves a >=7-day date untouched', () => {
+		const ts = new Date(2026, 9, 12, 12).getTime();
+		const s = relativeDayInline(ts, now);
+		expect(s).toBe(relativeDay(ts, now));
+		expect(s).not.toBe(s.toLowerCase());
 	});
 });

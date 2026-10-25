@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { listExercises, createExercise, type ExerciseInput } from '#lib/repo/exercises.ts';
+	import { createExercise, type ExerciseInput } from '#lib/repo/exercises.ts';
+	import { loadPickerLibrary } from '#lib/repo/exerciseLibrary.ts';
 	import { listFolders, type FolderRow } from '#lib/repo/folders.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { displayToKg, kgToDisplay } from '#lib/units.ts';
@@ -87,9 +88,7 @@
 	let pickerOpen = $state(false);
 
 	onMount(async () => {
-		const [exs, fs] = await Promise.all([listExercises(), listFolders()]);
-		library = exs.map((e) => ({ id: e.id, name: e.name, primary_muscle: e.primary_muscle }));
-		folders = fs;
+		[library, folders] = await Promise.all([loadPickerLibrary(), listFolders()]);
 	});
 
 	function nameFor(id: string): string {
