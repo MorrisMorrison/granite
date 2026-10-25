@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '#lib/stores/auth.svelte.ts';
 	import Button from '#lib/components/ui/Button.svelte';
+	import ServerLine from '#lib/components/ServerLine.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 
 	let email = $state('');
@@ -51,6 +52,7 @@
 		</div>
 	</form>
 	<p class="muted alt">Have an account? <a href="/login">Log in</a></p>
+	<ServerLine />
 </main>
 
 <style>

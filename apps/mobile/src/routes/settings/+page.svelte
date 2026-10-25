@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { isNative } from '#lib/platform/native.ts';
 	import { version } from '$app/env';
 	import { auth } from '#lib/stores/auth.svelte.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
@@ -42,6 +44,21 @@
 	let importing = $state(false);
 	let importError = $state('');
 	let importMessage = $state('');
+	let serverError = $state('');
+
+	// Switching servers signs out and clears local data (logout already wipes it).
+	// logout() refuses while changes are unsynced — then stay put, or the switch
+	// would wipe exactly the offline work logout protected.
+	async function changeServer() {
+		if (!confirm('Change server? You will be signed out and this device’s local data cleared.')) return;
+		serverError = '';
+		await auth.logout();
+		if (auth.isAuthenticated) {
+			serverError = 'Sync your changes first: some workouts haven’t reached the server yet.';
+			return;
+		}
+		await goto('/connect?change=1');
+	}
 	let fileInput: HTMLInputElement;
 
 	let hevyImporting = $state(false);
@@ -252,6 +269,13 @@
 				<span class="muted">Server</span>
 				<span class="mono">{getServerUrl()}</span>
 			</div>
+			{#if isNative()}
+				<div class="row">
+					<span></span>
+					<Button variant="outline" size="sm" onclick={changeServer} testid="btn-settings-change-server">Change server</Button>
+				</div>
+				{#if serverError}<p class="error" data-testid="change-server-error">{serverError}</p>{/if}
+			{/if}
 			<div class="row">
 				<span class="muted">Version</span>
 				<span class="mono" data-testid="app-version">{version}</span>
