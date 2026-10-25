@@ -28,3 +28,22 @@ describe('PageHeader', () => {
 		expect(getByText('Ready to train?')).toBeTruthy();
 	});
 });
+
+describe('PageHeader eyebrow', () => {
+	it('renders an eyebrow above the title when provided', () => {
+		const { getByTestId, getByRole } = render(PageHeader, {
+			props: { title: 'History', eyebrow: '12 workouts' }
+		});
+		const eb = getByTestId('page-eyebrow');
+		expect(eb.textContent).toBe('12 workouts');
+		expect(eb.className).toContain('eyebrow');
+		// Label comes before the heading in document order.
+		const h = getByRole('heading', { name: 'History' });
+		expect(eb.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
+	it('renders no eyebrow without one', () => {
+		const { queryByTestId } = render(PageHeader, { props: { title: 'X' } });
+		expect(queryByTestId('page-eyebrow')).toBeNull();
+	});
+});

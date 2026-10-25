@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '#lib/components/ui/Icon.svelte';
+	import SetBadge from '#lib/components/ui/SetBadge.svelte';
 	import type { DraftSet } from './types.ts';
 
 	// One set in the logger table: type badge · previous · weight · reps · done button.
@@ -22,15 +23,14 @@
 	} = $props();
 </script>
 
-<div class="row" class:done={set.is_completed} class:warmup={set.set_type === 'warmup'} data-testid="set-row">
-	<button
-		class="badge"
-		class:warm={set.set_type === 'warmup'}
-		class:other={set.set_type === 'drop' || set.set_type === 'failure'}
+<div class="row" class:done={set.is_completed} data-testid="set-row">
+	<SetBadge
+		label={badge}
+		type={set.set_type}
 		onclick={onbadge}
-		aria-label={`Set ${badge} options`}
-		data-testid="set-label">{badge}</button
-	>
+		ariaLabel={`Set ${badge} options`}
+		testid="set-label"
+	/>
 	<span class="prev">{previous}</span>
 	<input
 		type="number"
@@ -99,28 +99,6 @@
 	}
 	input:focus {
 		border-color: var(--accent);
-	}
-	.badge {
-		width: 2rem;
-		height: 2rem;
-		padding: 0;
-		font: inherit;
-		font-size: 0.85rem;
-		font-weight: 650;
-		font-variant-numeric: tabular-nums;
-		color: var(--muted);
-		background: var(--elevated);
-		border: none;
-		border-radius: var(--radius-sm);
-		cursor: pointer;
-	}
-	.badge.warm {
-		color: var(--warning);
-		background: color-mix(in srgb, var(--warning) 14%, transparent);
-	}
-	.badge.other {
-		color: var(--text);
-		background: var(--border-strong);
 	}
 	.check {
 		width: 2rem;

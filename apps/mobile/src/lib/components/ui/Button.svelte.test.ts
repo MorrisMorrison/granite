@@ -50,4 +50,9 @@ describe('Button', () => {
 		});
 		expect((getByRole('button') as HTMLButtonElement).disabled).toBe(true);
 	});
+
+	it('supports the quiet danger variant', () => {
+		const { getByRole } = render(Button, { props: { variant: 'danger', children: label('Delete') } });
+		expect(getByRole('button', { name: 'Delete' }).className).toContain('v-danger');
+	});
 });

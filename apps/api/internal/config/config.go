@@ -15,6 +15,9 @@ const minJWTSecretLen = 32
 // (brute-force defense).
 const DefaultAuthRateLimit = 30
 
+// DefaultAPIRateLimit is the per-IP request budget per minute on the rest of /api/v1/*.
+const DefaultAPIRateLimit = 600
+
 // Config holds all runtime settings for the Granite API.
 type Config struct {
 	Port              string
@@ -31,6 +34,8 @@ type Config struct {
 	// Only the e2e suite raises it (every spec registers from 127.0.0.1); keep the
 	// default in production.
 	AuthRateLimit int
+	// APIRateLimit is the per-IP requests/minute allowed on the other API endpoints.
+	APIRateLimit int
 	LogLevel      string
 	// Env is "prod" (default) or "dev". In dev the server auto-seeds the demo
 	// account on startup; see GRANITE_ENV in docs/DEVELOPMENT.md.
@@ -61,6 +66,11 @@ func Load() (Config, error) {
 		return c, err
 	}
 	c.AuthRateLimit = limit
+	apiLimit, err := getpositiveint("GRANITE_API_RATE_LIMIT", DefaultAPIRateLimit)
+	if err != nil {
+		return c, err
+	}
+	c.APIRateLimit = apiLimit
 	if c.JWTSecret == "" {
 		return c, fmt.Errorf("GRANITE_JWT_SECRET is required")
 	}

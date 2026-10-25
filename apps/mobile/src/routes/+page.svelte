@@ -183,14 +183,6 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.eyebrow {
-		margin: 0;
-		font-size: 0.7rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--faint);
-	}
 	.hero {
 		padding: 1.15rem;
 		border: 1px solid rgba(37, 99, 235, 0.35);

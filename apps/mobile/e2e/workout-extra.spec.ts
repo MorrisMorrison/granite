@@ -95,8 +95,8 @@ test('labels warm-up sets distinctly from work sets in the logger', async ({ pag
 	// Tapping the badge opens the type sheet; choosing Warm-up relabels the row "W" (no number).
 	await page.getByTestId('set-label').first().click();
 	await page.getByTestId('set-type-warmup').click();
-	await expect(page.getByTestId('set-row').first()).toHaveClass(/warmup/);
 	await expect(page.getByTestId('set-label').first()).toHaveText('W');
+	await expect(page.getByTestId('set-label').first()).toHaveClass(/warm/);
 });
 
 test('shows the previous session values as set placeholders', async ({ page }) => {

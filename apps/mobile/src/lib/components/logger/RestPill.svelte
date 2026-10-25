@@ -14,7 +14,7 @@
 <div class="rest" data-testid="rest-pill">
 	<button class="t" aria-label="Subtract 15 seconds" onclick={() => onbump(-15)}>−15</button>
 	<div class="timewrap">
-		<span class="lbl">Rest</span>
+		<span class="eyebrow lbl">Rest</span>
 		<span class="time" data-testid="rest-time">{formatRest(remaining)}</span>
 	</div>
 	<button class="t" aria-label="Add 15 seconds" onclick={() => onbump(15)}>+15</button>
@@ -47,10 +47,6 @@
 		white-space: nowrap;
 		line-height: 1;
 		font-size: 0.65rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--faint);
 	}
 	.time {
 		display: block;

@@ -37,4 +37,13 @@ describe('RecordList', () => {
 		expect(sub(14)).toContain('2w ago');
 		expect(sub(60)).not.toMatch(/ago|today|yesterday/); // falls back to a calendar date
 	});
+
+	it('renders every record as a link row inside one grouped card', () => {
+		const two = [...rows, { ...rows[0], exerciseId: 'dl', exerciseName: 'Deadlift' }];
+		const { getAllByTestId, container } = render(RecordList, { props: { rows: two, unit: 'kg' } });
+		const links = getAllByTestId('record-row');
+		expect(links.map((a) => a.getAttribute('href'))).toEqual(['/exercises/sq', '/exercises/dl']);
+		expect(container.querySelectorAll('.records')).toHaveLength(1);
+		expect(links.every((a) => a.parentElement === links[0].parentElement)).toBe(true);
+	});
 });

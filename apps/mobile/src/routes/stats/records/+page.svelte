@@ -30,7 +30,10 @@
 
 <main class="container">
 	<BackLink href="/stats" label="Stats" />
-	<h1>All-time records</h1>
+	<header class="head">
+		<p class="eyebrow">Best estimated 1RM</p>
+		<h1>All-time records</h1>
+	</header>
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if records.length === 0}
@@ -40,18 +43,18 @@
 			description="Log a few workouts and your best lifts will show up here."
 		/>
 	{:else}
-		<p class="muted sub">Your best estimated 1RM for every lift.</p>
 		<RecordList rows={records} {unit} />
 	{/if}
 </main>
 
 <style>
-	h1 {
-		font-size: 1.4rem;
-		margin: 0.25rem 0 0.5rem;
+	.head {
+		margin: 0.25rem 0 1rem;
 	}
-	.sub {
-		font-size: 0.85rem;
-		margin: 0 0 1rem;
+	.head h1 {
+		margin: 0.2rem 0 0;
+		font-size: 1.6rem;
+		font-weight: 650;
+		letter-spacing: -0.02em;
 	}
 </style>

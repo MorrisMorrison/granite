@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	addMonth,
 	countInMonth,
+	groupByMonth,
 	isAfterMonth,
 	markedDays,
 	monthGrid,
@@ -64,5 +65,37 @@ describe('startOfDay + monthLabel', () => {
 	});
 	it('labels the month', () => {
 		expect(monthLabel(2026, 5)).toMatch(/2026/);
+	});
+});
+
+describe('groupByMonth', () => {
+	const at = (y: number, m: number, d: number, h = 12, min = 0) => ({
+		start_time: new Date(y, m, d, h, min).getTime()
+	});
+
+	it('groups newest-first input into newest-first months, keeping order inside each', () => {
+		const items = [at(2026, 9, 21), at(2026, 9, 3), at(2026, 8, 30), at(2026, 7, 1)];
+		const g = groupByMonth(items);
+		expect(g.map((x) => x.key)).toEqual(['2026-10', '2026-09', '2026-08']);
+		expect(g[0].items).toEqual([items[0], items[1]]);
+		expect(g[1].items).toEqual([items[2]]);
+		expect(g[0].label).toBe(monthLabel(2026, 9));
+		expect(g[0]).toMatchObject({ year: 2026, month: 9 });
+	});
+
+	it('splits on local month boundaries (late night vs. just after midnight)', () => {
+		const lastNight = at(2026, 9, 31, 23, 59); // 31 Oct, 23:59 local
+		const firstMorning = at(2026, 10, 1, 0, 1); // 1 Nov, 00:01 local
+		const g = groupByMonth([firstMorning, lastNight]);
+		expect(g.map((x) => x.key)).toEqual(['2026-11', '2026-10']);
+	});
+
+	it('crosses a year boundary', () => {
+		const g = groupByMonth([at(2027, 0, 2), at(2026, 11, 30)]);
+		expect(g.map((x) => x.key)).toEqual(['2027-01', '2026-12']);
+	});
+
+	it('returns no groups for no items', () => {
+		expect(groupByMonth([])).toEqual([]);
 	});
 });

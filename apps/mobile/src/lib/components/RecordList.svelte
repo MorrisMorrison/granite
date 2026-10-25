@@ -1,9 +1,10 @@
 <script lang="ts">
-	import ListRow from '#lib/components/ui/ListRow.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
 	import { kgToDisplay } from '#lib/units.ts';
 	import type { WeightUnit } from '#lib/stores/prefs.svelte.ts';
 
-	// A list of e1RM records/PRs. Used for both Recent PRs and the all-time board.
+	// A list of e1RM records/PRs as one grouped card. Used for both Recent PRs and the
+	// all-time board.
 	interface Row {
 		exerciseId: string;
 		exerciseName: string;
@@ -29,40 +30,37 @@
 	}
 </script>
 
-<div class="records">
+<div class="group records">
 	{#each rows as r, i (`${r.exerciseId}-${r.at}-${i}`)}
-		<ListRow
-			href={`/exercises/${r.exerciseId}`}
-			title={r.exerciseName}
-			subtitle={`${disp(r.weight)} ${unit} × ${r.reps} · ${relDate(r.at)}`}
-			chevron
-			testid={rowTestid}
-		>
-			{#snippet trailing()}
-				<span class="r-1rm">{disp(r.e1rm)} {unit}<small>e1RM</small></span>
-			{/snippet}
-		</ListRow>
+		<a class="group-row" href={`/exercises/${r.exerciseId}`} data-testid={rowTestid}>
+			<span class="group-row-body">
+				<span class="group-row-title">{r.exerciseName}</span>
+				<span class="group-row-sub">{`${disp(r.weight)} ${unit} × ${r.reps} · ${relDate(r.at)}`}</span>
+			</span>
+			<span class="r-1rm">{disp(r.e1rm)} {unit}<small>e1RM</small></span>
+			<span class="group-row-chev chev"><Icon name="chevron-right" size={18} /></span>
+		</a>
 	{/each}
 </div>
 
 <style>
-	.records {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
 	.r-1rm {
+		flex-shrink: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		font-weight: 600;
+		font-weight: 650;
 		font-variant-numeric: tabular-nums;
-		font-size: 0.9rem;
-		line-height: 1.1;
+		font-size: 0.92rem;
+		line-height: 1.15;
 	}
 	.r-1rm small {
-		font-weight: 400;
+		font-weight: 500;
 		font-size: 0.62rem;
-		color: var(--muted);
+		letter-spacing: 0.04em;
+		color: var(--faint);
+	}
+	.chev {
+		margin-left: -0.35rem;
 	}
 </style>

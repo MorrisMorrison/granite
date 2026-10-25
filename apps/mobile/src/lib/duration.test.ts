@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatElapsed, formatRest, joinDuration, splitDuration } from './duration';
+import { formatElapsed, formatRest, joinDuration, splitDuration, workoutMinutes } from './duration';
 
 describe('splitDuration', () => {
 	it('splits seconds into minutes + seconds', () => {
@@ -46,5 +46,18 @@ describe('formatRest', () => {
 		expect(formatRest(5)).toBe('0:05');
 		expect(formatRest(90)).toBe('1:30');
 		expect(formatRest(-3)).toBe('0:00');
+	});
+});
+
+describe('workoutMinutes', () => {
+	it('rounds the span to whole minutes', () => {
+		expect(workoutMinutes(0, 58 * 60000)).toBe(58);
+		expect(workoutMinutes(0, 90 * 1000)).toBe(2);
+	});
+	it('is null with no end or a span under half a minute', () => {
+		expect(workoutMinutes(1000, null)).toBeNull();
+		expect(workoutMinutes(1000, undefined)).toBeNull();
+		expect(workoutMinutes(0, 20 * 1000)).toBeNull();
+		expect(workoutMinutes(0, 40 * 1000)).toBe(1);
 	});
 });

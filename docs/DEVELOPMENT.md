@@ -51,7 +51,8 @@ The dev scripts set **`GRANITE_ENV=dev`**, which makes the server **auto-seed th
 **`GRANITE_AUTH_RATE_LIMIT`** sets the per-IP requests/minute on `/api/v1/auth/*` (default `30`, a
 brute-force defense; the server refuses to start on a non-positive or non-integer value). It's a test knob: the
 Playwright server (`e2e/serve.mjs`) raises it because the whole suite registers from `127.0.0.1`.
-Leave it unset in production.
+Leave it unset in production. **`GRANITE_API_RATE_LIMIT`** does the same for the rest of `/api/v1/*` (default
+`600`); `e2e/serve.mjs` raises it too.
 
 ## Build & test (Makefile)
 

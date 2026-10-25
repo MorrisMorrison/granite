@@ -59,3 +59,35 @@ export function addMonth(year: number, month: number, delta: number): { year: nu
 	const d = new Date(year, month + delta, 1);
 	return { year: d.getFullYear(), month: d.getMonth() };
 }
+
+export interface MonthGroup<T> {
+	key: string; // "2026-10" (local time)
+	year: number;
+	month: number; // 0-based
+	label: string; // "October 2026"
+	items: T[];
+}
+
+/**
+ * Group timestamped items by local calendar month. Expects input sorted by start_time
+ * (either direction); it keeps that order across and within groups, so newest-first in
+ * gives newest-first months out (it doesn't sort; group order is first appearance).
+ */
+export function groupByMonth<T extends { start_time: number }>(items: T[]): MonthGroup<T>[] {
+	const groups: MonthGroup<T>[] = [];
+	const byKey = new Map<string, MonthGroup<T>>();
+	for (const it of items) {
+		const d = new Date(it.start_time);
+		const year = d.getFullYear();
+		const month = d.getMonth();
+		const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+		let g = byKey.get(key);
+		if (!g) {
+			g = { key, year, month, label: monthLabel(year, month), items: [] };
+			byKey.set(key, g);
+			groups.push(g);
+		}
+		g.items.push(it);
+	}
+	return groups;
+}

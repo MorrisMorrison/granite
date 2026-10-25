@@ -126,12 +126,6 @@
 		text-align: left;
 	}
 	.eyebrow {
-		margin: 0;
-		font-size: 0.7rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--faint);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -142,16 +136,6 @@
 	}
 	.label {
 		padding: 0.2rem 0;
-	}
-	.group {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-	/* Divider between the routine rows rendered into the card. */
-	.group > :global(* + *) {
-		border-top: 1px solid var(--border);
 	}
 	.empty {
 		margin: 0;
