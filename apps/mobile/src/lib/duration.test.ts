@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { joinDuration, splitDuration } from './duration';
+import { formatElapsed, formatRest, joinDuration, splitDuration } from './duration';
 
 describe('splitDuration', () => {
 	it('splits seconds into minutes + seconds', () => {
@@ -28,5 +28,23 @@ describe('joinDuration', () => {
 			const { min, sec } = splitDuration(s);
 			expect(joinDuration(min, sec)).toBe(s);
 		}
+	});
+});
+
+describe('formatElapsed', () => {
+	it('formats mm:ss and h:mm:ss', () => {
+		expect(formatElapsed(0)).toBe('00:00');
+		expect(formatElapsed(61_000)).toBe('01:01');
+		expect(formatElapsed(3_599_000)).toBe('59:59');
+		expect(formatElapsed(3_661_000)).toBe('1:01:01');
+		expect(formatElapsed(-5000)).toBe('00:00');
+	});
+});
+
+describe('formatRest', () => {
+	it('formats m:ss', () => {
+		expect(formatRest(5)).toBe('0:05');
+		expect(formatRest(90)).toBe('1:30');
+		expect(formatRest(-3)).toBe('0:00');
 	});
 });

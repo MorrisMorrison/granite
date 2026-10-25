@@ -9,37 +9,24 @@
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { restAlert } from '#lib/restAlert.ts';
 	import { cancelRestEnd, keepAwake, scheduleRestEnd } from '#lib/platform/native.ts';
-	import { SET_TYPES, setLabel } from '#lib/sets.ts';
 	import { isBarbell, roundDeload } from '#lib/calc.ts';
 	import { createRestTimer } from '#lib/restTimer.ts';
 	import { displayToKg, kgToDisplay } from '#lib/units.ts';
 	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '#lib/workoutDraft.ts';
+	import { formatElapsed } from '#lib/duration.ts';
 	import Button from '#lib/components/ui/Button.svelte';
-	import Icon from '#lib/components/ui/Icon.svelte';
 	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
-	import PlateSheet from '#lib/components/PlateSheet.svelte';
-	import IconButton from '#lib/components/ui/IconButton.svelte';
+	import WorkoutHeader from '#lib/components/logger/WorkoutHeader.svelte';
+	import ExerciseCard from '#lib/components/logger/ExerciseCard.svelte';
+	import RestPill from '#lib/components/logger/RestPill.svelte';
+	import type { DraftSet, LoggerExercise } from '#lib/components/logger/types.ts';
 
-	interface DraftSet {
-		uid: string;
-		set_type: string;
-		weight: number | null;
-		reps: number | null;
-		is_completed: boolean;
-	}
-	interface DraftExercise {
-		uid: string;
-		exercise_id: string;
-		name: string;
-		notes?: string; // carried from the routine, shown as a cue
-		rest_seconds?: number; // per-exercise rest from the routine; drives the timer over the global pref
-		sets: DraftSet[];
-		prev?: { weight: number | null; reps: number | null }[]; // last session's sets (kg)
-	}
+	// LoggerExercise: `notes` is a routine cue, `rest_seconds` the routine's per-exercise rest
+	// (drives the timer over the global pref), `prev` last session's sets (kg) as placeholders.
 
 	let title = $state('');
 	let notes = $state('');
-	let exercises = $state<DraftExercise[]>([]);
+	let exercises = $state<LoggerExercise[]>([]);
 	let saving = $state(false);
 	let error = $state('');
 	let fromRoutineId: string | undefined = $state(undefined);
@@ -48,7 +35,15 @@
 	// doesn't clobber a persisted draft before we've had the chance to restore it.
 	let draftReady = $state(false);
 
-	const setTypes = SET_TYPES;
+	let routineName = $state('');
+	// Ticks every second so the elapsed clock in the header stays live.
+	let nowTick = $state(Date.now());
+	const elapsed = $derived(formatElapsed(nowTick - startTime));
+	onMount(() => {
+		const id = setInterval(() => (nowTick = Date.now()), 1000);
+		return () => clearInterval(id);
+	});
+
 	const unit = $derived(prefs.current.weightUnit);
 
 	// --- quick deload (only when started from a routine) ---
@@ -107,9 +102,8 @@
 		addExercise({ id, name });
 	}
 
-	// --- plate calculator (barbell exercises only, on demand) ---
+	// --- plate calculator (barbell exercises only, on demand; the sheet lives in ExerciseCard) ---
 	let barbellIds = $state(new Set<string>());
-	let platesFor = $state<string | null>(null); // uid of the exercise whose sheet is open
 	let plateBar = $state<number | null>(null); // bar override, kept for the session
 	onMount(async () => {
 		const all = await listExercises();
@@ -117,20 +111,9 @@
 	});
 
 	// Load the exercise's last performance to hint targets (shown as input placeholders).
-	async function attachPrev(ex: DraftExercise) {
+	async function attachPrev(ex: LoggerExercise) {
 		const last = await lastPerformance(ex.exercise_id);
 		if (last) ex.prev = last.sets;
-	}
-
-	function prevWeight(ex: DraftExercise, i: number): string | undefined {
-		const p = ex.prev?.[i];
-		if (!p || p.weight == null) return undefined;
-		const v = kgToDisplay(p.weight, unit);
-		return v == null ? undefined : String(v);
-	}
-	function prevReps(ex: DraftExercise, i: number): string | undefined {
-		const p = ex.prev?.[i];
-		return p?.reps == null ? undefined : String(p.reps);
 	}
 
 	function blankSet(from?: DraftSet): DraftSet {
@@ -143,17 +126,14 @@
 		};
 	}
 
-	function addSet(ex: DraftExercise) {
+	function addSet(ex: LoggerExercise) {
 		ex.sets.push(blankSet(ex.sets[ex.sets.length - 1]));
-	}
-	function removeSet(ex: DraftExercise, uid: string) {
-		ex.sets = ex.sets.filter((s) => s.uid !== uid);
 	}
 	function removeExercise(uid: string) {
 		exercises = exercises.filter((e) => e.uid !== uid);
 	}
 
-	function toggleComplete(ex: DraftExercise, s: DraftSet) {
+	function toggleComplete(ex: LoggerExercise, s: DraftSet) {
 		s.is_completed = !s.is_completed;
 		// Prefer the routine exercise's own rest; fall back to the global default.
 		if (s.is_completed) startRest(ex.rest_seconds && ex.rest_seconds > 0 ? ex.rest_seconds : prefs.current.restSeconds);
@@ -238,10 +218,6 @@
 		void keepAwake(false);
 	});
 
-	function fmt(s: number) {
-		return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-	}
-
 	const completedCount = $derived(
 		exercises.reduce((n, e) => n + e.sets.filter((s) => s.is_completed).length, 0)
 	);
@@ -295,6 +271,7 @@
 		}
 		const nameOf = (id: string) => lib.find((e) => e.id === id)?.name ?? 'Exercise';
 		fromRoutineId = r.id;
+		routineName = r.title;
 		if (r.title) title = r.title;
 		exercises = r.exercises.map((ex) => ({
 			uid: crypto.randomUUID(),
@@ -319,6 +296,7 @@
 		notes = d.notes;
 		startTime = d.startTime;
 		fromRoutineId = d.fromRoutineId;
+		if (d.fromRoutineId) void getRoutine(d.fromRoutineId).then((r) => (routineName = r?.title ?? ''));
 		exercises = d.exercises;
 		for (const ex of exercises) void attachPrev(ex);
 	}
@@ -369,92 +347,29 @@
 
 <svelte:head><title>Log workout · Granite</title></svelte:head>
 
-<main class="container" style="padding-bottom: 6rem;">
-	<input class="title" placeholder="Workout title (optional)" bind:value={title} />
+<main class="container" style="padding-bottom: 9rem;">
+	<WorkoutHeader
+		{elapsed}
+		{routineName}
+		bind:title
+		showDeload={!!fromRoutineId}
+		{deloadPct}
+		ondeload={(p) => {
+			deloadPct = p;
+			applyDeload();
+		}}
+	/>
 
-	{#if fromRoutineId}
-		<label class="deload" data-testid="deload">
-			<span>Deload</span>
-			<select bind:value={deloadPct} onchange={applyDeload} data-testid="field-deload">
-				<option value={0}>None</option>
-				<option value={5}>−5%</option>
-				<option value={10}>−10%</option>
-				<option value={15}>−15%</option>
-				<option value={20}>−20%</option>
-			</select>
-			<span class="muted hint">scales every weight</span>
-		</label>
-	{/if}
-
-	{#each exercises as ex (ex.uid)}
-		<section class="card ex">
-			<div class="ex-head">
-				<strong>{ex.name}</strong>
-				<div class="ex-actions">
-					{#if barbellIds.has(ex.exercise_id)}
-						<IconButton
-							name="exercises"
-							label="Plate calculator"
-							size={18}
-							onclick={() => (platesFor = ex.uid)}
-							testid="btn-plates"
-						/>
-					{/if}
-					<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
-				</div>
-			</div>
-			{#if barbellIds.has(ex.exercise_id)}
-				<PlateSheet
-					open={platesFor === ex.uid}
-					title={`Plates · ${ex.name}`}
-					bind:sets={ex.sets}
-					{unit}
-					bind:bar={plateBar}
-					onclose={() => (platesFor = null)}
-				/>
-			{/if}
-			{#if ex.notes}<p class="ex-note muted">{ex.notes}</p>{/if}
-			<div class="set-head muted">
-				<span>Set</span><span>Type</span><span>Weight ({unit})</span><span>Reps</span><span>✓</span><span></span>
-			</div>
-			{#each ex.sets as s, i (s.uid)}
-				<div
-					class="set-row"
-					class:done={s.is_completed}
-					class:warmup={s.set_type === 'warmup'}
-					data-testid="set-row"
-				>
-					<span class="set-no" data-testid="set-label">{s.set_type === 'warmup' ? '' : setLabel(ex.sets, i)}</span>
-					<select bind:value={s.set_type} data-testid="set-type">
-						{#each setTypes as t}<option value={t}>{t}</option>{/each}
-					</select>
-					<input
-						type="number"
-						inputmode="decimal"
-						bind:value={s.weight}
-						placeholder={prevWeight(ex, i)}
-						data-testid="input-weight"
-					/>
-					<input
-						type="number"
-						inputmode="numeric"
-						bind:value={s.reps}
-						placeholder={prevReps(ex, i)}
-						data-testid="input-reps"
-					/>
-					<input
-						type="checkbox"
-						checked={s.is_completed}
-						onchange={() => toggleComplete(ex, s)}
-						data-testid="set-complete"
-					/>
-					<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
-				</div>
-			{/each}
-			<div class="add-set">
-				<Button variant="ghost" size="sm" icon="plus" onclick={() => addSet(ex)}>Add set</Button>
-			</div>
-		</section>
+	{#each exercises as ex, i (ex.uid)}
+		<ExerciseCard
+			bind:ex={exercises[i]}
+			{unit}
+			barbell={barbellIds.has(ex.exercise_id)}
+			bind:plateBar
+			onremove={() => removeExercise(ex.uid)}
+			ontoggle={(s) => toggleComplete(ex, s)}
+			onaddset={() => addSet(ex)}
+		/>
 	{/each}
 
 	<Button variant="outline" block icon="plus" onclick={openPicker} testid="btn-add-exercise">
@@ -484,54 +399,20 @@
 
 <div class="footer">
 	<div class="container footer-inner">
-		<Button variant="ghost" size="sm" onclick={cancel} testid="btn-cancel-workout">Cancel</Button>
 		{#if restActive}
-			<div class="rest">
-				<button class="link" onclick={() => bumpRest(-15)}>-15</button>
-				<span class="rest-time"><Icon name="clock" size={16} /> {fmt(restRemaining)}</span>
-				<button class="link" onclick={() => bumpRest(15)}>+15</button>
-				<button class="link" onclick={stopRest}>skip</button>
-			</div>
-		{:else}
-			<span class="muted">{completedCount} set{completedCount === 1 ? '' : 's'} done</span>
+			<RestPill remaining={restRemaining} onbump={bumpRest} onskip={stopRest} />
 		{/if}
-		<Button size="sm" onclick={finish} disabled={saving} testid="btn-finish-workout">
-			{saving ? 'Saving…' : 'Finish'}
-		</Button>
+		<div class="footer-row">
+			<Button variant="ghost" size="sm" onclick={cancel} testid="btn-cancel-workout">Cancel</Button>
+			<span class="count">{completedCount} set{completedCount === 1 ? '' : 's'} done</span>
+			<Button size="sm" onclick={finish} disabled={saving} testid="btn-finish-workout">
+				{saving ? 'Saving…' : 'Finish'}
+			</Button>
+		</div>
 	</div>
 </div>
 
 <style>
-	.title {
-		font-size: 1.2rem;
-		font-weight: 600;
-		margin-bottom: 1rem;
-		background: transparent;
-		border: none;
-		border-bottom: 1px solid var(--border);
-		border-radius: 0;
-		padding-left: 0;
-	}
-	.deload {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 1rem;
-		font-size: 0.85rem;
-	}
-	/* The global form styles make selects full-width; here that squeezed the hint onto
-	   two lines on phones. Size the select to its content and keep the hint on one line. */
-	.deload select {
-		width: auto;
-		flex: none;
-	}
-	.deload .hint {
-		font-size: 0.75rem;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		min-width: 0;
-	}
 	.session-notes {
 		width: 100%;
 		margin-top: 1rem;
@@ -543,76 +424,6 @@
 		resize: vertical;
 		font-size: 0.9rem;
 	}
-	.ex {
-		margin-bottom: 1rem;
-	}
-	.ex-note {
-		margin: -0.25rem 0 0.6rem;
-		font-size: 0.82rem;
-		white-space: pre-wrap;
-	}
-	.ex-head {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 0.5rem;
-	}
-	.ex-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-	.set-head,
-	.set-row {
-		display: grid;
-		grid-template-columns: 1.5rem 5rem 1fr 1fr 1.5rem 1.5rem;
-		gap: 0.4rem;
-		align-items: center;
-		font-size: 0.85rem;
-		/* Reserve the rail width on every row so warm-up and work sets stay aligned. */
-		border-left: 2px solid transparent;
-		padding-left: 0.5rem;
-	}
-	.set-head {
-		margin-bottom: 0.3rem;
-	}
-	.set-row {
-		margin-bottom: 0.35rem;
-	}
-	.set-row.done {
-		opacity: 0.7;
-	}
-	.set-no {
-		text-align: center;
-		color: var(--muted);
-		font-variant-numeric: tabular-nums;
-	}
-	/* Warm-ups read as a de-emphasized ramp leading into the work sets: an accent
-	   rail + muted text, no badge. Work sets keep full contrast. */
-	.set-row.warmup {
-		border-left-color: var(--accent);
-		color: var(--muted);
-	}
-	.set-row input[type='number'] {
-		padding: 0.4rem;
-	}
-	select {
-		padding: 0.4rem;
-		background: var(--surface-2);
-		color: var(--text);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-	.add-set {
-		margin-top: 0.5rem;
-	}
-	.link {
-		background: none;
-		border: none;
-		color: var(--accent);
-		cursor: pointer;
-		font: inherit;
-	}
 	.footer {
 		position: fixed;
 		bottom: 0;
@@ -623,28 +434,19 @@
 	}
 	.footer-inner {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem; /* min spacing so the row never collides when it's tight */
-		/* Tighter side padding than the page container so the bar fits on
-		   small phones (Cancel · rest controls · Finish must stay one row). */
+		flex-direction: column;
+		gap: 0.5rem;
+		/* Tighter side padding than the page container so the bar fits on small phones. */
 		padding: 0.6rem 0.75rem;
 	}
-	.rest {
+	.footer-row {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
-		min-width: 0;
+		justify-content: space-between;
+		gap: 0.5rem;
 	}
-	.rest .link {
-		font-size: 0.85rem;
-	}
-	.rest-time {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		white-space: nowrap;
-		font-variant-numeric: tabular-nums;
-		font-weight: 600;
+	.count {
+		font-size: 0.8rem;
+		color: var(--faint);
 	}
 </style>

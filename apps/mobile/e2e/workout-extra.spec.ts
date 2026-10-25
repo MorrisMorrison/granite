@@ -35,9 +35,11 @@ test('quick deload scales prefilled weights from a routine', async ({ page }) =>
 	await expect(page.getByTestId('input-weight').first()).toHaveValue('100');
 
 	// −10% → 90, then back to none → 100 (non-compounding, restores originals).
-	await page.getByTestId('field-deload').selectOption('10');
+	await page.getByTestId('deload').click();
+	await page.getByTestId('deload-10').click();
 	await expect(page.getByTestId('input-weight').first()).toHaveValue('90');
-	await page.getByTestId('field-deload').selectOption('0');
+	await page.getByTestId('deload').click();
+	await page.getByTestId('deload-0').click();
 	await expect(page.getByTestId('input-weight').first()).toHaveValue('100');
 });
 
@@ -90,10 +92,11 @@ test('labels warm-up sets distinctly from work sets in the logger', async ({ pag
 	// First set defaults to a work set → numbered "1".
 	await expect(page.getByTestId('set-label').first()).toHaveText('1');
 
-	// Switching its type to warm-up marks the row as a ramp-rail set and drops the number.
-	await page.getByTestId('set-type').first().selectOption('warmup');
+	// Tapping the badge opens the type sheet; choosing Warm-up relabels the row "W" (no number).
+	await page.getByTestId('set-label').first().click();
+	await page.getByTestId('set-type-warmup').click();
 	await expect(page.getByTestId('set-row').first()).toHaveClass(/warmup/);
-	await expect(page.getByTestId('set-label').first()).toHaveText('');
+	await expect(page.getByTestId('set-label').first()).toHaveText('W');
 });
 
 test('shows the previous session values as set placeholders', async ({ page }) => {
