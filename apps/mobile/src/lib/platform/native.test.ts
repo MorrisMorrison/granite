@@ -138,6 +138,13 @@ describe('platform seam on a device', () => {
 		expect(schedule).toHaveBeenLastCalledWith({ notifications: [expect.objectContaining({ isExactNotification: false })] });
 	});
 
+	it('resolves false when the notification is only inexact, so the in-app alert stays', async () => {
+		checkExact.mockResolvedValueOnce({ exact_alarm: 'denied' });
+		schedule.mockClear();
+		await expect(scheduleRestEnd(5_000)).resolves.toBe(false);
+		expect(schedule).toHaveBeenCalledWith({ notifications: [expect.objectContaining({ isExactNotification: false })] });
+	});
+
 	it('plugin failures are swallowed and logged', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		try {

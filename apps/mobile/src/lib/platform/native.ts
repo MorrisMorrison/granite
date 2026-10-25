@@ -35,8 +35,8 @@ let channelReady: Promise<void> | null = null;
 
 /**
  * Schedule the "rest over" notification at epoch-ms `at` (replaces a pending one).
- * Resolves true only when a native notification was actually scheduled, so the
- * caller can skip its own in-app alert; never rejects.
+ * Resolves true only when an exact notification was scheduled, i.e. the system will
+ * alert on time; otherwise the caller keeps its in-app alert. Never rejects.
  */
 export function scheduleRestEnd(at: number): Promise<boolean> {
 	if (!device()) return Promise.resolve(false);
@@ -80,7 +80,7 @@ export function scheduleRestEnd(at: number): Promise<boolean> {
 					}
 				]
 			});
-			return true;
+			return exact;
 		} catch (err) {
 			console.warn('[native] scheduleRestEnd failed', err); // best-effort; the in-app timer still works
 			return false;

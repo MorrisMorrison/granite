@@ -175,6 +175,8 @@
 	// True while a native notification is scheduled for the running rest: it alerts
 	// the user itself, so the in-app buzz + beep would be a second alert.
 	let nativeAlert = false;
+	// A skipped/restarted rest's late result must not decide the next rest's alert.
+	let restGen = 0;
 	function refresh() {
 		if (timer.tick(Date.now())) {
 			if (!nativeAlert) restAlert(); // buzz + beep when the rest period ends
@@ -189,18 +191,27 @@
 	}
 
 	function startRest(seconds: number) {
+		restGen++;
 		timer.start(seconds);
 		if (!restInterval) restInterval = setInterval(refresh, 1000);
 		sync();
-		void scheduleRestEnd(timer.endsAt()!).then((ok) => (nativeAlert = ok));
+		const gen = restGen;
+		void scheduleRestEnd(timer.endsAt()!).then((ok) => {
+			if (gen === restGen) nativeAlert = ok;
+		});
 	}
 	function bumpRest(delta: number) {
 		timer.bump(delta);
 		sync();
 		const at = timer.endsAt();
-		if (at) void scheduleRestEnd(at).then((ok) => (nativeAlert = ok));
+		const gen = restGen;
+		if (at)
+			void scheduleRestEnd(at).then((ok) => {
+				if (gen === restGen) nativeAlert = ok;
+			});
 	}
 	function stopRest() {
+		restGen++;
 		timer.stop();
 		if (restInterval) {
 			clearInterval(restInterval);
