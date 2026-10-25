@@ -5,8 +5,9 @@ test('edits a routine title', async ({ page }) => {
 	await register(page);
 	await createRoutine(page, 'Leg Day');
 
-	// The routine row links to its editor (exact name avoids the "Start Leg Day" action link).
-	await page.getByRole('link', { name: 'Leg Day', exact: true }).click();
+	// The routine row links to its editor (the name starts with the title and carries the
+	// subtitle; anchoring at the start avoids the "Start Leg Day" action link).
+	await page.getByRole('link', { name: /^Leg Day/ }).click();
 	await expect(page).toHaveURL(/\/routines\/[^/]+$/);
 
 	const titleField = page.getByTestId('field-routine-title');
@@ -61,7 +62,7 @@ test('saves per-exercise notes in a routine', async ({ page }) => {
 	await expect(page).toHaveURL(/\/routines$/);
 
 	// Reopen the routine to edit — the note persisted.
-	await page.getByRole('link', { name: 'Notes Test', exact: true }).click();
+	await page.getByRole('link', { name: /^Notes Test/ }).click();
 	await expect(page.getByTestId('field-exercise-notes')).toHaveValue('paused reps, 3s eccentric');
 });
 
@@ -89,6 +90,7 @@ test('renames then deletes a folder', async ({ page }) => {
 	await expect(page.getByTestId('folder').filter({ hasText: 'Strength' })).toBeVisible();
 
 	// Rename.
+	await page.getByRole('button', { name: 'Folder actions' }).click();
 	await page.getByRole('button', { name: 'Rename folder' }).click();
 	const nameField = page.getByTestId('field-folder-name');
 	await expect(nameField).toHaveValue('Strength');
@@ -99,6 +101,7 @@ test('renames then deletes a folder', async ({ page }) => {
 
 	// Delete (accept the confirm dialog).
 	page.once('dialog', (d) => d.accept());
+	await page.getByRole('button', { name: 'Folder actions' }).click();
 	await page.getByRole('button', { name: 'Delete folder' }).click();
 	await expect(page.getByTestId('folder')).toHaveCount(0);
 });
