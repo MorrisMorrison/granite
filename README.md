@@ -13,7 +13,8 @@ logger (rest timer, warm-ups, quick deload, notes), Routines (folders, duplicate
 calendar + workout detail), a custom Exercises library (progress charts + PRs), Bodyweight tracking,
 a Stats hub (top lifts, weekly volume, sets per muscle, all-time records), in-app calculators, and
 Settings — backed by a Go API with auth,
-sync, JSON + other-tracker (CSV) import, an MCP server, and personal API tokens.
+sync, JSON + other-tracker (CSV) import, an MCP server, and personal API tokens. There's now an
+**Android app** too, with a rest-timer notification that fires with the screen locked, and keep-awake.
 
 ## What it is
 
@@ -23,7 +24,7 @@ mobile-first with a web app, a public REST API, and an MCP server.
 
 - **Offline-first** — every core action works with no network; changes sync to your server when online.
 - **Yours to host** — one Go binary + a SQLite file behind a reverse proxy. JSON export/import, no lock-in.
-- **One codebase** — a SvelteKit static build serves as the web app (and, later, the Capacitor mobile app).
+- **One codebase** — a SvelteKit static build serves as the web app and the Android app (Capacitor); iOS later.
 - **AGPL-3.0** — genuinely open, even when run as a service.
 
 The reasoning behind each major choice lives in the [Architecture Decision Records](docs/decisions/).
@@ -71,6 +72,14 @@ closed (leave `GRANITE_ALLOW_REGISTRATION=false` to keep further signups off). T
 - **HTTPS:** terminate TLS at a reverse proxy (Caddy / Traefik / nginx) and point `GRANITE_BASE_URL` at it.
 
 Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and [`deploy/`](deploy/).
+
+### Android app
+
+The same app as a native Android build, with a rest-timer notification that works with the screen locked.
+For now, install a test build: download the `granite-debug-apk` artifact from the latest
+[Android CI run](https://github.com/MorrisMorrison/granite/actions/workflows/android.yml) on a PR. Signed
+APKs on GitHub Releases are coming. On first launch the app asks for your server address — use `http://`
+for a plain-HTTP LAN server (HTTPS recommended). See [docs/06 — Mobile app](docs/06-mobile-app.md).
 
 ## Documentation
 
