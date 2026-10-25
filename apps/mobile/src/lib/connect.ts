@@ -5,6 +5,7 @@
 // that predates the app both block it, so the message covers both.
 
 export const MIN_API_VERSION = 1;
+const TIMEOUT_MS = 8000;
 
 export type ConnectFailure = 'invalid' | 'unreachable' | 'not-found' | 'not-granite' | 'outdated';
 export type ConnectResult = { ok: true; url: string } | { ok: false; reason: ConnectFailure };
@@ -28,13 +29,13 @@ export async function checkServer(input: string, fetchFn: typeof fetch = fetch):
 	const url = normalizeServerUrl(input);
 	if (!url) return { ok: false, reason: 'invalid' };
 	try {
-		await fetchFn(`${url}/healthz`, { mode: 'no-cors', cache: 'no-store' });
+		await fetchFn(`${url}/healthz`, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(TIMEOUT_MS) });
 	} catch {
 		return { ok: false, reason: 'unreachable' };
 	}
 	let res: Response;
 	try {
-		res = await fetchFn(`${url}/api/v1/info`, { cache: 'no-store' });
+		res = await fetchFn(`${url}/api/v1/info`, { cache: 'no-store', signal: AbortSignal.timeout(TIMEOUT_MS) });
 	} catch {
 		return { ok: false, reason: 'not-found' };
 	}
@@ -45,7 +46,7 @@ export async function checkServer(input: string, fetchFn: typeof fetch = fetch):
 	} catch {
 		return { ok: false, reason: 'not-granite' };
 	}
-	if (body.name !== 'granite') return { ok: false, reason: 'not-granite' };
+	if (!body || body.name !== 'granite') return { ok: false, reason: 'not-granite' };
 	if (typeof body.api_version !== 'number' || body.api_version < MIN_API_VERSION) return { ok: false, reason: 'outdated' };
 	return { ok: true, url };
 }
