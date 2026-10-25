@@ -21,15 +21,16 @@
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
-		import { listWorkouts } from '#lib/repo/workouts.ts';
-	import { lastDoneAt, relativeDay } from '#lib/stats.ts';
+	import { listWorkouts } from '#lib/repo/workouts.ts';
+	import { lastDoneAt, relativeDayInline } from '#lib/stats.ts';
 	import FolderGroup from '#lib/components/routines/FolderGroup.svelte';
 	import RoutineListItem from '#lib/components/routines/RoutineListItem.svelte';
 
-	// Per-routine exercise count + last-done label, loaded once per refresh.
+	// Per-routine exercise count + last-done label. Filled in after the list has rendered
+	// (it needs one getRoutine per routine), so the list never waits on it.
 	let info = $state<Record<string, { count: number; last: string | null }>>({});
-	async function loadInfo() {
-		const [rows, ws] = await Promise.all([listRoutines(), listWorkouts()]);
+	async function loadInfo(rows: RoutineRow[]) {
+		const ws = await listWorkouts();
 		const full = await Promise.all(rows.map((r) => getRoutine(r.id)));
 		const now = Date.now();
 		const out: Record<string, { count: number; last: string | null }> = {};
@@ -37,7 +38,7 @@
 			const at = lastDoneAt(r, ws);
 			out[r.id] = {
 				count: full[i]?.exercises.length ?? 0,
-				last: at == null ? null : relativeDay(at, now)
+				last: at == null ? null : relativeDayInline(at, now)
 			};
 		});
 		info = out;
@@ -64,7 +65,7 @@
 
 	async function load() {
 		[folders, routines] = await Promise.all([listFolders(), listRoutines()]);
-		await loadInfo().catch(() => {}); // the counts are decoration; never block the list
+		void loadInfo(routines).catch(() => {}); // the counts are decoration; never block the list
 	}
 
 	onMount(async () => {

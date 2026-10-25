@@ -35,25 +35,25 @@
 
 <section class="folder" data-testid={testid}>
 	{#if name}
-	<div class="head">
-		{#if ontoggle}
-			<button class="toggle" onclick={ontoggle} aria-expanded={!collapsed} data-testid="folder-toggle">
-				<span class="eyebrow">{name}</span>
-				{#if count !== null}<span class="eyebrow n">{count}</span>{/if}
-				<Icon name={collapsed ? 'chevron-right' : 'chevron-down'} size={14} />
-			</button>
-		{:else}
-			<span class="eyebrow label">{name}</span>
-		{/if}
-		{#if hasMenu}
-			<IconButton
-				name="dots-vertical"
-				label="Folder actions"
-				onclick={() => (menuOpen = true)}
-				testid="btn-folder-menu"
-			/>
-		{/if}
-	</div>
+		<div class="head">
+			{#if ontoggle}
+				<button class="toggle" onclick={ontoggle} aria-expanded={!collapsed} data-testid="folder-toggle">
+					<span class="eyebrow">{name}</span>
+					{#if count !== null}<span class="eyebrow n">{count}</span>{/if}
+					<Icon name={collapsed ? 'chevron-right' : 'chevron-down'} size={14} />
+				</button>
+			{:else}
+				<span class="eyebrow label">{name}</span>
+			{/if}
+			{#if hasMenu}
+				<IconButton
+					name="dots-vertical"
+					label="Folder actions"
+					onclick={() => (menuOpen = true)}
+					testid="btn-folder-menu"
+				/>
+			{/if}
+		</div>
 	{/if}
 	{#if !collapsed}
 		<div class="group">

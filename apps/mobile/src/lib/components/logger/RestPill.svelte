@@ -11,12 +11,12 @@
 </script>
 
 <div class="rest" data-testid="rest-pill">
-	<button class="t" onclick={() => onbump(-15)}>−15</button>
+	<button class="t" aria-label="Subtract 15 seconds" onclick={() => onbump(-15)}>−15</button>
 	<div class="block">
 		<span class="lbl">Rest</span>
 		<span class="time" data-testid="rest-time">{formatRest(remaining)}</span>
 	</div>
-	<button class="t" onclick={() => onbump(15)}>+15</button>
+	<button class="t" aria-label="Add 15 seconds" onclick={() => onbump(15)}>+15</button>
 	<button class="t" onclick={onskip}>Skip</button>
 </div>
 

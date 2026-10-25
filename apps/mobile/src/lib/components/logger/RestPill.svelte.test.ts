@@ -15,10 +15,10 @@ describe('RestPill', () => {
 	it('fires bump(-15), bump(15) and skip', async () => {
 		const onbump = vi.fn();
 		const onskip = vi.fn();
-		const { getByText } = render(RestPill, { props: { remaining: 30, onbump, onskip } });
-		await fireEvent.click(getByText('−15'));
-		await fireEvent.click(getByText('+15'));
-		await fireEvent.click(getByText('Skip'));
+		const { getByRole } = render(RestPill, { props: { remaining: 30, onbump, onskip } });
+		await fireEvent.click(getByRole('button', { name: 'Subtract 15 seconds' }));
+		await fireEvent.click(getByRole('button', { name: 'Add 15 seconds' }));
+		await fireEvent.click(getByRole('button', { name: 'Skip' }));
 		expect(onbump.mock.calls).toEqual([[-15], [15]]);
 		expect(onskip).toHaveBeenCalledTimes(1);
 	});

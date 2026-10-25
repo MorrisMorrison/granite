@@ -53,7 +53,7 @@
 		class:on={set.is_completed}
 		role="checkbox"
 		aria-checked={set.is_completed}
-		aria-label="Set done"
+		aria-label={badge === 'W' ? 'Warm-up set done' : `Set ${badge} done`}
 		onclick={ontoggle}
 		data-testid="set-complete"
 	>
@@ -95,7 +95,7 @@
 		min-width: 0;
 	}
 	.row.done input {
-		background: rgba(255, 255, 255, 0.05);
+		background: color-mix(in srgb, var(--text) 5%, transparent);
 	}
 	input:focus {
 		border-color: var(--accent);
@@ -138,6 +138,6 @@
 	.check.on {
 		background: var(--success);
 		border-color: var(--success);
-		color: #fff;
+		color: var(--accent-text);
 	}
 </style>

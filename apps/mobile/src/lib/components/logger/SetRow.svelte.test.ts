@@ -20,6 +20,7 @@ describe('SetRow', () => {
 		expect(getByTestId('set-label').textContent).toBe('2');
 		expect(getByTestId('set-row').textContent).toContain('60 × 5');
 		expect(getByTestId('set-complete').getAttribute('role')).toBe('checkbox');
+		expect(getByTestId('set-complete').getAttribute('aria-label')).toBe('Set 2 done');
 		expect(getByTestId('set-complete').getAttribute('aria-checked')).toBe('false');
 	});
 
@@ -33,6 +34,7 @@ describe('SetRow', () => {
 			}
 		});
 		expect(getByTestId('set-complete').getAttribute('aria-checked')).toBe('true');
+		expect(getByTestId('set-complete').getAttribute('aria-label')).toBe('Warm-up set done');
 		expect(getByTestId('set-row').className).toContain('warmup');
 		expect(getByTestId('set-label').className).toContain('warm');
 	});

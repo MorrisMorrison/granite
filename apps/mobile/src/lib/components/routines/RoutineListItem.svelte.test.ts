@@ -6,7 +6,7 @@ import RoutineListItem from './RoutineListItem.svelte';
 describe('RoutineListItem', () => {
 	it('links to detail and start, with a spaced subtitle', () => {
 		const { getByTestId, container } = render(RoutineListItem, {
-			props: { id: 'r1', title: 'Push', exerciseCount: 4, lastDone: 'Yesterday', onmenu: () => {} }
+			props: { id: 'r1', title: 'Push', exerciseCount: 4, lastDone: 'yesterday', onmenu: () => {} }
 		});
 		expect(container.querySelector('a.body')!.getAttribute('href')).toBe('/routines/r1');
 		expect(getByTestId('btn-start-routine').getAttribute('href')).toBe('/log?routine=r1');

@@ -13,19 +13,19 @@
 		id: string;
 		title: string;
 		exerciseCount?: number | null; // null while still loading
-		lastDone?: string | null; // relative day ("Yesterday"), null = never
+		lastDone?: string | null; // relative day ("yesterday", "12 Oct"), null = never
 		onmenu: () => void;
 	} = $props();
 
 	const subtitle = $derived.by(() => {
 		if (exerciseCount === null) return '';
 		const n = `${exerciseCount} exercise${exerciseCount === 1 ? '' : 's'}`;
-		return `${n} · ${lastDone ? `last done ${lastDone.toLowerCase()}` : 'not done yet'}`;
+		return `${n} · ${lastDone ? `last done ${lastDone}` : 'not done yet'}`;
 	});
 </script>
 
-<div class="row" data-testid="routine-row">
-	<a class="body" href={`/routines/${id}`}>
+<div class="row">
+	<a class="body" href={`/routines/${id}`} data-testid="routine-row">
 		<span class="title">{title}</span>
 		<span class="sub">{subtitle}</span>
 	</a>
