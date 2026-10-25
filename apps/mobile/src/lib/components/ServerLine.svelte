@@ -13,15 +13,25 @@
 </script>
 
 {#if isNative()}
-	<p class="muted server" data-testid="server-line">
-		Server: {host} · <a href="/connect?change=1" data-testid="btn-change-server">Change</a>
+	<p class="server" data-testid="server-line">
+		Server: <span class="host">{host}</span> · <a href="/connect?change=1" data-testid="btn-change-server">Change</a>
 	</p>
 {/if}
 
 <style>
 	.server {
-		text-align: center;
-		font-size: 0.85rem;
-		margin-top: 0.5rem;
+		max-width: 100%;
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--faint);
+		overflow-wrap: anywhere;
+	}
+	.host {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		color: var(--muted);
+	}
+	.server a {
+		color: var(--muted);
+		font-weight: 600;
 	}
 </style>
