@@ -71,6 +71,8 @@
 	let pickerOpen = $state(false);
 	let library = $state<{ id: string; name: string; primary_muscle: string }[]>([]);
 	let libraryLoaded = $state(false);
+	// The first load attempt finished (possibly empty) — the picker stops showing "Loading…".
+	let libraryTried = $state(false);
 
 	async function openPicker() {
 		pickerOpen = true;
@@ -78,6 +80,7 @@
 			library = await loadPickerLibrary();
 			// Stay unloaded while empty (fresh account, nothing pulled yet) so the next open retries.
 			libraryLoaded = library.length > 0;
+			libraryTried = true;
 		}
 	}
 
@@ -386,7 +389,7 @@
 
 	<ExercisePicker
 		open={pickerOpen}
-		library={libraryLoaded ? library : null}
+		library={libraryTried ? library : null}
 		onpick={addExercise}
 		oncreate={createAndAdd}
 		onclose={() => (pickerOpen = false)}

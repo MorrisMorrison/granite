@@ -47,6 +47,8 @@ type Server struct {
 	trustedProxy bool
 	// authRateLimit is the per-IP requests/minute on /api/v1/auth/*.
 	authRateLimit int
+	// apiRateLimit is the per-IP requests/minute on the rest of /api/v1/*.
+	apiRateLimit int
 }
 
 // Option configures a Server; options are applied after defaults in New.
@@ -68,6 +70,16 @@ func WithTrustedProxy(trusted bool) Option {
 	return func(s *Server) { s.trustedProxy = trusted }
 }
 
+// WithAPIRateLimit sets the per-IP requests/minute on the non-auth API endpoints
+// (default config.DefaultAPIRateLimit). Non-positive values are ignored.
+func WithAPIRateLimit(perMinute int) Option {
+	return func(s *Server) {
+		if perMinute > 0 {
+			s.apiRateLimit = perMinute
+		}
+	}
+}
+
 // WithAuthRateLimit sets the per-IP requests/minute on the auth endpoints
 // (default config.DefaultAuthRateLimit). Non-positive values are ignored.
 func WithAuthRateLimit(perMinute int) Option {
@@ -80,7 +92,7 @@ func WithAuthRateLimit(perMinute int) Option {
 
 // New constructs a Server. allowedOrigins is the CORS allow-list.
 func New(authSvc *auth.Service, exerciseSvc *exercise.Service, routineSvc *routine.Service, workoutSvc *workout.Service, syncSvc *syncpkg.Service, tokens *auth.TokenManager, db *sql.DB, allowedOrigins []string, opts ...Option) *Server {
-	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler(), gate: gate.AllowAll{}, authRateLimit: config.DefaultAuthRateLimit}
+	s := &Server{router: chi.NewRouter(), auth: authSvc, exercise: exerciseSvc, routine: routineSvc, workout: workoutSvc, sync: syncSvc, tokens: tokens, db: db, web: webui.Handler(), gate: gate.AllowAll{}, authRateLimit: config.DefaultAuthRateLimit, apiRateLimit: config.DefaultAPIRateLimit}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -129,7 +141,7 @@ func (s *Server) setupRouter(allowedOrigins []string) {
 	// and a generous bucket on the rest of the API (DoS / amplification defense — the
 	// token-auth path hashes + hits the DB on every authenticated request).
 	authLimiter := httprate.LimitByIP(s.authRateLimit, time.Minute)
-	apiLimiter := httprate.LimitByIP(600, time.Minute)
+	apiLimiter := httprate.LimitByIP(s.apiRateLimit, time.Minute)
 	r.Use(func(next http.Handler) http.Handler {
 		limitedAuth := authLimiter(next)
 		limitedAPI := apiLimiter(next)

@@ -63,8 +63,10 @@ const child = spawn(bin, [], {
 		GRANITE_JWT_SECRET: 'e2e-secret-0123456789abcdef0123456789abcdef',
 		GRANITE_ALLOW_REGISTRATION: 'true',
 		// Every spec registers/logs in from 127.0.0.1, so the production per-IP auth
-		// limit (30/min) would 429 the later specs. Only this throwaway server lifts it.
-		GRANITE_AUTH_RATE_LIMIT: '10000'
+		// limits (auth 30/min, API 600/min) would 429 the later specs. Only this throwaway
+		// server lifts them.
+		GRANITE_AUTH_RATE_LIMIT: '10000',
+		GRANITE_API_RATE_LIMIT: '100000'
 	}
 });
 

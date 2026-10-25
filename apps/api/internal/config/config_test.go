@@ -102,3 +102,31 @@ func TestLoadAuthRateLimit(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadAPIRateLimit(t *testing.T) {
+	t.Setenv("GRANITE_JWT_SECRET", strings.Repeat("x", 32))
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.APIRateLimit != DefaultAPIRateLimit {
+		t.Errorf("APIRateLimit default = %d, want %d", cfg.APIRateLimit, DefaultAPIRateLimit)
+	}
+
+	t.Setenv("GRANITE_API_RATE_LIMIT", "100000")
+	cfg, err = Load()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.APIRateLimit != 100000 {
+		t.Errorf("APIRateLimit = %d, want 100000 (env override)", cfg.APIRateLimit)
+	}
+
+	for _, bad := range []string{"lots", "0", "-1", "1.5"} {
+		t.Setenv("GRANITE_API_RATE_LIMIT", bad)
+		if _, err := Load(); err == nil {
+			t.Errorf("GRANITE_API_RATE_LIMIT=%q: expected an error", bad)
+		}
+	}
+}
