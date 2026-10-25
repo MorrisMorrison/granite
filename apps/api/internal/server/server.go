@@ -5,6 +5,7 @@ package server
 import (
 	"database/sql"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -99,6 +100,12 @@ func (s *Server) OpenAPIYAML() ([]byte, error) {
 	return s.api.OpenAPI().YAML()
 }
 
+// NativeAppOrigins are the origins the Capacitor apps' WebViews run on (Android
+// serves the app from https://localhost, iOS from capacitor://localhost). They're
+// always allowed so the native apps work against any self-hosted server without
+// configuration; auth is bearer tokens, not cookies, so this exposes no session.
+var NativeAppOrigins = []string{"https://localhost", "capacitor://localhost"}
+
 func (s *Server) setupRouter(allowedOrigins []string) {
 	r := s.router
 	// RealIP rewrites RemoteAddr from client-supplied X-Forwarded-For/X-Real-IP,
@@ -112,7 +119,7 @@ func (s *Server) setupRouter(allowedOrigins []string) {
 	r.Use(secureHeaders)
 	r.Use(requestLogger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: allowedOrigins,
+		AllowedOrigins: append(slices.Clone(allowedOrigins), NativeAppOrigins...),
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders: []string{"Authorization", "Content-Type"},
 		MaxAge:         300,

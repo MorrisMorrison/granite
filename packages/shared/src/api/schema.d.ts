@@ -143,6 +143,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public identity check (lets an app confirm it reached a Granite server) */
+        get: operations["info"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -618,6 +635,17 @@ export interface components {
             routines: number;
             /** Format: int64 */
             workouts: number;
+        };
+        InfoOutputBody: {
+            /**
+             * Format: uri
+             * @description A URL to the JSON Schema for this object.
+             * @example https://example.com/schemas/InfoOutputBody.json
+             */
+            readonly $schema?: string;
+            /** Format: int64 */
+            api_version: number;
+            name: string;
         };
         ListExercisesOutputBody: {
             /**
@@ -1274,6 +1302,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    info: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InfoOutputBody"];
                 };
             };
             /** @description Error */

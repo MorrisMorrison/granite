@@ -545,6 +545,25 @@ components:
         - workouts
         - bodyweight
       type: object
+    InfoOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/InfoOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        api_version:
+          format: int64
+          type: integer
+        name:
+          type: string
+      required:
+        - name
+        - api_version
+      type: object
     ListExercisesOutputBody:
       additionalProperties: false
       properties:
@@ -1482,6 +1501,25 @@ paths:
       summary: Import a previously exported dump (upsert by id, idempotent)
       tags:
         - Export
+  /api/v1/info:
+    get:
+      operationId: info
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InfoOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Public identity check (lets an app confirm it reached a Granite server)
+      tags:
+        - Server
   /api/v1/me:
     get:
       operationId: getMe
