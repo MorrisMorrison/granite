@@ -50,6 +50,7 @@
 	{:else}
 		<div class="search-row">
 			<input
+				class="control"
 				type="search"
 				placeholder="Search exercises…"
 				bind:value={query}

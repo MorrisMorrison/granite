@@ -121,7 +121,22 @@ a {
 	text-decoration: none;
 	transition: background var(--dur-fast) var(--ease);
 }
-a.group-row:hover {
+/* A group row can also be a <button> (an action row, e.g. Settings' data actions). */
+button.group-row {
+	width: 100%;
+	font: inherit;
+	text-align: left;
+	background: none;
+	border: none;
+	border-radius: 0;
+	cursor: pointer;
+}
+button.group-row:disabled {
+	color: var(--faint);
+	cursor: default;
+}
+a.group-row:hover,
+button.group-row:hover:not(:disabled) {
 	background: var(--elevated);
 }
 .group-row-body {
@@ -173,7 +188,6 @@ a.group-row:hover {
 	border-radius: var(--radius-lg);
 	padding: 1rem 1.1rem;
 }
-
 
 /* Summary card: a row of eyebrow-labelled figures (workout detail, exercise detail).
    Two columns on small phones; `cols-3` / `cols-4` widen when there's room. */
@@ -428,25 +442,29 @@ select.control {
 .control:disabled {
 	opacity: 0.55;
 }
+/* Compact control at the end of a settings-style row: fixed width, right-aligned value. */
+.control.compact {
+	flex-shrink: 0;
+	width: 7rem;
+	height: 2.4rem;
+	text-align: right;
+}
+select.control.compact {
+	text-align-last: right;
+}
+/* One-line muted help under a control, inside its `.field`. */
+.field-hint {
+	font-size: 0.8rem;
+	color: var(--muted);
+}
 
-
+/* Bare element defaults: font and colour only. Field styling comes from `.control`,
+   `.set-input` or `.title-input`. */
 input,
 select,
 textarea {
 	font: inherit;
-	width: 100%;
-	padding: 0.65rem 0.8rem;
-	background: var(--elevated);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-md);
 	color: var(--text);
-	transition: border-color var(--dur-fast) var(--ease);
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-	border-color: var(--accent);
 }
 /* Drop the outline only for pointer focus; keyboard focus keeps the :focus-visible ring. */
 input:focus:not(:focus-visible),
@@ -473,9 +491,3 @@ button {
 	color: var(--muted);
 }
 
-label {
-	display: block;
-	font-size: 0.85rem;
-	color: var(--muted);
-	margin: 0.75rem 0 0.3rem;
-}
