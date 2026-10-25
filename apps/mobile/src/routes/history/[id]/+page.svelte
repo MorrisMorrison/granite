@@ -215,7 +215,7 @@
 		margin-bottom: 0.9rem;
 		padding: 0.85rem 1rem;
 	}
-	@media (min-width: 400px) {
+	@media (min-width: 360px) {
 		.summary {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
