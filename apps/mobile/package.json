@@ -37,6 +37,7 @@
 		"vitest": "^5.0.5"
 	},
 	"dependencies": {
+		"@capacitor/core": "^8.5.3",
 		"@granite/shared": "workspace:*",
 		"idb": "^8.0.3"
 	}

@@ -13,3 +13,20 @@ export function getServerUrl(): string {
 	if (typeof window !== 'undefined') return window.location.origin;
 	return 'http://localhost:8080';
 }
+
+/** Whether a server URL has been chosen on this device (the native app needs one). */
+export function hasServerUrl(): boolean {
+	try {
+		return !!localStorage.getItem(SERVER_KEY);
+	} catch {
+		return false;
+	}
+}
+
+export function setServerUrl(url: string): void {
+	localStorage.setItem(SERVER_KEY, url);
+}
+
+export function clearServerUrl(): void {
+	localStorage.removeItem(SERVER_KEY);
+}

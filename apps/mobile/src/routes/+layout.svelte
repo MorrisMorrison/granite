@@ -6,6 +6,8 @@
 	import { page } from '$app/state';
 	import { routes } from '$app/manifest';
 	import { auth } from '#lib/stores/auth.svelte.ts';
+	import { isNative } from '#lib/platform/native.ts';
+	import { hasServerUrl } from '#lib/config.ts';
 	import { install } from '#lib/stores/install.svelte.ts';
 	import { offersButton } from '#lib/install.ts';
 	import InstallSheet from '#lib/components/InstallSheet.svelte';
@@ -14,7 +16,7 @@
 
 	let { children } = $props();
 
-	const publicRoutes = ['/login', '/register'];
+	const publicRoutes = ['/login', '/register', '/connect'];
 
 	onMount(() => {
 		void auth.init();
@@ -28,9 +30,20 @@
 
 	$effect(() => {
 		if (!auth.ready) return;
-		const isPublic = publicRoutes.includes(page.url.pathname);
+		const path = page.url.pathname;
+		// The native app needs a server before anything else.
+		if (isNative() && !hasServerUrl()) {
+			if (path !== '/connect') void goto('/connect');
+			return;
+		}
+		// /connect is native-only; the web app is served by its server.
+		if (path === '/connect' && !isNative()) {
+			void goto('/login');
+			return;
+		}
+		const isPublic = publicRoutes.includes(path);
 		if (!auth.isAuthenticated && !isPublic) void goto('/login');
-		if (auth.isAuthenticated && isPublic) void goto('/');
+		if (auth.isAuthenticated && isPublic && path !== '/connect') void goto('/');
 	});
 
 	async function logout() {
