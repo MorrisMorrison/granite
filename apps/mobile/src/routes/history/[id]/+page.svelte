@@ -61,11 +61,21 @@
 		const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 		return `${day} · ${time}`;
 	}
+	function srSet(label: string, s: { weight: number | null; reps: number | null; is_completed: boolean }): string {
+		const parts = [`Set ${label}`];
+		if (s.weight != null) parts.push(`${w(s.weight)} ${unit}`);
+		if (s.reps != null) parts.push(`${s.reps} reps`);
+		if (!s.is_completed) parts.push('skipped');
+		return parts.join(', ');
+	}
 	const minutes = $derived(workout ? workoutMinutes(workout.start_time, workout.end_time) : null);
 	const bwDisplay = $derived(bodyweight != null ? kgToDisplay(bodyweight, unit) : null);
 
+	// Sets actually done (warm-ups included, skipped sets not), so the counts agree with
+	// the muted "skipped" rows below.
+	const doneSets = (sets: { is_completed: boolean }[]) => sets.filter((s) => s.is_completed).length;
 	const totalSets = $derived(
-		workout ? workout.exercises.reduce((n, e) => n + e.sets.length, 0) : 0
+		workout ? workout.exercises.reduce((n, e) => n + doneSets(e.sets), 0) : 0
 	);
 	// Volume in kg, converted to the display unit and rounded. Working-set tonnage
 	// only: completed (unchecked skipped) and not a warm-up — matches stats/analytics.
@@ -118,12 +128,12 @@
 				</div>
 				<div class="stat">
 					<span class="eyebrow">Volume</span>
-					<span class="val">{totalVolume.toLocaleString()} <small>{unit}</small></span>
+					<span class="val"><span class="n">{totalVolume.toLocaleString()}</span> <small>{unit}</small></span>
 				</div>
 				{#if bwDisplay != null}
 					<div class="stat" data-testid="wd-bodyweight">
 						<span class="eyebrow">Bodyweight</span>
-						<span class="val">{bwDisplay} <small>{unit}</small></span>
+						<span class="val"><span class="n">{bwDisplay}</span> <small>{unit}</small></span>
 					</div>
 				{/if}
 			</section>
@@ -133,6 +143,7 @@
 			{/if}
 
 			{#each workout.exercises as ex (ex.id)}
+				{@const done = doneSets(ex.sets)}
 				<section class="card ex" data-testid="wd-exercise">
 					<div class="ex-head">
 						<a
@@ -144,22 +155,20 @@
 							<span class="ex-name">{ex.name}</span>
 							<Icon name="chevron-right" size={16} />
 						</a>
-						<span class="ex-count">{ex.sets.length} set{ex.sets.length === 1 ? '' : 's'}</span>
+						<span class="ex-count">{done} set{done === 1 ? '' : 's'}</span>
 					</div>
 					<div class="cols" aria-hidden="true">
 						<span>Set</span><span>{unit}</span><span>Reps</span><span></span>
 					</div>
 					{#each ex.sets as s, i (i)}
-						<div
-							class="set-row"
-							class:skipped={!s.is_completed}
-							class:warmup={s.set_type === 'warmup'}
-							data-testid="wd-set"
-						>
-							<SetBadge label={setBadge(ex.sets, i)} type={s.set_type} />
-							<span class="num">{w(s.weight)}</span>
-							<span class="num">{s.reps ?? '—'}</span>
-							<span class="note">{s.is_completed ? '' : 'skipped'}</span>
+						{@const label = setBadge(ex.sets, i)}
+						<div class="set-row" class:skipped={!s.is_completed} data-testid="wd-set">
+							<!-- One spoken line per set ("Set W, 60 kg, 8 reps, skipped"); the grid cells are visual only. -->
+							<span class="sr-only">{srSet(label, s)}</span>
+							<span class="cell" aria-hidden="true"><SetBadge {label} type={s.set_type} /></span>
+							<span class="num" aria-hidden="true">{w(s.weight)}</span>
+							<span class="num" aria-hidden="true">{s.reps ?? '—'}</span>
+							<span class="note" aria-hidden="true">{s.is_completed ? '' : 'skipped'}</span>
 						</div>
 					{/each}
 				</section>
@@ -197,20 +206,26 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
+	/* One row when there's room; small phones wrap to 2 × 2 (or 2 + 1) so a 6-digit
+	   volume like "112,450 lb" is never cut off. */
 	.summary {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 0.75rem 0.5rem;
 		margin-bottom: 0.9rem;
 		padding: 0.85rem 1rem;
 	}
-	.summary.four {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
-	/* Four cells get cramped on small phones: wrap to 2 × 2. */
-	@media (max-width: 400px) {
+	@media (min-width: 400px) {
+		.summary {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
 		.summary.four {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (min-width: 440px) {
+		.summary.four {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
 		}
 	}
 	.stat {
@@ -224,8 +239,9 @@
 		font-weight: 650;
 		letter-spacing: -0.01em;
 		font-variant-numeric: tabular-nums;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		line-height: 1.25;
+	}
+	.val .n {
 		white-space: nowrap;
 	}
 	.val small {
@@ -291,6 +307,7 @@
 		white-space: nowrap;
 	}
 	.set-row {
+		position: relative;
 		min-height: 2.4rem;
 		margin-bottom: 0.15rem;
 	}
@@ -305,7 +322,10 @@
 		color: var(--faint);
 	}
 	/* Completed is the normal state; a set that wasn't done reads quieter. */
-	.set-row.skipped :global(.badge),
+	.cell {
+		display: inline-flex;
+	}
+	.set-row.skipped .cell,
 	.set-row.skipped .num {
 		opacity: 0.45;
 	}

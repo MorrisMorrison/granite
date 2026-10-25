@@ -23,7 +23,7 @@
 	} = $props();
 </script>
 
-<div class="row" class:done={set.is_completed} class:warmup={set.set_type === 'warmup'} data-testid="set-row">
+<div class="row" class:done={set.is_completed} data-testid="set-row">
 	<SetBadge
 		label={badge}
 		type={set.set_type}

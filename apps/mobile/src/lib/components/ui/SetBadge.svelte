@@ -12,7 +12,7 @@
 		label: string; // from setBadge(): 1/2/3…, W, D or F
 		type?: string; // the set's set_type
 		onclick?: () => void;
-		ariaLabel?: string;
+		ariaLabel?: string; // button only — a plain label is read as its text
 		testid?: string;
 	} = $props();
 
@@ -25,7 +25,7 @@
 		>{label}</button
 	>
 {:else}
-	<span class="badge" class:warm class:other aria-label={ariaLabel} data-testid={testid}>{label}</span>
+	<span class="badge" class:warm class:other data-testid={testid}>{label}</span>
 {/if}
 
 <style>

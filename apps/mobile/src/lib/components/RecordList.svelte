@@ -30,63 +30,20 @@
 	}
 </script>
 
-<div class="records">
+<div class="group records">
 	{#each rows as r, i (`${r.exerciseId}-${r.at}-${i}`)}
-		<a class="row" href={`/exercises/${r.exerciseId}`} data-testid={rowTestid}>
-			<span class="body">
-				<span class="title">{r.exerciseName}</span>
-				<span class="sub">{`${disp(r.weight)} ${unit} × ${r.reps} · ${relDate(r.at)}`}</span>
+		<a class="group-row" href={`/exercises/${r.exerciseId}`} data-testid={rowTestid}>
+			<span class="group-row-body">
+				<span class="group-row-title">{r.exerciseName}</span>
+				<span class="group-row-sub">{`${disp(r.weight)} ${unit} × ${r.reps} · ${relDate(r.at)}`}</span>
 			</span>
 			<span class="r-1rm">{disp(r.e1rm)} {unit}<small>e1RM</small></span>
-			<span class="chev"><Icon name="chevron-right" size={18} /></span>
+			<span class="group-row-chev chev"><Icon name="chevron-right" size={18} /></span>
 		</a>
 	{/each}
 </div>
 
 <style>
-	.records {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-	.row {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.7rem 0.75rem 0.7rem 1.1rem;
-		color: var(--text);
-		text-decoration: none;
-		transition: background var(--dur-fast) var(--ease);
-	}
-	.row + .row {
-		border-top: 1px solid var(--border);
-	}
-	.row:hover {
-		background: var(--elevated);
-	}
-	.body {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-	}
-	.title {
-		font-weight: 650;
-		letter-spacing: -0.01em;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.sub {
-		font-size: 0.8rem;
-		color: var(--muted);
-		font-variant-numeric: tabular-nums;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
 	.r-1rm {
 		flex-shrink: 0;
 		display: flex;
@@ -104,9 +61,6 @@
 		color: var(--faint);
 	}
 	.chev {
-		display: inline-flex;
-		flex-shrink: 0;
 		margin-left: -0.35rem;
-		color: var(--faint);
 	}
 </style>

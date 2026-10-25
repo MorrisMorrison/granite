@@ -54,9 +54,10 @@ describe('workoutMinutes', () => {
 		expect(workoutMinutes(0, 58 * 60000)).toBe(58);
 		expect(workoutMinutes(0, 90 * 1000)).toBe(2);
 	});
-	it('is null with no end or a sub-minute span', () => {
+	it('is null with no end or a span under half a minute', () => {
 		expect(workoutMinutes(1000, null)).toBeNull();
 		expect(workoutMinutes(1000, undefined)).toBeNull();
 		expect(workoutMinutes(0, 20 * 1000)).toBeNull();
+		expect(workoutMinutes(0, 40 * 1000)).toBe(1);
 	});
 });

@@ -8,7 +8,7 @@ describe('RoutineListItem', () => {
 		const { getByTestId, container } = render(RoutineListItem, {
 			props: { id: 'r1', title: 'Push', exerciseCount: 4, lastDone: 'yesterday', onmenu: () => {} }
 		});
-		expect(container.querySelector('a.body')!.getAttribute('href')).toBe('/routines/r1');
+		expect(container.querySelector('a.group-row-body')!.getAttribute('href')).toBe('/routines/r1');
 		expect(getByTestId('btn-start-routine').getAttribute('href')).toBe('/log?routine=r1');
 		expect(getByTestId('routine-row').textContent).toContain('4 exercises · last done yesterday');
 	});

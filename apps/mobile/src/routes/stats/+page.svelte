@@ -32,7 +32,12 @@
 	const hasVolume = $derived(volValues.some((v) => v > 0));
 	const latestVol = $derived(volValues.length ? Math.round(volValues[volValues.length - 1]) : 0);
 
-	const hasData = $derived(!loading && (hasVolume || muscles.length > 0));
+	// "Any data at all" is all-time (volume trend, PRs, lifts), never the selected window, so
+	// a short range with nothing in it shows per-card notes and keeps the range control.
+	const hasAnyData = $derived(
+		volume.some((v) => v.volume > 0) || prs.length > 0 || lifts.length > 0 || muscles.length > 0
+	);
+	const rangeLabel = $derived(`last ${weeks} weeks`);
 
 	// Convert a canonical-kg value to the display unit, rounded.
 	const disp = (kg: number) => Math.round(kgToDisplay(kg, unit) ?? 0);
@@ -85,15 +90,12 @@
 {/snippet}
 
 <main class="container">
-	<PageHeader
-		title="Stats"
-		eyebrow={hasData ? `Last ${weeks} weeks` : undefined}
-		action={hasData ? range : undefined}
-	/>
+	<!-- The range control renders while loading too, so the header doesn't shift. -->
+	<PageHeader title="Stats" action={loading || hasAnyData ? range : undefined} />
 
 	{#if loading}
 		<p class="muted">Loading…</p>
-	{:else if !hasData}
+	{:else if !hasAnyData}
 		<EmptyState
 			icon="history"
 			title="No data yet"
@@ -101,7 +103,7 @@
 		/>
 	{:else}
 		<section class="card block" data-testid="weekly-volume">
-			<p class="eyebrow">Weekly volume</p>
+			<p class="eyebrow">Weekly volume · {rangeLabel}</p>
 			{#if hasVolume}
 				<p class="headline">
 					<span class="big">{latestVol.toLocaleString()} {unit}</span>
@@ -109,14 +111,14 @@
 				</p>
 				<div class="chart"><LineChart values={volValues} label="Weekly training volume" /></div>
 			{:else}
-				<p class="muted empty">Not enough volume logged yet.</p>
+				<p class="muted empty">No volume logged in this range.</p>
 			{/if}
 		</section>
 
-		<section class="card block">
-			<p class="eyebrow">Sets per muscle</p>
+		<section class="card block" data-testid="sets-per-muscle">
+			<p class="eyebrow">Sets per muscle · {rangeLabel}</p>
 			{#if muscles.length === 0}
-				<p class="muted empty">No working sets in this range yet.</p>
+				<p class="muted empty">No working sets in this range.</p>
 			{:else}
 				<div class="bars" data-testid="muscle-bars">
 					{#each muscles as m (m.muscle)}
@@ -137,16 +139,21 @@
 				<h2 class="eyebrow list-label">Top lifts</h2>
 				<div class="group" data-testid="top-lifts">
 					{#each lifts as l (l.exerciseId)}
-						<a class="lift" href={`/exercises/${l.exerciseId}`} data-testid="top-lift-row">
-							<span class="lift-info">
-								<span class="lift-name">{l.exerciseName}</span>
-								<span class="lift-sub">{l.sessions} session{l.sessions === 1 ? '' : 's'}</span>
+						<a class="group-row" href={`/exercises/${l.exerciseId}`} data-testid="top-lift-row">
+							<span class="group-row-body">
+								<span class="group-row-title">{l.exerciseName}</span>
+								<span class="group-row-sub">{l.sessions} session{l.sessions === 1 ? '' : 's'}</span>
 							</span>
 							<span class="lift-spark">
-								<Sparkline values={l.e1rmSeries} label={`${l.exerciseName} estimated 1RM trend`} />
+								<Sparkline
+									values={l.e1rmSeries}
+									width={56}
+									height={22}
+									label={`${l.exerciseName} estimated 1RM trend`}
+								/>
 							</span>
 							<span class="lift-val">{disp(l.latestE1rm)} {unit}<small>e1RM</small></span>
-							<span class="chev"><Icon name="chevron-right" size={18} /></span>
+							<span class="group-row-chev chev"><Icon name="chevron-right" size={18} /></span>
 						</a>
 					{/each}
 				</div>
@@ -162,7 +169,7 @@
 
 		<a class="records-link" href="/stats/records" data-testid="records-link">
 			<span>All-time records</span>
-			<span class="chev"><Icon name="chevron-right" size={18} /></span>
+			<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
 		</a>
 	{/if}
 </main>
@@ -260,59 +267,27 @@
 	.list-label {
 		margin: 0 0 0.4rem;
 	}
-	.group {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-	.lift {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto auto auto;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.7rem 0.75rem 0.7rem 1.1rem;
-		color: var(--text);
-		text-decoration: none;
-		transition: background var(--dur-fast) var(--ease);
-	}
-	.lift + .lift {
-		border-top: 1px solid var(--border);
-	}
-	.lift:hover {
-		background: var(--elevated);
-	}
-	.lift-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-		min-width: 0;
-	}
-	.lift-name {
-		font-weight: 650;
-		letter-spacing: -0.01em;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.lift-sub {
-		font-size: 0.8rem;
-		color: var(--muted);
-		font-variant-numeric: tabular-nums;
-	}
+	/* Fixed-width sparkline and a fixed min-width, right-aligned value column with a gap
+	   between them, so the trend line can never run into the number. */
 	.lift-spark {
+		flex: 0 0 56px;
 		width: 56px;
 		height: 22px;
 		opacity: 0.85;
 	}
 	.lift-val {
+		flex: 0 0 auto;
+		min-width: 4.25rem;
+		margin-left: 0.25rem;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
+		text-align: right;
 		font-weight: 650;
 		font-variant-numeric: tabular-nums;
 		font-size: 0.92rem;
 		line-height: 1.15;
+		white-space: nowrap;
 	}
 	.lift-val small {
 		font-weight: 500;
@@ -340,10 +315,6 @@
 		background: var(--elevated);
 	}
 	.chev {
-		display: inline-flex;
-		color: var(--faint);
-	}
-	.lift .chev {
 		margin-left: -0.35rem;
 	}
 </style>

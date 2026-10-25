@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { listWorkouts, type WorkoutSummary } from '#lib/repo/workouts.ts';
 	import { syncNow } from '#lib/sync/index.ts';
 	import { groupByMonth, startOfDay } from '#lib/calendar.ts';
@@ -13,6 +13,14 @@
 	let workouts = $state<WorkoutSummary[]>([]);
 	let loading = $state(true);
 	let selectedDay = $state<number | null>(null);
+	let listEl = $state<HTMLElement | null>(null);
+
+	// The Clear button disappears with the filter, so hand focus to the (now full) list.
+	async function clearDay() {
+		selectedDay = null;
+		await tick();
+		listEl?.focus();
+	}
 
 	const dates = $derived(workouts.map((w) => w.start_time));
 	const shown = $derived(
@@ -76,26 +84,28 @@
 		{#if selectedDay != null}
 			<div class="filterbar">
 				<span>Showing {fmtDay(selectedDay)}</span>
-				<button class="clear" onclick={() => (selectedDay = null)} data-testid="clear-day">Clear</button>
+				<button class="clear" onclick={clearDay} data-testid="clear-day">Clear</button>
 			</div>
 		{/if}
 
-		{#each months as g (g.key)}
-			<section class="month">
-				<h2 class="eyebrow month-label">{g.label}</h2>
-				<div class="group">
-					{#each g.items as w (w.id)}
-						<a class="row" href={`/history/${w.id}`} data-testid="workout-row">
-							<span class="body">
-								<span class="title">{w.title || 'Workout'}</span>
-								<span class="sub">{meta(w)}</span>
-							</span>
-							<span class="chev"><Icon name="chevron-right" size={18} /></span>
-						</a>
-					{/each}
-				</div>
-			</section>
-		{/each}
+		<div class="months" bind:this={listEl} tabindex="-1" role="region" aria-label="Workouts">
+			{#each months as g (g.key)}
+				<section class="month">
+					<h2 class="eyebrow month-label">{g.label}</h2>
+					<div class="group">
+						{#each g.items as w (w.id)}
+							<a class="group-row" href={`/history/${w.id}`} data-testid="workout-row">
+								<span class="group-row-body">
+									<span class="group-row-title">{w.title || 'Workout'}</span>
+									<span class="group-row-sub">{meta(w)}</span>
+								</span>
+								<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
+							</a>
+						{/each}
+					</div>
+				</section>
+			{/each}
+		</div>
 	{/if}
 </main>
 
@@ -131,52 +141,12 @@
 	.month-label {
 		margin: 0 0 0.4rem;
 	}
-	.group {
-		background: var(--surface);
-		border: 1px solid var(--border);
+	.months:focus {
+		outline: none;
+	}
+	.months:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 4px;
 		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-	.group > :global(* + *) {
-		border-top: 1px solid var(--border);
-	}
-	.row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.7rem 0.75rem 0.7rem 1.1rem;
-		color: var(--text);
-		text-decoration: none;
-		transition: background var(--dur-fast) var(--ease);
-	}
-	.row:hover {
-		background: var(--elevated);
-	}
-	.body {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-	}
-	.title {
-		font-weight: 650;
-		letter-spacing: -0.01em;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.sub {
-		font-size: 0.8rem;
-		color: var(--muted);
-		font-variant-numeric: tabular-nums;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.chev {
-		display: inline-flex;
-		flex-shrink: 0;
-		color: var(--faint);
 	}
 </style>

@@ -137,16 +137,6 @@
 	.label {
 		padding: 0.2rem 0;
 	}
-	.group {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-	}
-	/* Divider between the routine rows rendered into the card. */
-	.group > :global(* + *) {
-		border-top: 1px solid var(--border);
-	}
 	.empty {
 		margin: 0;
 		padding: 0.8rem 1.1rem;

@@ -69,8 +69,9 @@ export interface MonthGroup<T> {
 }
 
 /**
- * Group timestamped items by local calendar month, keeping the input order both across and
- * within groups (feed it newest-first and the months come out newest-first too).
+ * Group timestamped items by local calendar month. Expects input sorted by start_time
+ * (either direction); it keeps that order across and within groups, so newest-first in
+ * gives newest-first months out (it doesn't sort; group order is first appearance).
  */
 export function groupByMonth<T extends { start_time: number }>(items: T[]): MonthGroup<T>[] {
 	const groups: MonthGroup<T>[] = [];

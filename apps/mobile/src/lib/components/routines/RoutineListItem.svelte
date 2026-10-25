@@ -24,10 +24,10 @@
 	});
 </script>
 
-<div class="row">
-	<a class="body" href={`/routines/${id}`} data-testid="routine-row">
-		<span class="title">{title}</span>
-		<span class="sub">{subtitle}</span>
+<div class="group-row row">
+	<a class="group-row-body" href={`/routines/${id}`} data-testid="routine-row">
+		<span class="group-row-title">{title}</span>
+		<span class="group-row-sub">{subtitle}</span>
 	</a>
 	<a class="play" href={`/log?routine=${id}`} aria-label={`Start ${title}`} data-testid="btn-start-routine">
 		<Icon name="play" size={16} />
@@ -38,36 +38,10 @@
 </div>
 
 <style>
+	/* Tighter gap/right padding than a link row: two icon buttons sit at the end. */
 	.row {
-		display: flex;
-		align-items: center;
 		gap: 0.2rem;
-		padding: 0.7rem 0.5rem 0.7rem 1.1rem;
-	}
-	.body {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-		color: var(--text);
-		text-decoration: none;
-	}
-	.title {
-		font-weight: 650;
-		letter-spacing: -0.01em;
-		font-size: 1rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.sub {
-		font-size: 0.8rem;
-		color: var(--muted);
-		font-variant-numeric: tabular-nums;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		padding-right: 0.5rem;
 	}
 	.play {
 		display: inline-flex;

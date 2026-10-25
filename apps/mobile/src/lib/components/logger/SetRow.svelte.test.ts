@@ -35,7 +35,6 @@ describe('SetRow', () => {
 		});
 		expect(getByTestId('set-complete').getAttribute('aria-checked')).toBe('true');
 		expect(getByTestId('set-complete').getAttribute('aria-label')).toBe('Warm-up set done');
-		expect(getByTestId('set-row').className).toContain('warmup');
 		expect(getByTestId('set-label').className).toContain('warm');
 	});
 
