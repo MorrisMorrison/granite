@@ -14,6 +14,7 @@
 	const barWeight = $derived(bar ?? defaultBar(unit));
 	const result = $derived(total != null && total > 0 ? platesPerSide(total, barWeight, unit) : null);
 	const step = $derived(plateStep(unit));
+	const uid = $props.id();
 
 	// Competition plate colours (real-world, so not theme tokens); bigger plates are taller.
 	const LOOK: Record<WeightUnit, Record<string, { h: number; c: string }>> = {
@@ -71,24 +72,33 @@
 	</p>
 
 	<div class="fields">
-		<label>
-			<span>Total ({unit})</span>
+		<div class="field">
+			<label class="eyebrow" for={`${uid}-total`}>Total ({unit})</label>
 			<div class="stepper">
 				<button type="button" onclick={() => bump(-step)} aria-label={`Minus ${step} ${unit}`}>−</button>
-				<input type="number" inputmode="decimal" bind:value={total} data-testid="field-plate-target" />
+				<input
+					id={`${uid}-total`}
+					class="control"
+					type="number"
+					inputmode="decimal"
+					bind:value={total}
+					data-testid="field-plate-target"
+				/>
 				<button type="button" onclick={() => bump(step)} aria-label={`Plus ${step} ${unit}`}>+</button>
 			</div>
-		</label>
-		<label>
-			<span>Bar</span>
+		</div>
+		<div class="field">
+			<label class="eyebrow" for={`${uid}-bar`}>Bar</label>
 			<input
+				id={`${uid}-bar`}
+				class="control"
 				type="number"
 				inputmode="decimal"
 				placeholder={String(defaultBar(unit))}
 				bind:value={bar}
 				data-testid="field-plate-bar"
 			/>
-		</label>
+		</div>
 	</div>
 </div>
 
@@ -153,29 +163,32 @@
 	}
 	.fields {
 		display: grid;
-		grid-template-columns: 1fr 6rem;
+		grid-template-columns: minmax(0, 1fr) 5rem;
 		gap: 0.75rem;
 	}
-	label span {
+	.fields .eyebrow {
 		display: block;
-		margin-bottom: 0.3rem;
-		font-size: 0.8rem;
-		color: var(--muted);
 	}
 	.stepper {
 		display: grid;
-		grid-template-columns: 2.6rem 1fr 2.6rem;
+		grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
 		gap: 0.35rem;
 	}
 	.stepper button {
-		background: var(--surface-2);
+		height: 2.75rem;
+		padding: 0;
+		background: var(--elevated);
 		color: var(--text);
-		border: 1px solid var(--border);
+		border: none;
 		border-radius: var(--radius-md);
 		font-size: 1.2rem;
 		cursor: pointer;
 	}
+	.stepper button:hover {
+		background: var(--border);
+	}
 	.stepper input {
 		text-align: center;
+		padding: 0 0.3rem;
 	}
 </style>

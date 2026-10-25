@@ -5,10 +5,11 @@
 export interface SessionStat {
 	workout_id: string;
 	date: number; // workout start_time (epoch ms)
-	top_weight: number | null; // heaviest weight lifted that session
+	top_weight: number | null; // heaviest work-set weight that session (warm-ups if that's all)
 	top_reps: number | null; // reps at that heaviest set
 	best_1rm: number | null; // best estimated 1RM (Epley), kg
 	volume: number; // sum(weight × reps) over completed working (non-warm-up) sets, kg
+	sets: number; // completed working (non-warm-up) sets
 }
 
 export interface ExerciseProgress {
@@ -75,22 +76,34 @@ export function computeExerciseProgress(
 		const matches = (d.exercises ?? []).filter((e) => e.exercise_id === exerciseId);
 		if (matches.length === 0) continue;
 
-		let topWeight: number | null = null;
-		let topReps: number | null = null;
+		let workTop: number | null = null;
+		let workTopReps: number | null = null;
+		let warmTop: number | null = null;
+		let warmTopReps: number | null = null;
 		let best1rm: number | null = null;
 		let volume = 0;
+		let workSets = 0;
 		let counted = false;
 
 		for (const ex of matches) {
 			for (const s of ex.sets ?? []) {
 				if (s.is_completed === false) continue; // completed sets only (undefined counts)
 				counted = true;
+				if (s.set_type !== 'warmup') workSets++;
 				// Volume is working-set tonnage only — warm-ups don't count (matches analytics.ts).
 				if (s.set_type !== 'warmup' && s.weight != null && s.reps != null)
 					volume += s.weight * s.reps;
-				if (s.weight != null && (topWeight == null || s.weight > topWeight)) {
-					topWeight = s.weight;
-					topReps = s.reps;
+				// Best set: the heaviest work set; warm-ups only count in a warm-up-only session.
+				if (s.weight != null) {
+					if (s.set_type !== 'warmup') {
+						if (workTop == null || s.weight > workTop) {
+							workTop = s.weight;
+							workTopReps = s.reps;
+						}
+					} else if (warmTop == null || s.weight > warmTop) {
+						warmTop = s.weight;
+						warmTopReps = s.reps;
+					}
 				}
 				if (s.weight != null && s.reps != null) {
 					const e1rm = s.weight * (1 + s.reps / 30); // Epley
@@ -99,6 +112,8 @@ export function computeExerciseProgress(
 			}
 		}
 		if (!counted) continue;
+		const topWeight = workTop ?? warmTop;
+		const topReps = workTop != null ? workTopReps : warmTopReps;
 
 		sessions.push({
 			workout_id: rec.id,
@@ -106,7 +121,8 @@ export function computeExerciseProgress(
 			top_weight: topWeight,
 			top_reps: topReps,
 			best_1rm: best1rm == null ? null : round1(best1rm),
-			volume: round1(volume)
+			volume: round1(volume),
+			sets: workSets
 		});
 	}
 

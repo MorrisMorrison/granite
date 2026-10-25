@@ -34,7 +34,7 @@
 		{/if}
 	</div>
 	<input
-		class="title"
+		class="title-input"
 		placeholder="Workout title"
 		bind:value={title}
 		aria-label="Workout title"
@@ -92,21 +92,6 @@
 		border-radius: var(--radius-pill);
 		padding: 0.2rem 0.65rem;
 		cursor: pointer;
-	}
-	.title {
-		margin-top: 0.15rem;
-		padding: 0.2rem 0;
-		font-size: 1.6rem;
-		font-weight: 650;
-		letter-spacing: -0.02em;
-		background: transparent;
-		border: 1px solid transparent;
-		border-radius: var(--radius-sm);
-	}
-	.title:focus {
-		padding: 0.2rem 0.5rem;
-		background: var(--elevated);
-		border-color: var(--accent);
 	}
 	.hint {
 		margin: 0.25rem 0 0.5rem;

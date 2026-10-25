@@ -33,7 +33,7 @@
 	{:else if loadError}
 		<p class="error">{loadError}</p>
 	{:else if loaded}
-		<h1>Edit routine</h1>
+		<h1 class="eyebrow">Edit routine</h1>
 		<RoutineForm
 			initialTitle={loaded.title}
 			initialNotes={loaded.notes}

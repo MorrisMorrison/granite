@@ -13,7 +13,7 @@ import {
 const rec = (
 	id: string,
 	start: number,
-	sets: { weight: number | null; reps: number | null; is_completed?: boolean }[]
+	sets: { weight: number | null; reps: number | null; is_completed?: boolean; set_type?: string }[]
 ) => ({ id, data: { start_time: start, exercises: [{ exercise_id: 'squat', sets }] } });
 
 describe('computeExerciseProgress', () => {
@@ -39,6 +39,7 @@ describe('computeExerciseProgress', () => {
 		expect(p.sessions[1].top_weight).toBe(90);
 		expect(p.sessions[1].top_reps).toBe(3);
 		expect(p.sessions[1].volume).toBe(670); // 80*5 + 90*3
+		expect(p.sessions[1].sets).toBe(2);
 		expect(p.pr_weight).toBe(90);
 		expect(p.pr_weight_reps).toBe(3);
 		expect(p.pr_volume).toBe(670);
@@ -56,6 +57,36 @@ describe('computeExerciseProgress', () => {
 			'squat'
 		);
 		expect(p.pr_weight).toBe(60);
+		expect(p.sessions[0].sets).toBe(1);
+	});
+
+	it('counts completed working sets per session, not warm-ups', () => {
+		const p = computeExerciseProgress(
+			[
+				rec('w1', 1, [
+					{ weight: 40, reps: 8, set_type: 'warmup' },
+					{ weight: 60, reps: 5 },
+					{ weight: 60, reps: 5 }
+				])
+			],
+			'squat'
+		);
+		expect(p.sessions[0].sets).toBe(2);
+	});
+
+	it('takes the best set from work sets, falling back to warm-ups only when that is all', () => {
+		const p = computeExerciseProgress(
+			[
+				rec('w1', 1, [
+					{ weight: 100, reps: 2, set_type: 'warmup' },
+					{ weight: 90, reps: 5 }
+				]),
+				rec('w2', 2, [{ weight: 40, reps: 8, set_type: 'warmup' }])
+			],
+			'squat'
+		);
+		expect(p.sessions[0]).toMatchObject({ top_weight: 90, top_reps: 5, sets: 1 });
+		expect(p.sessions[1]).toMatchObject({ top_weight: 40, top_reps: 8, sets: 0 });
 	});
 });
 

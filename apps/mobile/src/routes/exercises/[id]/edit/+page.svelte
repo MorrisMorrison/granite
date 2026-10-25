@@ -38,7 +38,7 @@
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if ex}
-		<h1>Edit exercise</h1>
+		<h1 class="page-title">Edit exercise</h1>
 		<ExerciseForm
 			submitLabel="Save changes"
 			initialName={ex.name}
@@ -49,10 +49,3 @@
 		/>
 	{/if}
 </main>
-
-<style>
-	h1 {
-		font-size: 1.4rem;
-		margin: 0.25rem 0 0;
-	}
-</style>

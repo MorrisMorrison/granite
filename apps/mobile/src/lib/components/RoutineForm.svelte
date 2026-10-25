@@ -5,10 +5,15 @@
 	import { listFolders, type FolderRow } from '#lib/repo/folders.ts';
 	import { prefs } from '#lib/stores/prefs.svelte.ts';
 	import { displayToKg, kgToDisplay } from '#lib/units.ts';
-	import { SET_TYPES, setLabel } from '#lib/sets.ts';
+	import { setBadge } from '#lib/sets.ts';
 	import { warmupTargetSets } from '#lib/calc.ts';
 	import Button from '#lib/components/ui/Button.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
+	import IconButton from '#lib/components/ui/IconButton.svelte';
+	import SetBadge from '#lib/components/ui/SetBadge.svelte';
+	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
+	import SetTypeSheet from '#lib/components/SetTypeSheet.svelte';
 	import RestInput from '#lib/components/ui/RestInput.svelte';
 
 	interface DraftSet {
@@ -82,7 +87,12 @@
 	let saving = $state(false);
 	let error = $state('');
 
-	const setTypes = SET_TYPES;
+	// Open sheets: the exercise actions menu, and the set-type sheet behind a set badge.
+	let menuUid = $state<string | null>(null);
+	let setMenu = $state<{ ex: string; set: string } | null>(null);
+	const menuEx = $derived(exercises.find((e) => e.uid === menuUid) ?? null);
+	const menuSetEx = $derived(setMenu ? (exercises.find((e) => e.uid === setMenu?.ex) ?? null) : null);
+	const menuSet = $derived(menuSetEx?.sets.find((s) => s.uid === setMenu?.set) ?? null);
 
 	let library = $state<{ id: string; name: string; primary_muscle: string }[]>([]);
 	let pickerOpen = $state(false);
@@ -180,66 +190,87 @@
 	}
 </script>
 
-<input class="rf-title" placeholder="Routine title" bind:value={title} data-testid="field-routine-title" />
-<textarea class="rf-notes" placeholder="Notes (optional)" rows="2" bind:value={notes}></textarea>
+<input
+	class="title-input"
+	placeholder="Routine title"
+	aria-label="Routine title"
+	bind:value={title}
+	data-testid="field-routine-title"
+/>
 
-{#if folders.length > 0}
-	<label class="rf-folder">
-		Folder
-		<select bind:value={folderId} data-testid="field-routine-folder">
-			<option value="">No folder</option>
-			{#each folders as f (f.id)}<option value={f.id}>{f.name}</option>{/each}
-		</select>
+<div class="form rf-meta">
+	<label class="field">
+		<span class="eyebrow">Notes <span class="field-opt">(optional)</span></span>
+		<textarea class="control" rows="2" bind:value={notes} data-testid="field-routine-notes"></textarea>
 	</label>
-{/if}
+	{#if folders.length > 0}
+		<label class="field">
+			<span class="eyebrow">Folder</span>
+			<select class="control" bind:value={folderId} data-testid="field-routine-folder">
+				<option value="">No folder</option>
+				{#each folders as f (f.id)}<option value={f.id}>{f.name}</option>{/each}
+			</select>
+		</label>
+	{/if}
+</div>
 
 {#each exercises as ex (ex.uid)}
-	<section class="card ex">
-		<div class="ex-head">
-			<strong>{nameFor(ex.exercise_id)}</strong>
-			<button class="link" onclick={() => removeExercise(ex.uid)}>remove</button>
+	<section class="card ex" data-testid="rf-exercise">
+		<div class="head">
+			<strong class="name">{nameFor(ex.exercise_id)}</strong>
+			<IconButton
+				name="dots-vertical"
+				label="Exercise actions"
+				size={18}
+				onclick={() => (menuUid = ex.uid)}
+				testid="btn-ex-menu"
+			/>
 		</div>
 		<div class="rest">
-			<span>Rest</span>
+			<span class="eyebrow">Rest</span>
 			<RestInput bind:value={ex.rest_seconds} testid="field-rest" />
 		</div>
 		<input
-			class="ex-notes"
+			class="control ex-notes"
 			placeholder="Notes (e.g. tempo, cues, setup)"
+			aria-label="Exercise notes"
 			bind:value={ex.notes}
 			data-testid="field-exercise-notes"
 		/>
-		<div class="set-head muted">
-			<span>Set</span><span>Type</span><span>Target {unit}</span><span>Target reps</span><span></span>
+		<div class="cols table-head" aria-hidden="true">
+			<span>Set</span><span>{unit}</span><span>Reps</span>
 		</div>
 		{#each ex.sets as s, i (s.uid)}
-			<div class="set-row" class:warmup={s.set_type === 'warmup'} data-testid="rf-set">
-				<span class="set-no" data-testid="rf-set-label">{s.set_type === 'warmup' ? '' : setLabel(ex.sets, i)}</span>
-				<select bind:value={s.set_type}>
-					{#each setTypes as t}<option value={t}>{t}</option>{/each}
-				</select>
+			{@const badge = setBadge(ex.sets, i)}
+			<div class="set-row" data-set-type={s.set_type} data-testid="rf-set">
+				<SetBadge
+					label={badge}
+					type={s.set_type}
+					onclick={() => (setMenu = { ex: ex.uid, set: s.uid })}
+					ariaLabel={`Set ${badge} options`}
+					testid="rf-set-label"
+				/>
 				<input
+					class="set-input"
 					type="number"
 					inputmode="decimal"
+					aria-label="Target weight"
 					bind:value={s.target_weight}
 					data-testid="field-target-weight"
 				/>
-				<input type="number" inputmode="numeric" bind:value={s.target_reps} />
-				<button class="link" onclick={() => removeSet(ex, s.uid)}>✕</button>
+				<input
+					class="set-input"
+					type="number"
+					inputmode="numeric"
+					aria-label="Target reps"
+					bind:value={s.target_reps}
+					data-testid="field-target-reps"
+				/>
 			</div>
 		{/each}
-		<div class="add-set">
-			<Button variant="ghost" size="sm" icon="plus" onclick={() => addSet(ex)}>Add set</Button>
-			<span title="Adds warm-up sets calculated from this exercise's heaviest set">
-				<Button
-					variant="ghost"
-					size="sm"
-					disabled={!canWarmup(ex)}
-					onclick={() => addWarmups(ex)}
-					testid="btn-warmups">Add warm-ups</Button
-				>
-			</span>
-		</div>
+		<button class="add-row" onclick={() => addSet(ex)} data-testid="btn-add-set">
+			<Icon name="plus" size={14} /> Add set
+		</button>
 	</section>
 {/each}
 
@@ -261,6 +292,54 @@
 	onclose={() => (pickerOpen = false)}
 />
 
+<Sheet open={!!menuEx} title={menuEx ? nameFor(menuEx.exercise_id) : ''} onclose={() => (menuUid = null)}>
+	{#if menuEx}
+		{@const ex = menuEx}
+		<ul class="menu">
+			<li>
+				<button
+					class="menu-item"
+					disabled={!canWarmup(ex)}
+					data-testid="btn-warmups"
+					onclick={() => {
+						addWarmups(ex);
+						menuUid = null;
+					}}
+				>
+					<Icon name="plus" size={16} /> Add warm-ups
+					{#if !canWarmup(ex)}<span class="menu-hint">Needs a work weight</span>{/if}
+				</button>
+			</li>
+			<li>
+				<button
+					class="menu-item danger"
+					data-testid="btn-remove-exercise"
+					onclick={() => {
+						removeExercise(ex.uid);
+						menuUid = null;
+					}}
+				>
+					<Icon name="trash" size={16} /> Remove exercise
+				</button>
+			</li>
+		</ul>
+	{/if}
+</Sheet>
+
+<SetTypeSheet
+	open={!!menuSet}
+	type={menuSet?.set_type}
+	onpick={(t) => {
+		if (menuSet) menuSet.set_type = t;
+		setMenu = null;
+	}}
+	ondelete={() => {
+		if (menuSetEx && menuSet) removeSet(menuSetEx, menuSet.uid);
+		setMenu = null;
+	}}
+	onclose={() => (setMenu = null)}
+/>
+
 {#if error}<p class="error">{error}</p>{/if}
 
 <div class="save">
@@ -270,102 +349,50 @@
 </div>
 
 <style>
-	.rf-title {
-		width: 100%;
-		font-size: 1.2rem;
-		font-weight: 600;
-		margin-bottom: 0.5rem;
-		background: transparent;
-		border: none;
-		border-bottom: 1px solid var(--border);
-		border-radius: 0;
-		padding-left: 0;
+	.rf-meta {
+		margin: 0.75rem 0 1.25rem;
 	}
-	.rf-notes {
-		width: 100%;
-		background: var(--surface-2);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		color: var(--text);
-		padding: 0.5rem 0.75rem;
-		margin-bottom: 1rem;
-		resize: vertical;
+	.ex {
+		margin-bottom: 0.9rem;
+		padding: 0.85rem 0.9rem 0.6rem;
 	}
-	.rf-folder {
+	.head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.name {
+		min-width: 0;
+		font-weight: 650;
+		letter-spacing: -0.01em;
+		font-size: 1.02rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.rest {
 		display: flex;
 		align-items: center;
 		gap: 0.6rem;
-		font-size: 0.85rem;
-		color: var(--muted);
-		margin-bottom: 1rem;
-	}
-	.rf-folder select {
-		flex: 1;
-	}
-	.ex {
-		margin-bottom: 1rem;
-	}
-	.ex-head {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 0.5rem;
-	}
-	.rest {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-size: 0.8rem;
-		color: var(--muted);
-		margin: 0 0 0.5rem;
+		margin: 0.2rem 0 0.5rem;
 	}
 	.ex-notes {
-		width: 100%;
-		margin: 0 0 0.6rem;
+		height: 2.4rem;
 		font-size: 0.85rem;
 	}
-	.set-head,
+	.cols,
 	.set-row {
 		display: grid;
-		grid-template-columns: 1.5rem 5rem 1fr 1fr 1.5rem;
+		grid-template-columns: 2rem minmax(0, 1fr) minmax(0, 1fr);
 		gap: 0.4rem;
 		align-items: center;
-		font-size: 0.85rem;
-		margin-bottom: 0.35rem;
-		/* Reserve the rail width on every row so warm-up and work sets stay aligned. */
-		border-left: 2px solid transparent;
-		padding-left: 0.5rem;
 	}
-	.set-row input {
-		padding: 0.4rem;
+	.cols {
+		margin: 0.75rem 0 0.35rem;
 	}
-	.set-no {
-		text-align: center;
-		color: var(--muted);
-		font-variant-numeric: tabular-nums;
-	}
-	/* Warm-ups read as a de-emphasized ramp leading into the work sets: an accent
-	   rail + muted text, no badge. */
-	.set-row.warmup {
-		border-left-color: var(--accent);
-		color: var(--muted);
-	}
-	select {
-		padding: 0.4rem;
-		background: var(--surface-2);
-		color: var(--text);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-	.add-set {
-		margin-top: 0.4rem;
-	}
-	.link {
-		background: none;
-		border: none;
-		color: var(--accent);
-		cursor: pointer;
-		font: inherit;
+	.set-row {
+		margin-bottom: 0.25rem;
 	}
 	.save {
 		margin-top: 1rem;

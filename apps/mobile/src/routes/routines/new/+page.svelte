@@ -14,6 +14,6 @@
 
 <main class="container">
 	<BackLink href="/routines" label="Routines" />
-	<h1>New routine</h1>
+	<h1 class="eyebrow">New routine</h1>
 	<RoutineForm submitLabel="Create routine" onsubmit={create} />
 </main>

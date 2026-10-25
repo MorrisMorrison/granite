@@ -96,6 +96,83 @@ describe('RoutineForm', () => {
 	});
 });
 
+describe('RoutineForm exercise card', () => {
+	const initial = () => [
+		{
+			exercise_id: 'e1',
+			rest_seconds: 90,
+			sets: [
+				{ set_type: 'normal', target_weight: 100, target_reps: 5 },
+				{ set_type: 'normal', target_weight: 100, target_reps: 5 }
+			]
+		}
+	];
+	type P = { exercises: { sets: { set_type: string }[] }[] };
+	const lastPayload = (fn: ReturnType<typeof vi.fn>) => fn.mock.calls[0][0] as P;
+
+	it('badges sets and changes the type from the badge sheet', async () => {
+		const onsubmit = vi.fn((_p: unknown) => Promise.resolve());
+		const { getAllByTestId, getByTestId } = render(RoutineForm, {
+			props: { initialTitle: 'T', initialExercises: initial(), onsubmit }
+		});
+		const badges = getAllByTestId('rf-set-label');
+		expect(badges.map((b) => b.textContent)).toEqual(['1', '2']);
+		await fireEvent.click(badges[0]);
+		await fireEvent.click(getByTestId('set-type-warmup'));
+		expect(getAllByTestId('rf-set-label').map((b) => b.textContent)).toEqual(['W', '1']);
+		expect(getAllByTestId('rf-set')[0].dataset.setType).toBe('warmup');
+		await fireEvent.click(getByTestId('btn-save-routine'));
+		expect(lastPayload(onsubmit).exercises[0].sets.map((x) => x.set_type)).toEqual(['warmup', 'normal']);
+	});
+
+	it('deletes a set from the badge sheet', async () => {
+		const { getAllByTestId, getByTestId } = render(RoutineForm, {
+			props: { initialTitle: 'T', initialExercises: initial(), onsubmit: vi.fn() }
+		});
+		await fireEvent.click(getAllByTestId('rf-set-label')[1]);
+		await fireEvent.click(getByTestId('btn-delete-set'));
+		expect(getAllByTestId('rf-set')).toHaveLength(1);
+	});
+
+	it('adds a set from the ghost row, copying the last targets', async () => {
+		const { getAllByTestId, getByTestId } = render(RoutineForm, {
+			props: { initialTitle: 'T', initialExercises: initial(), onsubmit: vi.fn() }
+		});
+		await fireEvent.click(getByTestId('btn-add-set'));
+		const w = getAllByTestId('field-target-weight') as HTMLInputElement[];
+		expect(w).toHaveLength(3);
+		expect(w[2].value).toBe('100');
+	});
+
+	it('adds warm-ups and removes the exercise from the actions menu', async () => {
+		const { getAllByTestId, getByTestId, queryByTestId } = render(RoutineForm, {
+			props: { initialTitle: 'T', initialExercises: initial(), onsubmit: vi.fn() }
+		});
+		await fireEvent.click(getByTestId('btn-ex-menu'));
+		await fireEvent.click(getByTestId('btn-warmups'));
+		expect(getAllByTestId('rf-set-label')[0].textContent).toBe('W');
+		expect(queryByTestId('btn-warmups')).toBeNull(); // menu closed
+
+		await fireEvent.click(getByTestId('btn-ex-menu'));
+		await fireEvent.click(getByTestId('btn-remove-exercise'));
+		expect(queryByTestId('rf-exercise')).toBeNull();
+	});
+
+	it('disables Add warm-ups until a work set has a weight', async () => {
+		const { getByTestId } = render(RoutineForm, {
+			props: {
+				initialTitle: 'T',
+				initialExercises: [
+					{ exercise_id: 'e1', rest_seconds: 90, sets: [{ set_type: 'normal', target_weight: null, target_reps: 5 }] }
+				],
+				onsubmit: vi.fn()
+			}
+		});
+		await fireEvent.click(getByTestId('btn-ex-menu'));
+		expect((getByTestId('btn-warmups') as HTMLButtonElement).disabled).toBe(true);
+	});
+});
+
 describe('RoutineForm on a fresh account', () => {
 	it('refreshes the library when the local list is empty, then shows the rows', async () => {
 		listExercises.mockReset();

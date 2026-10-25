@@ -33,6 +33,7 @@
 	/>
 	<span class="prev">{previous}</span>
 	<input
+		class="set-input"
 		type="number"
 		inputmode="decimal"
 		aria-label="Weight"
@@ -41,6 +42,7 @@
 		data-testid="input-weight"
 	/>
 	<input
+		class="set-input"
 		type="number"
 		inputmode="numeric"
 		aria-label="Reps"
@@ -83,22 +85,8 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	input {
-		height: 2.4rem;
-		padding: 0 0.2rem;
-		text-align: center;
-		font-variant-numeric: tabular-nums;
-		font-weight: 600;
-		background: var(--elevated);
-		border: 1px solid transparent;
-		border-radius: var(--radius-sm);
-		min-width: 0;
-	}
-	.row.done input {
+	.row.done .set-input {
 		background: color-mix(in srgb, var(--text) 5%, transparent);
-	}
-	input:focus {
-		border-color: var(--accent);
 	}
 	.check {
 		width: 2rem;
