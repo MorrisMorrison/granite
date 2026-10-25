@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { SET_TYPES, SET_TYPE_LABEL, setBadge } from '#lib/sets.ts';
+	import { setBadge } from '#lib/sets.ts';
 	import { kgToDisplay } from '#lib/units.ts';
 	import type { WeightUnit } from '#lib/stores/prefs.svelte.ts';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import IconButton from '#lib/components/ui/IconButton.svelte';
 	import Sheet from '#lib/components/ui/Sheet.svelte';
 	import PlateSheet from '#lib/components/PlateSheet.svelte';
+	import SetTypeSheet from '#lib/components/SetTypeSheet.svelte';
 	import SetRow from './SetRow.svelte';
 	import type { DraftSet, LoggerExercise } from './types.ts';
 
@@ -79,7 +80,7 @@
 
 	{#if ex.notes}<p class="note">{ex.notes}</p>{/if}
 
-	<div class="cols">
+	<div class="cols table-head">
 		<span>Set</span><span>Previous</span><span>{unit}</span><span>Reps</span><span>✓</span>
 	</div>
 	{#each ex.sets as s, i (s.uid)}
@@ -93,15 +94,15 @@
 			ontoggle={() => ontoggle(s)}
 		/>
 	{/each}
-	<button class="addset" onclick={onaddset}><Icon name="plus" size={14} /> Add set</button>
+	<button class="add-row" onclick={onaddset}><Icon name="plus" size={14} /> Add set</button>
 </section>
 
 <Sheet open={menuOpen} title={ex.name} onclose={() => (menuOpen = false)}>
-	<ul class="list">
+	<ul class="menu">
 		{#if barbell}
 			<li>
 				<button
-					class="item"
+					class="menu-item"
 					data-testid="btn-plates"
 					onclick={() => {
 						menuOpen = false;
@@ -114,7 +115,7 @@
 		{/if}
 		<li>
 			<button
-				class="item"
+				class="menu-item danger"
 				data-testid="btn-remove-exercise"
 				onclick={() => {
 					menuOpen = false;
@@ -138,33 +139,16 @@
 	/>
 {/if}
 
-<Sheet open={!!menuSet} title="Set type" onclose={() => (setMenuUid = null)}>
-	{#if menuSet}
-		<ul class="list">
-			{#each SET_TYPES as t (t)}
-				<li>
-					<button
-						class="item"
-						class:on={menuSet.set_type === t}
-						data-testid={`set-type-${t}`}
-						onclick={() => {
-							if (menuSet) menuSet.set_type = t;
-							setMenuUid = null;
-						}}
-					>
-						{SET_TYPE_LABEL[t]}
-						{#if menuSet.set_type === t}<span class="tick"><Icon name="check" size={16} /></span>{/if}
-					</button>
-				</li>
-			{/each}
-			<li>
-				<button class="item" data-testid="btn-delete-set" onclick={() => menuSet && deleteSet(menuSet.uid)}>
-					<Icon name="trash" size={16} /> Delete set
-				</button>
-			</li>
-		</ul>
-	{/if}
-</Sheet>
+<SetTypeSheet
+	open={!!menuSet}
+	type={menuSet?.set_type}
+	onpick={(t) => {
+		if (menuSet) menuSet.set_type = t;
+		setMenuUid = null;
+	}}
+	ondelete={() => menuSet && deleteSet(menuSet.uid)}
+	onclose={() => (setMenuUid = null)}
+/>
 
 <style>
 	.ex {
@@ -226,66 +210,5 @@
 		grid-template-columns: 2rem minmax(0, 1fr) 4.4rem 4.4rem 2rem;
 		gap: 0.4rem;
 		margin: 0.5rem 0 0.35rem;
-		font-size: 0.65rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--faint);
-		white-space: nowrap;
-		text-align: center;
-	}
-	.addset {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-		width: 100%;
-		margin-top: 0.3rem;
-		padding: 0.55rem;
-		font: inherit;
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: var(--muted);
-		background: none;
-		border: none;
-		border-top: 1px solid var(--border);
-		border-radius: 0 0 var(--radius-md) var(--radius-md);
-		cursor: pointer;
-	}
-	.addset:hover {
-		color: var(--text);
-		background: var(--elevated);
-	}
-	.list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-	.item {
-		width: 100%;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 0.5rem;
-		font: inherit;
-		text-align: left;
-		color: var(--text);
-		background: none;
-		border: none;
-		border-bottom: 1px solid var(--border);
-		cursor: pointer;
-	}
-	.item :global(svg) {
-		color: var(--muted);
-	}
-	.item.on {
-		font-weight: 600;
-	}
-	.tick {
-		margin-left: auto;
-		display: inline-flex;
-	}
-	.tick :global(svg) {
-		color: var(--accent);
 	}
 </style>

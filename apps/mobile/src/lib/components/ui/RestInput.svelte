@@ -18,6 +18,7 @@
 
 <div class="rest-input">
 	<input
+		class="set-input"
 		type="number"
 		min="0"
 		inputmode="numeric"
@@ -28,6 +29,7 @@
 	/>
 	<span class="unit">m</span>
 	<input
+		class="set-input"
 		type="number"
 		min="0"
 		max="59"
@@ -47,8 +49,8 @@
 		gap: 0.3rem;
 	}
 	.rest-input input {
-		width: 3.4rem;
-		padding: 0.3rem;
+		width: 3rem;
+		height: 2.1rem;
 	}
 	.unit {
 		color: var(--muted);

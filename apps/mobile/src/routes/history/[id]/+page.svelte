@@ -117,23 +117,23 @@
 				<h1>{workout.title || 'Workout'}</h1>
 			</header>
 
-			<section class="card summary" class:four={bwDisplay != null} aria-label="Summary">
-				<div class="stat">
+			<section class="card summary {bwDisplay != null ? 'cols-4' : 'cols-3'}" aria-label="Summary">
+				<div class="summary-stat">
 					<span class="eyebrow">Duration</span>
-					<span class="val">{minutes ? `${minutes} min` : '—'}</span>
+					<span class="summary-val">{minutes ? `${minutes} min` : '—'}</span>
 				</div>
-				<div class="stat">
+				<div class="summary-stat">
 					<span class="eyebrow">Sets</span>
-					<span class="val">{totalSets}</span>
+					<span class="summary-val">{totalSets}</span>
 				</div>
-				<div class="stat">
+				<div class="summary-stat">
 					<span class="eyebrow">Volume</span>
-					<span class="val"><span class="n">{totalVolume.toLocaleString()}</span> <small>{unit}</small></span>
+					<span class="summary-val"><span class="n">{totalVolume.toLocaleString()}</span> <small>{unit}</small></span>
 				</div>
 				{#if bwDisplay != null}
-					<div class="stat" data-testid="wd-bodyweight">
+					<div class="summary-stat" data-testid="wd-bodyweight">
 						<span class="eyebrow">Bodyweight</span>
-						<span class="val"><span class="n">{bwDisplay}</span> <small>{unit}</small></span>
+						<span class="summary-val"><span class="n">{bwDisplay}</span> <small>{unit}</small></span>
 					</div>
 				{/if}
 			</section>
@@ -157,7 +157,7 @@
 						</a>
 						<span class="ex-count">{done} set{done === 1 ? '' : 's'}</span>
 					</div>
-					<div class="cols" aria-hidden="true">
+					<div class="cols table-head" aria-hidden="true">
 						<span>Set</span><span>{unit}</span><span>Reps</span><span></span>
 					</div>
 					{#each ex.sets as s, i (i)}
@@ -206,48 +206,10 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	/* One row when there's room; small phones wrap to 2 × 2 (or 2 + 1) so a 6-digit
-	   volume like "112,450 lb" is never cut off. */
+	/* Card spacing only; the grid comes from the global .summary (2 × 2 on small phones
+	   so a 6-digit volume like "112,450 lb" is never cut off). */
 	.summary {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.75rem 0.5rem;
 		margin-bottom: 0.9rem;
-		padding: 0.85rem 1rem;
-	}
-	@media (min-width: 360px) {
-		.summary {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-		.summary.four {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	@media (min-width: 440px) {
-		.summary.four {
-			grid-template-columns: repeat(4, minmax(0, 1fr));
-		}
-	}
-	.stat {
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-	}
-	.val {
-		font-size: 1.05rem;
-		font-weight: 650;
-		letter-spacing: -0.01em;
-		font-variant-numeric: tabular-nums;
-		line-height: 1.25;
-	}
-	.val .n {
-		white-space: nowrap;
-	}
-	.val small {
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--muted);
 	}
 	.ex {
 		margin-bottom: 0.9rem;
@@ -298,13 +260,6 @@
 	}
 	.cols {
 		margin: 0.6rem 0 0.35rem;
-		font-size: 0.65rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--faint);
-		text-align: center;
-		white-space: nowrap;
 	}
 	.set-row {
 		position: relative;
