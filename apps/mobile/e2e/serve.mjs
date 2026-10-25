@@ -35,7 +35,7 @@ mkdirSync(tmpDir, { recursive: true });
 
 if (!process.env.E2E_SKIP_BUILD) {
 	// 1) Build the SPA.
-	run('corepack', ['pnpm', 'build'], { cwd: mobileDir });
+	run('corepack', ['pnpm', 'build'], { cwd: mobileDir, env: { ...process.env, VITE_E2E: '1' } });
 	// 2) Embed it: clean dist, copy the fresh build in.
 	rmSync(distDir, { recursive: true, force: true });
 	mkdirSync(distDir, { recursive: true });
