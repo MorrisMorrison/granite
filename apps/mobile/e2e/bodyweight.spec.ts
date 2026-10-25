@@ -11,7 +11,8 @@ test('logs bodyweight and surfaces it on Today', async ({ page }) => {
 	await page.getByTestId('field-bodyweight').fill('82.5');
 	await page.getByTestId('btn-log-bodyweight').click();
 	await expect(page.getByTestId('bw-row')).toHaveCount(1);
-	await expect(page.getByText('82.5 kg')).toBeVisible();
+	await expect(page.getByTestId('bw-row')).toContainText('82.5 kg');
+	await expect(page.getByTestId('page-eyebrow')).toContainText('82.5 kg');
 
 	// Today now shows the latest weight.
 	await page.goto('/');
