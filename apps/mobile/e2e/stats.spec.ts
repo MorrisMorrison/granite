@@ -10,7 +10,7 @@ test('stats shows sets-per-muscle and weekly volume after a workout', async ({ p
 	await expect(page).toHaveURL(/\/stats$/);
 
 	await expect(page.getByTestId('muscle-bars')).toBeVisible();
-	await expect(page.getByText(/This week:/)).toBeVisible();
+	await expect(page.getByTestId('weekly-volume')).toContainText('this week');
 	await expect(page.getByTestId('records-link')).toBeVisible();
 });
 
@@ -29,12 +29,12 @@ test('stats time-range control switches the muscle-balance window', async ({ pag
 	await logWorkout(page);
 
 	await page.goto('/stats');
-	// Default window is 8 weeks.
-	await expect(page.getByText(/Sets per muscle · last 8 weeks/)).toBeVisible();
+	// Default window is 8 weeks (shown in the header eyebrow).
+	await expect(page.getByTestId('page-eyebrow')).toHaveText(/Last 8 weeks/i);
 	await expect(page.getByTestId('range-8w')).toHaveClass(/active/);
 
 	await page.getByTestId('range-12w').click();
-	await expect(page.getByText(/Sets per muscle · last 12 weeks/)).toBeVisible();
+	await expect(page.getByTestId('page-eyebrow')).toHaveText(/Last 12 weeks/i);
 	await expect(page.getByTestId('muscle-bars')).toBeVisible();
 });
 

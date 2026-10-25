@@ -17,6 +17,7 @@
 	import Sparkline from '#lib/components/ui/Sparkline.svelte';
 	import RecordList from '#lib/components/RecordList.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import Icon from '#lib/components/ui/Icon.svelte';
 
 	let muscles = $state<MuscleSets[]>([]);
 	let volume = $state<WeeklyVolume[]>([]);
@@ -30,6 +31,8 @@
 	const volValues = $derived(volume.slice(-weeks).map((v) => kgToDisplay(v.volume, unit) ?? 0));
 	const hasVolume = $derived(volValues.some((v) => v > 0));
 	const latestVol = $derived(volValues.length ? Math.round(volValues[volValues.length - 1]) : 0);
+
+	const hasData = $derived(!loading && (hasVolume || muscles.length > 0));
 
 	// Convert a canonical-kg value to the display unit, rounded.
 	const disp = (kg: number) => Math.round(kgToDisplay(kg, unit) ?? 0);
@@ -65,46 +68,55 @@
 
 <svelte:head><title>Stats · Granite</title></svelte:head>
 
+{#snippet range()}
+	<div class="range" role="group" aria-label="Time range">
+		{#each [4, 8, 12] as w (w)}
+			<button
+				type="button"
+				class="seg"
+				class:active={weeks === w}
+				onclick={() => setRange(w)}
+				data-testid={`range-${w}w`}
+			>
+				{w}w
+			</button>
+		{/each}
+	</div>
+{/snippet}
+
 <main class="container">
-	<PageHeader title="Stats" />
+	<PageHeader
+		title="Stats"
+		eyebrow={hasData ? `Last ${weeks} weeks` : undefined}
+		action={hasData ? range : undefined}
+	/>
 
 	{#if loading}
 		<p class="muted">Loading…</p>
-	{:else if !hasVolume && muscles.length === 0}
+	{:else if !hasData}
 		<EmptyState
 			icon="history"
 			title="No data yet"
 			description="Log a few workouts and your training insights will show up here."
 		/>
 	{:else}
-		<div class="range" role="group" aria-label="Time range">
-			{#each [4, 8, 12] as w (w)}
-				<button
-					type="button"
-					class="seg"
-					class:active={weeks === w}
-					onclick={() => setRange(w)}
-					data-testid={`range-${w}w`}
-				>
-					{w}w
-				</button>
-			{/each}
-		</div>
-
-		<section class="block">
-			<h2>Weekly volume</h2>
+		<section class="card block" data-testid="weekly-volume">
+			<p class="eyebrow">Weekly volume</p>
 			{#if hasVolume}
-				<p class="muted vol-latest">This week: {latestVol.toLocaleString()} {unit}</p>
-				<div class="card chart"><LineChart values={volValues} label="Weekly training volume" /></div>
+				<p class="headline">
+					<span class="big">{latestVol.toLocaleString()} {unit}</span>
+					<span class="muted">this week</span>
+				</p>
+				<div class="chart"><LineChart values={volValues} label="Weekly training volume" /></div>
 			{:else}
-				<p class="muted">Not enough volume logged yet.</p>
+				<p class="muted empty">Not enough volume logged yet.</p>
 			{/if}
 		</section>
 
-		<section class="block">
-			<h2>Sets per muscle · last {weeks} weeks</h2>
+		<section class="card block">
+			<p class="eyebrow">Sets per muscle</p>
 			{#if muscles.length === 0}
-				<p class="muted">No working sets in this range yet.</p>
+				<p class="muted empty">No working sets in this range yet.</p>
 			{:else}
 				<div class="bars" data-testid="muscle-bars">
 					{#each muscles as m (m.muscle)}
@@ -121,19 +133,20 @@
 		</section>
 
 		{#if lifts.length > 0}
-			<section class="block">
-				<h2>Top lifts</h2>
-				<div class="lifts" data-testid="top-lifts">
+			<section class="list-block">
+				<h2 class="eyebrow list-label">Top lifts</h2>
+				<div class="group" data-testid="top-lifts">
 					{#each lifts as l (l.exerciseId)}
 						<a class="lift" href={`/exercises/${l.exerciseId}`} data-testid="top-lift-row">
 							<span class="lift-info">
 								<span class="lift-name">{l.exerciseName}</span>
-								<span class="lift-sub muted">{l.sessions} sessions</span>
+								<span class="lift-sub">{l.sessions} session{l.sessions === 1 ? '' : 's'}</span>
 							</span>
 							<span class="lift-spark">
 								<Sparkline values={l.e1rmSeries} label={`${l.exerciseName} estimated 1RM trend`} />
 							</span>
 							<span class="lift-val">{disp(l.latestE1rm)} {unit}<small>e1RM</small></span>
+							<span class="chev"><Icon name="chevron-right" size={18} /></span>
 						</a>
 					{/each}
 				</div>
@@ -141,15 +154,15 @@
 		{/if}
 
 		{#if prs.length > 0}
-			<section class="block">
-				<h2>Recent PRs</h2>
+			<section class="list-block">
+				<h2 class="eyebrow list-label">Recent PRs</h2>
 				<RecordList rows={prs} {unit} rowTestid="pr-row" />
 			</section>
 		{/if}
 
 		<a class="records-link" href="/stats/records" data-testid="records-link">
 			<span>All-time records</span>
-			<span class="records-cta">View all →</span>
+			<span class="chev"><Icon name="chevron-right" size={18} /></span>
 		</a>
 	{/if}
 </main>
@@ -157,10 +170,10 @@
 <style>
 	.range {
 		display: inline-flex;
-		gap: 0.25rem;
-		margin-top: 0.25rem;
+		gap: 0.15rem;
 		padding: 0.2rem;
-		background: var(--surface-2);
+		background: var(--elevated);
+		border: 1px solid var(--border);
 		border-radius: var(--radius-pill);
 	}
 	.seg {
@@ -168,9 +181,10 @@
 		background: none;
 		color: var(--muted);
 		font: inherit;
-		font-size: 0.8rem;
+		font-size: 0.78rem;
 		font-weight: 600;
-		padding: 0.3rem 0.75rem;
+		font-variant-numeric: tabular-nums;
+		padding: 0.25rem 0.65rem;
 		border-radius: var(--radius-pill);
 		cursor: pointer;
 	}
@@ -179,23 +193,42 @@
 		color: var(--text);
 	}
 	.block {
-		margin-top: 1.5rem;
+		margin-bottom: 0.75rem;
 	}
-	h2 {
-		font-size: 0.95rem;
-		font-weight: 600;
-		margin: 0 0 0.6rem;
+	.headline {
+		display: flex;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: 0.2rem 0.45rem;
+		margin: 0.3rem 0 0.5rem;
+	}
+	.big {
+		font-size: 1.5rem;
+		font-weight: 650;
+		letter-spacing: -0.02em;
+		font-variant-numeric: tabular-nums;
+	}
+	.headline .muted {
+		font-size: 0.85rem;
+	}
+	.empty {
+		margin: 0.4rem 0 0;
+		font-size: 0.85rem;
+	}
+	.chart {
+		margin: 0 -0.3rem;
 	}
 	.bars {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.55rem;
+		margin-top: 0.7rem;
 	}
 	.bar-row {
 		display: grid;
 		grid-template-columns: 5.5rem 1fr 1.75rem;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.6rem;
 		font-size: 0.85rem;
 	}
 	.bar-label {
@@ -205,8 +238,8 @@
 		color: var(--muted);
 	}
 	.bar-track {
-		height: 0.5rem;
-		background: var(--surface-2);
+		height: 0.45rem;
+		background: var(--elevated);
 		border-radius: var(--radius-pill);
 		overflow: hidden;
 	}
@@ -221,78 +254,96 @@
 		font-variant-numeric: tabular-nums;
 		font-weight: 600;
 	}
-	.vol-latest {
-		font-size: 0.85rem;
-		margin: 0 0 0.6rem;
+	.list-block {
+		margin-top: 1.25rem;
 	}
-	.chart {
-		padding: 0.75rem;
+	.list-label {
+		margin: 0 0 0.4rem;
 	}
-	.lifts {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.lift {
-		display: grid;
-		grid-template-columns: 1fr auto auto;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.6rem 0.9rem;
+	.group {
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
+		overflow: hidden;
+	}
+	.lift {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto auto auto;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.7rem 0.75rem 0.7rem 1.1rem;
 		color: var(--text);
 		text-decoration: none;
+		transition: background var(--dur-fast) var(--ease);
+	}
+	.lift + .lift {
+		border-top: 1px solid var(--border);
+	}
+	.lift:hover {
+		background: var(--elevated);
 	}
 	.lift-info {
 		display: flex;
 		flex-direction: column;
+		gap: 0.15rem;
 		min-width: 0;
 	}
 	.lift-name {
-		font-weight: 600;
+		font-weight: 650;
+		letter-spacing: -0.01em;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 	.lift-sub {
-		font-size: 0.75rem;
+		font-size: 0.8rem;
+		color: var(--muted);
+		font-variant-numeric: tabular-nums;
 	}
 	.lift-spark {
-		width: 72px;
-		height: 24px;
+		width: 56px;
+		height: 22px;
 		opacity: 0.85;
 	}
 	.lift-val {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		font-weight: 600;
+		font-weight: 650;
 		font-variant-numeric: tabular-nums;
-		font-size: 0.9rem;
-		line-height: 1.1;
+		font-size: 0.92rem;
+		line-height: 1.15;
 	}
 	.lift-val small {
-		font-weight: 400;
+		font-weight: 500;
 		font-size: 0.62rem;
-		color: var(--muted);
+		letter-spacing: 0.04em;
+		color: var(--faint);
 	}
 	.records-link {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-top: 1.5rem;
-		padding: 0.85rem 0.9rem;
+		gap: 0.5rem;
+		margin-top: 1.25rem;
+		padding: 0.85rem 0.75rem 0.85rem 1.1rem;
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		color: var(--text);
 		text-decoration: none;
-		font-size: 0.95rem;
+		font-weight: 650;
+		letter-spacing: -0.01em;
+		transition: background var(--dur-fast) var(--ease);
 	}
-	.records-cta {
-		font-weight: 600;
-		color: var(--accent);
+	.records-link:hover {
+		background: var(--elevated);
+	}
+	.chev {
+		display: inline-flex;
+		color: var(--faint);
+	}
+	.lift .chev {
+		margin-left: -0.35rem;
 	}
 </style>
