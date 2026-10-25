@@ -54,6 +54,7 @@
 	}
 	.auth-title {
 		font-size: 1.85rem;
+		line-height: 1.15;
 	}
 	.auth-sub {
 		margin: 0.35rem 0 0;

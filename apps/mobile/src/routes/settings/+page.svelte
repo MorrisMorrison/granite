@@ -264,7 +264,7 @@
 <svelte:head><title>Settings · Granite</title></svelte:head>
 
 <main class="container">
-	<PageHeader title="Settings" eyebrow={auth.user?.email} />
+	<PageHeader title="Settings" />
 
 	<section class="block" aria-labelledby="s-account">
 		<h2 class="eyebrow label" id="s-account">Account</h2>
@@ -275,7 +275,7 @@
 			</div>
 			<div class="group-row srow">
 				<span class="srow-label">Server</span>
-				<span class="srow-val mono">{getServerUrl()}</span>
+				<span class="srow-val mono" title={getServerUrl()}>{getServerUrl()}</span>
 				{#if isNative()}
 					<Button variant="outline" size="sm" onclick={changeServer} testid="btn-settings-change-server">
 						Change server
@@ -309,16 +309,17 @@
 				</select>
 			</div>
 			<div class="group-row srow">
-				<label class="srow-label" for="pref-rest">
-					Default rest
-					<span class="group-row-sub">Seconds between sets</span>
-				</label>
+				<span class="srow-label">
+					<label for="pref-rest">Default rest</label>
+					<span class="group-row-sub" id="pref-rest-hint">Seconds between sets</span>
+				</span>
 				<input
 					id="pref-rest"
 					class="control compact"
 					type="number"
 					inputmode="numeric"
 					min="0"
+					aria-describedby="pref-rest-hint"
 					value={prefs.current.restSeconds}
 					onchange={(e) => prefs.update({ restSeconds: Math.max(0, Number(e.currentTarget.value) || 0) })}
 					data-testid="field-rest-seconds"
@@ -374,13 +375,14 @@
 			tabindex="-1"
 			data-testid="field-import-hevy"
 		/>
-		{#if exportError || importError || importMessage}
+		{#if exportError || importError}
 			<div class="msg">
 				<FormError message={exportError} />
 				<FormError message={importError} />
-				{#if importMessage}<p class="success" role="status">{importMessage}</p>{/if}
 			</div>
 		{/if}
+		<!-- Always in the DOM so screen readers announce the text when it changes. -->
+		<p class="success" role="status">{importMessage}</p>
 
 		<div class="card reset">
 			<p class="desc">
@@ -388,11 +390,9 @@
 				or stale data after a server change.
 			</p>
 			<FormError message={resetError} />
-			<div class="reset-btn">
-				<Button variant="danger" size="sm" onclick={onResetLocal} disabled={resetting} testid="btn-reset-local">
-					{resetting ? 'Resetting…' : 'Reset local data'}
-				</Button>
-			</div>
+			<Button variant="danger" block onclick={onResetLocal} disabled={resetting} testid="btn-reset-local">
+				{resetting ? 'Resetting…' : 'Reset local data'}
+			</Button>
 		</div>
 	</section>
 
@@ -452,13 +452,19 @@
 				data-testid="field-token-name"
 			/>
 		</label>
-		<label class="checkrow">
-			<input type="checkbox" bind:checked={createSheet.write} data-testid="field-token-write" />
-			<span class="checkrow-text">
-				Allow write access
-				<span class="field-hint">Log workouts, edit routines.</span>
-			</span>
-		</label>
+		<div class="check-row">
+			<input
+				id="token-write"
+				type="checkbox"
+				bind:checked={createSheet.write}
+				aria-describedby="token-write-hint"
+				data-testid="field-token-write"
+			/>
+			<div class="check-row-text">
+				<label for="token-write">Allow write access</label>
+				<p class="field-hint" id="token-write-hint">Log workouts, edit routines.</p>
+			</div>
+		</div>
 		<Button block onclick={createToken} disabled={creating || !createSheet.name.trim()} testid="btn-create-token">
 			{creating ? 'Creating…' : 'Create token'}
 		</Button>
@@ -505,11 +511,15 @@
 		padding-right: 0.9rem;
 	}
 	.srow-label {
-		flex: 1 0 auto;
+		flex: 1 1 auto;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.1rem;
 		color: var(--text);
+	}
+	.srow-label .group-row-sub {
+		white-space: normal;
 	}
 	.srow-val {
 		min-width: 0;
@@ -523,7 +533,7 @@
 		color: var(--faint);
 	}
 	.mono {
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-family: var(--font-mono);
 		font-size: 0.82rem;
 	}
 	.action > :global(svg) {
@@ -547,19 +557,17 @@
 		font-size: 0.875rem;
 		color: var(--success);
 	}
+	.success:not(:empty) {
+		margin-top: 0.6rem;
+	}
 	.reset {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-start;
 		gap: 0.6rem;
 		margin-top: 0.9rem;
 	}
 	.reset .desc {
 		margin: 0;
-	}
-	/* Pull the quiet danger button's padding into the card edge so its text lines up. */
-	.reset-btn {
-		margin-left: -0.8rem;
 	}
 	.empty {
 		margin: 0;
@@ -575,24 +583,6 @@
 	}
 	.token :global(.ib) {
 		color: var(--faint);
-	}
-	.checkrow {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.65rem;
-		cursor: pointer;
-	}
-	.checkrow-text {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-	.checkrow input {
-		flex-shrink: 0;
-		width: 1.15rem;
-		height: 1.15rem;
-		margin: 0.15rem 0 0;
-		accent-color: var(--accent);
 	}
 	.token-value {
 		word-break: break-all;

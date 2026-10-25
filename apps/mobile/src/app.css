@@ -40,6 +40,9 @@
 	--content-max: 30rem;
 	--tabbar-h: 56px;
 
+	/* Type */
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
 	color-scheme: dark;
 }
 
@@ -62,6 +65,7 @@ h1 {
 	font-size: 1.5rem;
 	font-weight: 600;
 	letter-spacing: -0.01em;
+	line-height: 1.2;
 	margin: 0 0 1rem;
 }
 
@@ -71,6 +75,7 @@ h1 {
 	font-size: 1.6rem;
 	font-weight: 650;
 	letter-spacing: -0.02em;
+	line-height: 1.2;
 	overflow-wrap: anywhere;
 }
 
@@ -121,8 +126,9 @@ a {
 	text-decoration: none;
 	transition: background var(--dur-fast) var(--ease);
 }
-/* A group row can also be a <button> (an action row, e.g. Settings' data actions). */
-button.group-row {
+/* A group row can also be a <button> (an action row, e.g. Settings' data actions).
+   Zero-specificity reset, so the `.group` divider above still draws its border-top. */
+:where(button.group-row) {
 	width: 100%;
 	font: inherit;
 	text-align: left;
@@ -138,6 +144,11 @@ button.group-row:disabled {
 a.group-row:hover,
 button.group-row:hover:not(:disabled) {
 	background: var(--elevated);
+}
+/* `.group` clips overflow, so the focus ring is drawn inside the row. */
+.group-row:focus-visible,
+.group-row-body:focus-visible {
+	outline-offset: -2px;
 }
 .group-row-body {
 	flex: 1;
@@ -452,10 +463,35 @@ select.control {
 select.control.compact {
 	text-align-last: right;
 }
-/* One-line muted help under a control, inside its `.field`. */
+/* One-line muted help under a control: a sibling of the <label> inside a `div.field`,
+   tied to the control with aria-describedby. */
 .field-hint {
+	margin: 0;
 	font-size: 0.8rem;
 	color: var(--muted);
+}
+/* Checkbox row: box on the left, label (and optional `.field-hint`) on the right. */
+.check-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.65rem;
+}
+.check-row input[type='checkbox'] {
+	flex-shrink: 0;
+	width: 1.15rem;
+	height: 1.15rem;
+	margin: 0.15rem 0 0;
+	accent-color: var(--accent);
+	cursor: pointer;
+}
+.check-row-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+.check-row-text label {
+	cursor: pointer;
 }
 
 /* Bare element defaults: font and colour only. Field styling comes from `.control`,
@@ -482,10 +518,6 @@ button {
 	font: inherit;
 }
 
-.error {
-	color: var(--danger);
-	font-size: 0.9rem;
-}
 
 .muted {
 	color: var(--muted);

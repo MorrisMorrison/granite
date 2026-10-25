@@ -42,8 +42,8 @@
 				data-testid="field-email"
 			/>
 		</label>
-		<label class="field" for="password">
-			<span class="eyebrow">Password</span>
+		<div class="field">
+			<label class="eyebrow" for="password">Password</label>
 			<input
 				id="password"
 				class="control"
@@ -55,8 +55,8 @@
 				aria-describedby="password-hint"
 				data-testid="field-password"
 			/>
-			<span class="field-hint" id="password-hint">At least 8 characters.</span>
-		</label>
+			<p class="field-hint" id="password-hint">At least 8 characters.</p>
+		</div>
 		<FormError message={error} testid="auth-error" />
 		<Button type="submit" block disabled={busy} testid="btn-register">
 			{busy ? 'Creating…' : 'Create account'}

@@ -27,7 +27,7 @@
 		overflow-wrap: anywhere;
 	}
 	.host {
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-family: var(--font-mono);
 		color: var(--muted);
 	}
 	.server a {
