@@ -172,8 +172,15 @@
 		restActive = timer.active();
 	}
 	// Recompute against the wall clock; fire the alert on the expiry transition.
+	// True while a native notification is scheduled for the running rest: it alerts
+	// the user itself, so the in-app buzz + beep would be a second alert.
+	let nativeAlert = false;
 	function refresh() {
-		if (timer.tick(Date.now())) restAlert(); // buzz + beep when the rest period ends
+		if (timer.tick(Date.now())) {
+			if (!nativeAlert) restAlert(); // buzz + beep when the rest period ends
+			else void cancelRestEnd(); // clear the delivered notification now we are back
+			nativeAlert = false;
+		}
 		sync();
 		if (!timer.active() && restInterval) {
 			clearInterval(restInterval);
@@ -185,13 +192,13 @@
 		timer.start(seconds);
 		if (!restInterval) restInterval = setInterval(refresh, 1000);
 		sync();
-		void scheduleRestEnd(timer.endsAt()!);
+		void scheduleRestEnd(timer.endsAt()!).then((ok) => (nativeAlert = ok));
 	}
 	function bumpRest(delta: number) {
 		timer.bump(delta);
 		sync();
 		const at = timer.endsAt();
-		if (at) void scheduleRestEnd(at);
+		if (at) void scheduleRestEnd(at).then((ok) => (nativeAlert = ok));
 	}
 	function stopRest() {
 		timer.stop();
@@ -200,6 +207,7 @@
 			restInterval = null;
 		}
 		sync();
+		nativeAlert = false;
 		void cancelRestEnd();
 	}
 

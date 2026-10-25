@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
 		// The connect check uses AbortSignal.timeout (Chromium 103+).
 		minWebViewVersion: 103
 	},
+	// cleartext only matters for live-reload (server.url); plain-http servers work via allowMixedContent + the manifest's usesCleartextTraffic
 	server: { androidScheme: 'https', cleartext: true },
 	plugins: {
 		LocalNotifications: { smallIcon: 'ic_stat_granite', iconColor: '#2563eb' }

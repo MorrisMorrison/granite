@@ -24,14 +24,22 @@ const REST_NOTIFICATION_ID = 1;
 // Notification operations run strictly in call order: a skip issued while a
 // schedule is still awaiting permission must not be overtaken by that schedule.
 let queue: Promise<void> = Promise.resolve();
-function serial(op: () => Promise<void>): Promise<void> {
-	queue = queue.then(op, op);
-	return queue;
+function serial<T>(op: () => Promise<T>): Promise<T> {
+	const result = queue.then(op, op);
+	queue = result.then(() => undefined, () => undefined);
+	return result;
 }
 
-/** Schedule the "rest over" notification at epoch-ms `at` (replaces a pending one). */
-export function scheduleRestEnd(at: number): Promise<void> {
-	if (!device()) return Promise.resolve();
+// Android fixes a channel's importance once it exists on a device, so create it up front.
+let channelReady: Promise<void> | null = null;
+
+/**
+ * Schedule the "rest over" notification at epoch-ms `at` (replaces a pending one).
+ * Resolves true only when a native notification was actually scheduled, so the
+ * caller can skip its own in-app alert; never rejects.
+ */
+export function scheduleRestEnd(at: number): Promise<boolean> {
+	if (!device()) return Promise.resolve(false);
 	return serial(async () => {
 		try {
 			const { LocalNotifications } = await import('@capacitor/local-notifications');
@@ -39,7 +47,26 @@ export function scheduleRestEnd(at: number): Promise<void> {
 			if (display === 'prompt' || display === 'prompt-with-rationale') {
 				({ display } = await LocalNotifications.requestPermissions());
 			}
-			if (display !== 'granted') return; // the in-app alert still fires while open
+			if (display !== 'granted') return false; // the in-app alert still fires while open
+			try {
+				channelReady ??= LocalNotifications.createChannel({
+					id: 'rest',
+					name: 'Rest timer',
+					description: 'Tells you when your rest is over',
+					importance: 4,
+					visibility: 1,
+					vibration: true
+				});
+				await channelReady;
+			} catch (err) {
+				channelReady = null; // retry on the next rest
+				throw err;
+			}
+			// Without exact-alarm permission schedule() would open the Settings screen mid-workout.
+			const exact = await LocalNotifications.checkExactNotificationSetting().then(
+				(s) => s.exact_alarm === 'granted',
+				() => false
+			);
 			await LocalNotifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] });
 			await LocalNotifications.schedule({
 				notifications: [
@@ -47,12 +74,16 @@ export function scheduleRestEnd(at: number): Promise<void> {
 						id: REST_NOTIFICATION_ID,
 						title: 'Rest over',
 						body: 'Time for your next set.',
-						schedule: { at: new Date(at), allowWhileIdle: true }
+						channelId: 'rest',
+						schedule: { at: new Date(at), allowWhileIdle: true },
+						isExactNotification: exact
 					}
 				]
 			});
+			return true;
 		} catch (err) {
 			console.warn('[native] scheduleRestEnd failed', err); // best-effort; the in-app timer still works
+			return false;
 		}
 	});
 }

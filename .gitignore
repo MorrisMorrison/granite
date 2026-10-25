@@ -53,3 +53,7 @@ junit.xml
 
 # Screenshots live on the dedicated `screenshots` branch, not main.
 /docs/screenshots/
+
+# Android signing keys — never commit (public repo)
+*.jks
+*.keystore
