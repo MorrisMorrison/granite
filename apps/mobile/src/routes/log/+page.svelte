@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { listExercises, createExercise, type ExerciseInput } from '#lib/repo/exercises.ts';
+	import { loadPickerLibrary } from '#lib/repo/exerciseLibrary.ts';
 	import { getRoutine } from '#lib/repo/routines.ts';
 	import { logWorkout } from '#lib/repo/workouts.ts';
 	import { lastPerformance } from '#lib/repo/stats.ts';
@@ -74,12 +75,9 @@
 	async function openPicker() {
 		pickerOpen = true;
 		if (!libraryLoaded) {
-			library = (await listExercises()).map((e) => ({
-				id: e.id,
-				name: e.name,
-				primary_muscle: e.primary_muscle
-			}));
-			libraryLoaded = true;
+			library = await loadPickerLibrary();
+			// Stay unloaded while empty (fresh account, nothing pulled yet) so the next open retries.
+			libraryLoaded = library.length > 0;
 		}
 	}
 

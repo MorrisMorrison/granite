@@ -9,6 +9,7 @@
 		lastDoneAt,
 		nextRoutine,
 		relativeDay,
+		relativeDayInline,
 		weekDays,
 		type HomeStats,
 		type WeekDay
@@ -101,7 +102,7 @@
 			<p class="eyebrow">Next up</p>
 			<h2 class="hero-title">{next.title}</h2>
 			<p class="hero-meta">
-				{#if exerciseCount != null}{exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}{/if}{#if nextDone}{exerciseCount != null ? ' · ' : ''}last done {relativeDay(nextDone, Date.now()).toLowerCase()}{/if}
+				{#if exerciseCount != null}{exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}{/if}{#if nextDone}{exerciseCount != null ? ' · ' : ''}last done {relativeDayInline(nextDone, Date.now())}{/if}
 			</p>
 			<Button href={`/log?routine=${next.id}`} icon="play" block testid="today-start-routine">
 				Start {next.title}
