@@ -6,7 +6,8 @@
 	import { resetLocalData } from '#lib/sync/index.ts';
 	import { auth } from '#lib/stores/auth.svelte.ts';
 	import Button from '#lib/components/ui/Button.svelte';
-	import favicon from '#lib/assets/favicon.svg';
+	import AuthShell from '#lib/components/AuthShell.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 
 	// Native only: the app isn't served by a Granite server, so it asks for one once.
 	const previous = hasServerUrl() ? getServerUrl() : null;
@@ -37,64 +38,26 @@
 
 <svelte:head><title>Connect · Granite</title></svelte:head>
 
-<main class="auth">
-	<div class="brand"><img class="logo" src={favicon} alt="" />Granite</div>
-	<form class="card" onsubmit={submit} novalidate>
-		<h2>Connect to your server</h2>
-		<p class="muted lead">Enter the address of your Granite server.</p>
-		<label for="server">Server address</label>
-		<input
-			id="server"
-			type="url"
-			inputmode="url"
-			autocapitalize="none"
-			autocomplete="url"
-			placeholder="granite.example.com"
-			bind:value={address}
-			required
-			data-testid="field-server-url"
-		/>
-		{#if error}<p class="error" data-testid="connect-error">{error}</p>{/if}
-		<div class="submit">
-			<Button type="submit" block disabled={busy} testid="btn-connect">
-				{busy ? 'Checking…' : 'Connect'}
-			</Button>
-		</div>
+<AuthShell eyebrow="Setup" title="Connect to your server" subtitle="Enter the address of your Granite server.">
+	<form class="card form" onsubmit={submit} novalidate>
+		<label class="field" for="server">
+			<span class="eyebrow">Server address</span>
+			<input
+				id="server"
+				class="control"
+				type="url"
+				inputmode="url"
+				autocapitalize="none"
+				autocomplete="url"
+				placeholder="granite.example.com"
+				bind:value={address}
+				required
+				data-testid="field-server-url"
+			/>
+		</label>
+		<FormError message={error} testid="connect-error" />
+		<Button type="submit" block disabled={busy} testid="btn-connect">
+			{busy ? 'Checking…' : 'Connect'}
+		</Button>
 	</form>
-</main>
-
-<style>
-	.auth {
-		max-width: 22rem;
-		margin: 0 auto;
-		padding: 4rem 1rem 2rem;
-	}
-	.brand {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		font-weight: 600;
-		font-size: 1.15rem;
-		margin-bottom: 1.25rem;
-	}
-	.logo {
-		width: 28px;
-		height: 28px;
-		display: block;
-	}
-	.card h2 {
-		margin: 0 0 0.25rem;
-		font-size: 1.1rem;
-		font-weight: 600;
-		text-align: center;
-	}
-	.lead {
-		margin: 0 0 1rem;
-		text-align: center;
-		font-size: 0.9rem;
-	}
-	.submit {
-		margin-top: 1.1rem;
-	}
-</style>
+</AuthShell>

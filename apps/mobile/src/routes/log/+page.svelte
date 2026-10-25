@@ -16,6 +16,7 @@
 	import { saveDraft, loadDraft, clearDraft, type WorkoutDraft } from '#lib/workoutDraft.ts';
 	import { formatElapsed } from '#lib/duration.ts';
 	import Button from '#lib/components/ui/Button.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
 	import WorkoutHeader from '#lib/components/logger/WorkoutHeader.svelte';
 	import ExerciseCard from '#lib/components/logger/ExerciseCard.svelte';
@@ -379,7 +380,7 @@
 
 	{#if exercises.length > 0}
 		<textarea
-			class="session-notes"
+			class="control session-notes"
 			placeholder="Session notes (how it felt, RPE, aches…)"
 			rows="2"
 			bind:value={notes}
@@ -395,7 +396,7 @@
 		onclose={() => (pickerOpen = false)}
 	/>
 
-	{#if error}<p class="error">{error}</p>{/if}
+	{#if error}<div class="err"><FormError message={error} /></div>{/if}
 </main>
 
 <div class="footer">
@@ -415,14 +416,7 @@
 
 <style>
 	.session-notes {
-		width: 100%;
 		margin-top: 1rem;
-		background: var(--surface-2);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		color: var(--text);
-		padding: 0.5rem 0.75rem;
-		resize: vertical;
 		font-size: 0.9rem;
 	}
 	.footer {
@@ -449,5 +443,8 @@
 	.count {
 		font-size: 0.8rem;
 		color: var(--faint);
+	}
+	.err {
+		margin: 1rem 0;
 	}
 </style>

@@ -8,6 +8,7 @@
 	import { setBadge } from '#lib/sets.ts';
 	import { warmupTargetSets } from '#lib/calc.ts';
 	import Button from '#lib/components/ui/Button.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import IconButton from '#lib/components/ui/IconButton.svelte';
 	import SetBadge from '#lib/components/ui/SetBadge.svelte';
@@ -340,7 +341,7 @@
 	onclose={() => (setMenu = null)}
 />
 
-{#if error}<p class="error">{error}</p>{/if}
+{#if error}<div class="rf-error"><FormError message={error} /></div>{/if}
 
 <div class="save">
 	<Button block onclick={save} disabled={saving} testid="btn-save-routine">
@@ -396,5 +397,8 @@
 	}
 	.save {
 		margin-top: 1rem;
+	}
+	.rf-error {
+		margin: 1rem 0;
 	}
 </style>

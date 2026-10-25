@@ -16,6 +16,7 @@ Single source of truth as CSS custom properties.
 | Radius | `--radius-sm 8` · `--radius-md 12` · `--radius-lg 16` · `--radius-pill` |
 | Motion | `--dur-fast 120ms` · `--dur 200ms` · `--ease` |
 | Layout | `--content-max 30rem` · `--tabbar-h 56px` |
+| Type | `--font-mono` (server URL, version, token values) |
 
 Legacy aliases (`--surface-2`, `--radius`) exist only for screens not yet migrated; remove as each screen
 adopts the components.
@@ -24,26 +25,33 @@ adopts the components.
 Built **as they're first applied** to a screen (no unused code), shadcn-flavored. The current set:
 `Icon` (inline SVG set) · `IconButton` · `TabBar` (bottom nav) · `Button` (primary/secondary/outline/ghost/destructive,
 sizes, block, loading, icon, href; quiet red `danger` for secondary destructive actions) · `Badge` ·
-`PageHeader` (optional `eyebrow` above the title) · `SetBadge` (set number / W / D / F) · `EmptyState` · `BackLink` · `Sheet` (bottom sheet, e.g. the exercise picker) ·
+`PageHeader` (optional `eyebrow` above the title) · `FormError` (inline danger error with icon, `role="alert"`; auth screens, Settings) · `SetBadge` (set number / W / D / F) · `EmptyState` · `BackLink` · `Sheet` (bottom sheet, e.g. the exercise picker) ·
 `RestInput` (rest-timer entry) · `Calendar` (history heatmap) · `LineChart` + `Sparkline` (stat trends).
-Outside `ui/`: `SetTypeSheet` (set-type picker + delete behind a set badge; logger and routine editor).
+Outside `ui/`: `SetTypeSheet` (set-type picker + delete behind a set badge; logger and routine editor) · `AuthShell`
+(signed-out layout for log in / register / connect: mark, eyebrow + large title + subtitle, form card, quiet footer).
 
 ## Shared classes (`apps/mobile/src/app.css`)
 If a pattern appears on two or more screens it becomes a global class (or a small component), not copied CSS.
 - **Labels & lists** — `.eyebrow` (small uppercase label instead of h2 section headings) · `.group` /
   `.group-row` / `-body` / `-title` / `-sub` / `-chev` (one card per list, 1px dividers) · `.group-row-val`
-  (right-aligned figure with a small caption) · `.sr-only`.
+  (right-aligned figure with a small caption) · `.sr-only` · a `.group-row` may be a `<button>` (action row:
+  icon, label, chevron — Settings' data actions); rows draw their focus ring inset, since `.group` clips.
 - **Headings & figures** — `.page-title` (detail/editor screen title) · `.big-num` (headline figure) ·
   `.summary` + `.summary-stat` / `.summary-val`, `cols-3` / `cols-4` (eyebrow-labelled stat card).
 - **Forms** — `.form` (vertical stack) · `.field` (label: `.eyebrow` above the control) · `.control`
-  (filled, borderless, 2.75rem, accent focus ring; select gets a chevron) · `.title-input` (large heading input).
+  (filled, borderless, 2.75rem, accent focus ring; select gets a chevron) · `.control.compact` (7rem,
+  right-aligned value, for a control at the end of a settings row) · `.field-hint` (one-line muted help under
+  a control; a sibling of the `<label>` in a `div.field`, linked via `aria-describedby`) · `.check-row` /
+  `.check-row-text` (checkbox left, label + optional hint right) · `.title-input` (large heading input). Bare `input`/`select`/`textarea` only inherit font and
+  colour; every field uses one of these classes.
 - **Set tables** — `.table-head` (column headings) · `.set-input` (compact filled number cell) ·
   `.add-row` (quiet "+ Add set" row).
 - **Sheets** — `.menu` / `.menu-item` (`.danger` red, `.on`, `:disabled`), `.menu-tick`, `.menu-hint`.
 
 ## Navigation & structure
 - **Bottom tab bar** — Today / Routines / History / Exercises (icons + blue active state).
-- **Slim top app bar** — Granite mark + a logout/settings icon.
+- **Slim top app bar** — Granite mark (links to Today) + icon actions: Add to Home Screen (only when offered),
+  exercise library, calculators, settings, log out. Each is a 36px icon link/button with an `aria-label`.
 - **Focused flows hide the chrome** — the workout logger (`/log`) is full-screen (no tab bar / app bar) with
   its own sticky footer (Cancel · status/rest-timer · Finish).
 

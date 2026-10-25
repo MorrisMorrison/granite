@@ -9,6 +9,7 @@
 	import { kgToDisplay } from '#lib/units.ts';
 	import { metaLine } from '#lib/exerciseSearch.ts';
 	import BackLink from '#lib/components/ui/BackLink.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import LineChart from '#lib/components/ui/LineChart.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
@@ -97,7 +98,7 @@
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if !ex}
-		<p class="error">Exercise not found.</p>
+		<FormError message="Exercise not found." />
 	{:else}
 		<header class="head" data-testid="exercise-detail">
 			<div class="titles">

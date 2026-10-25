@@ -3,7 +3,8 @@
 	import { auth } from '#lib/stores/auth.svelte.ts';
 	import Button from '#lib/components/ui/Button.svelte';
 	import ServerLine from '#lib/components/ServerLine.svelte';
-	import favicon from '#lib/assets/favicon.svg';
+	import AuthShell from '#lib/components/AuthShell.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -27,63 +28,39 @@
 
 <svelte:head><title>Log in · Granite</title></svelte:head>
 
-<main class="auth">
-	<div class="brand"><img class="logo" src={favicon} alt="" />Granite</div>
-	<form class="card" onsubmit={submit}>
-		<h2>Log in</h2>
-		<label for="email">Email</label>
-		<input id="email" type="email" bind:value={email} autocomplete="username" required data-testid="field-email" />
-		<label for="password">Password</label>
-		<input
-			id="password"
-			type="password"
-			bind:value={password}
-			autocomplete="current-password"
-			required
-			data-testid="field-password"
-		/>
-		{#if error}<p class="error">{error}</p>{/if}
-		<div class="submit">
-			<Button type="submit" block disabled={busy} testid="btn-login">
-				{busy ? 'Logging in…' : 'Log in'}
-			</Button>
-		</div>
+<AuthShell eyebrow="Log in" title="Welcome back" subtitle="Sign in to pick up where you left off.">
+	<form class="card form" onsubmit={submit}>
+		<label class="field" for="email">
+			<span class="eyebrow">Email</span>
+			<input
+				id="email"
+				class="control"
+				type="email"
+				bind:value={email}
+				autocomplete="username"
+				required
+				data-testid="field-email"
+			/>
+		</label>
+		<label class="field" for="password">
+			<span class="eyebrow">Password</span>
+			<input
+				id="password"
+				class="control"
+				type="password"
+				bind:value={password}
+				autocomplete="current-password"
+				required
+				data-testid="field-password"
+			/>
+		</label>
+		<FormError message={error} testid="auth-error" />
+		<Button type="submit" block disabled={busy} testid="btn-login">
+			{busy ? 'Logging in…' : 'Log in'}
+		</Button>
 	</form>
-	<p class="muted alt">No account? <a href="/register">Register</a></p>
-	<ServerLine />
-</main>
-
-<style>
-	.auth {
-		max-width: 22rem;
-		margin: 0 auto;
-		padding: 4rem 1rem 2rem;
-	}
-	.brand {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		font-weight: 600;
-		font-size: 1.15rem;
-		margin-bottom: 1.25rem;
-	}
-	.logo {
-		width: 28px;
-		height: 28px;
-		display: block;
-	}
-	.card h2 {
-		margin: 0 0 0.25rem;
-		font-size: 1.1rem;
-		font-weight: 600;
-		text-align: center;
-	}
-	.submit {
-		margin-top: 1.1rem;
-	}
-	.alt {
-		text-align: center;
-		margin-top: 1rem;
-	}
-</style>
+	{#snippet footer()}
+		<p>No account? <a href="/register">Register</a></p>
+		<ServerLine />
+	{/snippet}
+</AuthShell>

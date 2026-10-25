@@ -10,6 +10,7 @@
 	import { setBadge } from '#lib/sets.ts';
 	import { workoutMinutes } from '#lib/duration.ts';
 	import BackLink from '#lib/components/ui/BackLink.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 	import Button from '#lib/components/ui/Button.svelte';
 	import Icon from '#lib/components/ui/Icon.svelte';
 	import SetBadge from '#lib/components/ui/SetBadge.svelte';
@@ -109,7 +110,7 @@
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if !workout}
-		<p class="error">Workout not found.</p>
+		<FormError message="Workout not found." />
 	{:else}
 		<div data-testid="workout-detail">
 			<header class="head">

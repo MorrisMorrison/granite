@@ -202,7 +202,7 @@
 	onclose={closeFolderSheet}
 >
 	<input
-		class="folder-input"
+		class="control folder-input"
 		placeholder="Folder name"
 		bind:value={folderSheet.name}
 		data-testid="field-folder-name"

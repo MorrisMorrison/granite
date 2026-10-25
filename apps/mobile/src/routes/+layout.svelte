@@ -133,12 +133,17 @@
 		height: 28px;
 		display: block;
 	}
+	/* Same 36px hit area for every icon, link or button. */
 	.iconbtn {
 		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
 		background: transparent;
 		border: none;
 		color: var(--muted);
-		padding: 6px;
+		padding: 0;
 		border-radius: var(--radius-md);
 		cursor: pointer;
 	}

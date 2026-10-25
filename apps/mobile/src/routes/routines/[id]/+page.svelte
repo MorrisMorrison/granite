@@ -5,6 +5,7 @@
 	import { getRoutine, updateRoutine, type RoutineDetail, type RoutineInput } from '#lib/repo/routines.ts';
 	import RoutineForm from '#lib/components/RoutineForm.svelte';
 	import BackLink from '#lib/components/ui/BackLink.svelte';
+	import FormError from '#lib/components/ui/FormError.svelte';
 
 	const id = page.params.id!;
 
@@ -31,7 +32,7 @@
 	{#if loading}
 		<p class="muted">Loading…</p>
 	{:else if loadError}
-		<p class="error">{loadError}</p>
+		<FormError message={loadError} />
 	{:else if loaded}
 		<h1 class="eyebrow">Edit routine</h1>
 		<RoutineForm
