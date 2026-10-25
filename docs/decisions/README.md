@@ -18,3 +18,4 @@ Format: Context → Decision → Alternatives considered → Consequences. Statu
 | [0009](0009-personal-api-tokens.md) | Personal API tokens for programmatic access | Accepted |
 | [0010](0010-web-local-store-indexeddb.md) | Web local store: IndexedDB (not SQLite-in-browser) | Accepted |
 | [0011](0011-account-gate-extension-point.md) | Account authorization extension point (AccountGate) | Accepted |
+| [0012](0012-android-app-capacitor.md) | Android app via Capacitor (connect step, native CORS origins, exact-alarm rest timer) | Accepted |

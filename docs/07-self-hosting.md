@@ -95,6 +95,15 @@ can always be created**, so a personal instance needs no extra steps to bootstra
 - **Restore**: either replace the SQLite file from a backup, or `POST /api/v1/import` an export JSON
   (upsert by id, idempotent) into a fresh or existing account.
 
+## Using the Android app
+
+The [Android app](06-mobile-app.md) works with any up-to-date server — no configuration, because the
+native origins are allowed in CORS automatically. On first launch, enter your `GRANITE_BASE_URL`.
+
+- **HTTPS is recommended.** A plain-HTTP server (e.g. on a home LAN) works if you type `http://`
+  (otherwise `https://` is assumed), but passwords and tokens then travel unencrypted — trusted networks only.
+- The app checks `GET /api/v1/info` and says the server **needs an update** if it is older than the app.
+
 ## Graceful lifecycle
 
 The server installs HTTP timeouts (slow-client protection) and shuts down gracefully on `SIGINT`/`SIGTERM`:
@@ -106,12 +115,14 @@ it stops accepting connections, drains in-flight requests (up to 15s), then clos
 - argon2id password hashing; rotating refresh tokens.
 - An instance is single-person/household; registration gated by default on self-hosts.
 - Put it behind a reverse proxy with TLS; optionally behind an external identity provider once OIDC lands.
+- CORS always allows the Android app's origins (`https://localhost`, `capacitor://localhost`) in addition
+  to `GRANITE_BASE_URL` — safe because auth is bearer tokens, not cookies.
 - No telemetry, ever.
 
 ## Minimal footprint
 
 A single Go binary + a SQLite file comfortably runs on a Raspberry Pi, a NAS, or a small VPS/LXC. The
-heavy read/stat work happens on the **client** (each device has the full local SQLite), so the server
+heavy read/stat work happens on the **client** (each device keeps a full local copy in IndexedDB), so the server
 stays light even with the whole history synced.
 
 ## Image & build

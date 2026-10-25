@@ -3,12 +3,13 @@
 Phased so each step is usable on its own. Offline-first is built in from the start (retrofitting it
 later is painful), but **sync** is deferred until after a single-device app works.
 
-> **Status (2026-06-25):** Phases 0–5 are done, and a good chunk of Phase 6 has shipped too —
+> **Status (2026-10-25):** Phases 0–5 are done, and a good chunk of Phase 6 has shipped too — including
+> the **Android app** (Capacitor; debug builds from CI, signed releases next) —
 > bodyweight tracking, import from other trackers, and advanced analytics (the Stats hub) are all live,
 > alongside a stack of in-app enhancements: history calendar, Today + Stats screens, custom exercises, quick deload,
 > session notes, per-exercise notes, duplicate routine, auto cache-reset on a server reset, and a
-> full UI consistency pass (shared list rows, page headers, icon buttons). Remaining Phase 6: native
-> Capacitor builds, Apple Health / Google Fit (+ Watch/Wear OS), and OIDC / passkeys; plus optional
+> full UI consistency pass (shared list rows, page headers, icon buttons). Remaining Phase 6: signed
+> Android releases, the iOS app, Apple Health / Google Fit (+ Watch/Wear OS), and OIDC / passkeys; plus optional
 > sync hardening. All under a unit + end-to-end test net in CI.
 
 ## Phase 0 — Planning ✅
@@ -60,7 +61,10 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [x] Publish the REST API reference — rendered from the OpenAPI spec on the docs site (`/api`).
 
 ## Phase 6 — Native & nice-to-haves
-- [ ] Capacitor native wrappers → app-store/sideload builds (needs macOS for iOS).
+- [x] Android app (Capacitor) — rest-timer notification with the screen locked, keep-awake, server
+      connect step; debug APKs from CI ([ADR-0012](decisions/0012-android-app-capacitor.md)).
+- [ ] Signed Android release APKs on GitHub Releases (per `v*` tag).
+- [ ] iOS app (needs macOS CI).
 - [x] Bodyweight tracking — standalone synced weigh-in log (weight only; trend chart + shown on each
       workout in history). Deliberately minimal — no other body measurements.
 - [x] Import from other trackers — Hevy CSV import (name-aliased to built-ins, custom for the rest),
