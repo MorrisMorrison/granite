@@ -78,7 +78,12 @@ describe('listWorkouts', () => {
 
 		const list = await listWorkouts();
 		expect(list.map((w) => w.title)).toEqual(['B', 'A']);
-		expect(list[0]).toMatchObject({ title: 'B', start_time: 300, end_time: null });
+		expect(list[0]).toMatchObject({ title: 'B', start_time: 300, end_time: null, routine_id: null });
+	});
+
+	it('carries the routine_id a workout was started from', async () => {
+		await logWorkout({ title: 'A', start_time: 100, end_time: 200, routine_id: 'r1', exercises: [] });
+		expect((await listWorkouts())[0].routine_id).toBe('r1');
 	});
 
 	it('is empty with no workouts logged', async () => {

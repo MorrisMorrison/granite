@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { computeExerciseProgress, computeHomeStats, computeLastPerformance } from './stats';
+import {
+	computeExerciseProgress,
+	computeHomeStats,
+	computeLastPerformance,
+	lastDoneAt,
+	nextRoutine,
+	weekDays
+} from './stats';
 
 const rec = (
 	id: string,
@@ -117,5 +124,70 @@ describe('computeHomeStats', () => {
 	it('handles an empty history', () => {
 		const s = computeHomeStats([], now);
 		expect(s).toEqual({ total: 0, thisWeek: 0, streakWeeks: 0, lastWorkoutAt: null });
+	});
+});
+
+describe('nextRoutine', () => {
+	const r = (id: string, folder: string | null = null) => ({ id, title: id.toUpperCase(), folder_id: folder });
+	const w = (routine_id: string | null, start_time: number, title = '') => ({ routine_id, title, start_time });
+	const push = r('push'), pull = r('pull'), legs = r('legs');
+
+	it('is null with no routines', () => {
+		expect(nextRoutine([], [w('x', 1)])).toBeNull();
+	});
+	it('is the first routine without workouts', () => {
+		expect(nextRoutine([push, pull, legs], [])).toBe(push);
+	});
+	it('rotates PPL', () => {
+		const all = [push, pull, legs];
+		expect(nextRoutine(all, [w('push', 1), w('pull', 2), w('legs', 3)])).toBe(push);
+		expect(nextRoutine(all, [w('legs', 1), w('push', 2)] )).toBe(pull);
+	});
+	it('prefers a never-done routine in the folder', () => {
+		expect(nextRoutine([push, pull, legs], [w('push', 5)])).toBe(pull);
+	});
+	it('matches by routine_id before a title that matches another routine', () => {
+		const out = nextRoutine([push, pull], [w('push', 1, 'PULL'), w('pull', 0, '')]);
+		// last workout is push (by id) -> pull was done at 0, push at 1 -> pull
+		expect(out).toBe(pull);
+	});
+	it('falls back to title match when there is no routine_id', () => {
+		expect(nextRoutine([push, pull], [w(null, 1, 'PUSH')])).toBe(pull);
+	});
+	it('is the first routine when the last workout is not from a routine', () => {
+		expect(nextRoutine([push, pull], [w('pull', 1), w(null, 2, 'Freestyle')])).toBe(push);
+	});
+	it('does not mix folders', () => {
+		const a1 = r('a1', 'A'), a2 = r('a2', 'A'), b1 = r('b1', 'B');
+		expect(nextRoutine([b1, a1, a2], [w('a1', 1)])).toBe(a2);
+		expect(nextRoutine([a1, b1, a2], [w('a1', 2), w('a2', 1)])).toBe(a2);
+	});
+	it('handles unsorted workouts', () => {
+		expect(nextRoutine([push, pull, legs], [w('legs', 3), w('push', 1), w('pull', 2)])).toBe(push);
+	});
+});
+
+describe('lastDoneAt', () => {
+	const rt = { id: 'push', title: 'Push' };
+	it('is the latest matching start_time', () => {
+		expect(lastDoneAt(rt, [{ routine_id: 'push', title: '', start_time: 5 }, { routine_id: null, title: 'Push', start_time: 9 }, { routine_id: 'x', title: 'Push', start_time: 99 }])).toBe(9);
+	});
+	it('is null when never done', () => {
+		expect(lastDoneAt(rt, [])).toBeNull();
+	});
+});
+
+describe('weekDays', () => {
+	// Wed 2026-10-21 12:00 local; week Mon 19 .. Sun 25
+	const now = new Date(2026, 9, 21, 12).getTime();
+	it('starts on Monday and flags trained, today and future', () => {
+		const days = weekDays(
+			[{ start_time: new Date(2026, 9, 19, 8).getTime() }, { start_time: new Date(2026, 9, 21, 7).getTime() }, { start_time: new Date(2026, 9, 12, 7).getTime() }],
+			now
+		);
+		expect(days.map((d) => d.label)).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S']);
+		expect(days.map((d) => d.trained)).toEqual([true, false, true, false, false, false, false]);
+		expect(days.map((d) => d.today)).toEqual([false, false, true, false, false, false, false]);
+		expect(days.map((d) => d.future)).toEqual([false, false, false, true, true, true, true]);
 	});
 });

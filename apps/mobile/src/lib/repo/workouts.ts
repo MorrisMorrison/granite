@@ -8,6 +8,7 @@ export interface WorkoutSummary {
 	title: string;
 	start_time: number;
 	end_time: number | null;
+	routine_id: string | null;
 }
 
 /** Logged workouts from the local store, most recent first (works offline). */
@@ -15,12 +16,18 @@ export async function listWorkouts(): Promise<WorkoutSummary[]> {
 	const records = await localStore.list('workout');
 	return records
 		.map((c) => {
-			const d = c.data as { title?: string; start_time?: number; end_time?: number | null };
+			const d = c.data as {
+				title?: string;
+				start_time?: number;
+				end_time?: number | null;
+				routine_id?: string | null;
+			};
 			return {
 				id: c.id,
 				title: d.title ?? '',
 				start_time: d.start_time ?? 0,
-				end_time: d.end_time ?? null
+				end_time: d.end_time ?? null,
+				routine_id: d.routine_id ?? null
 			};
 		})
 		.sort((a, b) => b.start_time - a.start_time);
