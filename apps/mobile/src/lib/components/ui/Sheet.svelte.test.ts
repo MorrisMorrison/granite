@@ -55,4 +55,46 @@ describe('Sheet', () => {
 		const { getByLabelText } = render(Sheet, { props: { open: true, onclose: () => {}, children: field } });
 		await waitFor(() => expect(document.activeElement).toBe(getByLabelText('q')));
 	});
+
+	it('returns focus to the trigger on close', async () => {
+		const trigger = document.createElement('button');
+		document.body.append(trigger);
+		trigger.focus();
+		const { rerender } = render(Sheet, { props: { open: true, onclose: () => {}, children: body('x') } });
+		await rerender({ open: false });
+		expect(document.activeElement).toBe(trigger);
+		trigger.remove();
+	});
+
+	it('falls back to <main> when the trigger was removed while open', async () => {
+		const main = document.createElement('main');
+		const row = document.createElement('div');
+		const trigger = document.createElement('button');
+		row.append(trigger);
+		main.append(row);
+		document.body.append(main);
+		trigger.focus();
+		const { rerender } = render(Sheet, { props: { open: true, onclose: () => {}, children: body('x') } });
+		row.remove(); // e.g. "Delete set" removed the badge that opened the sheet
+		await rerender({ open: false });
+		expect(document.activeElement).toBe(main);
+		expect(main.getAttribute('tabindex')).toBe('-1');
+		main.remove();
+	});
+
+	it('prefers a focusable ancestor that is still on the page', async () => {
+		const host = document.createElement('div');
+		host.tabIndex = 0;
+		const row = document.createElement('div');
+		const trigger = document.createElement('button');
+		row.append(trigger);
+		host.append(row);
+		document.body.append(host);
+		trigger.focus();
+		const { rerender } = render(Sheet, { props: { open: true, onclose: () => {}, children: body('x') } });
+		row.remove();
+		await rerender({ open: false });
+		expect(document.activeElement).toBe(host);
+		host.remove();
+	});
 });

@@ -87,7 +87,7 @@
 
 <main class="container">
 	<BackLink href="/" label="Today" />
-	<PageHeader title="Bodyweight" eyebrow={loading ? ' ' : eyebrow} />
+	<PageHeader title="Bodyweight" eyebrow={loading ? undefined : eyebrow} />
 
 	<section class="card log" aria-label="Log a weigh-in">
 		<label class="field" for="bw-input"><span class="eyebrow">Log weight</span></label>
@@ -132,15 +132,13 @@
 						<span class="date">{fmtDate(e.recorded_at)}</span>
 					</span>
 					<span class="group-row-val">{w(e.weight)} {unit}</span>
-					<span class="del">
-						<IconButton
-							name="trash"
-							label="Delete weigh-in"
-							size={16}
-							onclick={() => remove(e.id)}
-							testid="btn-delete-bodyweight"
-						/>
-					</span>
+					<IconButton
+						name="trash"
+						label="Delete weigh-in"
+						size={16}
+						onclick={() => remove(e.id)}
+						testid="btn-delete-bodyweight"
+					/>
 				</div>
 			{/each}
 		</div>
@@ -162,8 +160,9 @@
 		flex: 1;
 		min-width: 0;
 	}
-	.add :global(button) {
-		height: 2.75rem;
+	/* Stretch the field to the Log button's height so the pair lines up. */
+	.add input {
+		height: auto;
 	}
 	.chart-card {
 		margin-bottom: 0.9rem;
@@ -198,8 +197,5 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-	.del :global(.ib) {
-		color: var(--faint);
 	}
 </style>

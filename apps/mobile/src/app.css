@@ -253,6 +253,27 @@ a.group-row:hover {
 	white-space: nowrap;
 }
 
+/* Large heading-style text input (logger workout title, routine title). Padded in both
+   states with the padding pulled into the gutter, so the text doesn't shift on focus. */
+.title-input {
+	display: block;
+	width: calc(100% + 1rem);
+	margin: 0.15rem -0.5rem 0;
+	padding: 0.2rem 0.5rem;
+	font-size: 1.6rem;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+	color: var(--text);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+}
+.title-input:focus {
+	background: var(--elevated);
+	border-color: var(--accent);
+	outline: none;
+}
+
 /* Compact filled number cell in a set table (logger, routine editor, rest input). */
 .set-input {
 	width: 100%;
@@ -386,12 +407,18 @@ textarea.control {
 	line-height: 1.45;
 	resize: vertical;
 }
+/* Chevron drawn from two token-coloured gradients (a <select> can't host a pseudo-element). */
 select.control {
 	appearance: none;
 	padding-right: 2.25rem;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2399a2ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6l6 -6'/%3E%3C/svg%3E");
+	background-image:
+		linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+		linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+	background-position:
+		calc(100% - 1.2rem) 52%,
+		calc(100% - 0.85rem) 52%;
+	background-size: 0.35rem 0.35rem;
 	background-repeat: no-repeat;
-	background-position: right 0.75rem center;
 }
 .control:focus {
 	border-color: var(--accent);

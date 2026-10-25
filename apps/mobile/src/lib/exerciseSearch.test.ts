@@ -56,6 +56,18 @@ describe('groupByMuscle', () => {
 		expect(g.map((x) => x.muscle)).toEqual(['Triceps', 'Other']);
 	});
 
+	it('merges muscle-less exercises into a real "Other" group (unique group names)', () => {
+		const g = groupByMuscle([
+			{ id: 'a', primary_muscle: '' },
+			{ id: 'b', primary_muscle: 'Chest' },
+			{ id: 'c', primary_muscle: 'other' },
+			{ id: 'd', primary_muscle: 'Abs' }
+		]);
+		expect(g.map((x) => x.muscle)).toEqual(['Abs', 'Chest', 'other']);
+		expect(g[2].items.map((x) => x.id)).toEqual(['a', 'c']);
+		expect(new Set(g.map((x) => x.muscle.toLowerCase())).size).toBe(g.length);
+	});
+
 	it('returns no groups for an empty list', () => {
 		expect(groupByMuscle([])).toEqual([]);
 	});

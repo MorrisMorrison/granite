@@ -73,6 +73,21 @@ describe('computeExerciseProgress', () => {
 		);
 		expect(p.sessions[0].sets).toBe(2);
 	});
+
+	it('takes the best set from work sets, falling back to warm-ups only when that is all', () => {
+		const p = computeExerciseProgress(
+			[
+				rec('w1', 1, [
+					{ weight: 100, reps: 2, set_type: 'warmup' },
+					{ weight: 90, reps: 5 }
+				]),
+				rec('w2', 2, [{ weight: 40, reps: 8, set_type: 'warmup' }])
+			],
+			'squat'
+		);
+		expect(p.sessions[0]).toMatchObject({ top_weight: 90, top_reps: 5, sets: 1 });
+		expect(p.sessions[1]).toMatchObject({ top_weight: 40, top_reps: 8, sets: 0 });
+	});
 });
 
 describe('computeLastPerformance', () => {

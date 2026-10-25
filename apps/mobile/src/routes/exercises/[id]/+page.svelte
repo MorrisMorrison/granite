@@ -59,22 +59,21 @@
 		const v = num(kg);
 		return v == null ? '—' : `${v} ${unit}`;
 	}
+	// Short session date: "25 Oct" this year, "25 Oct 2025" otherwise (locale order).
 	function fmtDate(ms: number): string {
-		return new Date(ms).toLocaleDateString(undefined, {
-			weekday: 'short',
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric'
-		});
+		const d = new Date(ms);
+		const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+		if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+		return d.toLocaleDateString(undefined, opts);
 	}
 	const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 	// Best set of a session ("100 kg × 5"), or just the set count when nothing was weighed.
 	function bestSet(s: SessionStat): string {
-		if (s.top_weight == null) return plural(s.sets, 'set');
+		if (s.top_weight == null) return s.sets ? plural(s.sets, 'set') : '—';
 		return s.top_reps ? `${w(s.top_weight)} × ${s.top_reps}` : w(s.top_weight);
 	}
 	function sessionMeta(s: SessionStat): string {
-		return metaLine(fmtDate(s.date), s.top_weight == null ? '' : plural(s.sets, 'set'));
+		return metaLine(fmtDate(s.date), s.top_weight == null || s.sets === 0 ? '' : plural(s.sets, 'set'));
 	}
 
 	const eyebrow = $derived(
@@ -86,7 +85,8 @@
 			.map((s) => num(s.best_1rm ?? s.top_weight))
 			.filter((v): v is number => v != null)
 	);
-	const latestChart = $derived(chartValues.length ? chartValues[chartValues.length - 1] : null);
+	// Headline only for a real estimate (the chart falls back to top weight when there's none).
+	const latestE1rm = $derived(num(prog?.sessions.at(-1)?.best_1rm ?? null));
 	const recent = $derived([...(prog?.sessions ?? [])].reverse());
 </script>
 
@@ -147,9 +147,9 @@
 			{#if chartValues.length >= 2}
 				<section class="card block" data-testid="e1rm-chart">
 					<p class="eyebrow">Estimated 1RM</p>
-					{#if latestChart != null}
+					{#if latestE1rm != null}
 						<p class="headline">
-							<span class="big-num">{latestChart} {unit}</span>
+							<span class="big-num">{latestE1rm} {unit}</span>
 							<span class="muted">last session</span>
 						</p>
 					{/if}

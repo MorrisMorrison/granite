@@ -67,7 +67,7 @@ test('starts a workout prefilled from a routine', async ({ page }) => {
 
 	// Prefilled, not a blank workout: the routine's title and its exercise are
 	// already present (the empty-workout picker never opens).
-	await expect(page.locator('input.title')).toHaveValue('Push Day');
+	await expect(page.getByTestId('field-workout-title')).toHaveValue('Push Day');
 	await expect(page.getByTestId('set-row')).toBeVisible();
 });
 

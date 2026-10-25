@@ -42,8 +42,9 @@ src/
 A small, shadcn-flavored set, dark theme with a deep-blue accent (`#2563eb`). Tokens live in
 `src/app.css`; the design system is documented in
 [docs/09 — UI design system](../../docs/09-ui-design-system.md). Components:
-`Button`, `ListRow`, `Badge`, `PageHeader`, `EmptyState`, `Sheet` (bottom sheet, e.g. the exercise
-picker), `BackLink`, `Icon` (inline SVG set), and `TabBar` (bottom navigation).
+`Button`, `IconButton`, `Badge`, `PageHeader`, `EmptyState`, `Sheet` (bottom sheet, e.g. the exercise
+picker), `BackLink`, `SetBadge`, `Icon` (inline SVG set), and `TabBar` (bottom navigation). Shared
+layout and form patterns are global classes in `src/app.css` (see the design-system doc).
 
 ## Commands
 

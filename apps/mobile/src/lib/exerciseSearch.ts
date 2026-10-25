@@ -19,24 +19,25 @@ export interface MuscleGroup<T> {
 /**
  * Group a (filtered) list by primary muscle for the library page: groups sorted by
  * muscle name, case-insensitively (first-seen spelling wins), items keep their order.
- * Exercises without a muscle land in a trailing "Other" group.
+ * Exercises without a muscle join the "Other" group (merged with a real muscle called
+ * "other", so group names stay unique), which always comes last.
  */
 export function groupByMuscle<T extends { primary_muscle: string }>(list: T[]): MuscleGroup<T>[] {
+	const OTHER = 'other';
 	const groups = new Map<string, MuscleGroup<T>>();
-	const other: T[] = [];
 	for (const e of list) {
 		const m = e.primary_muscle.trim();
-		if (!m) {
-			other.push(e);
-			continue;
-		}
-		const key = m.toLowerCase();
+		const key = m ? m.toLowerCase() : OTHER;
 		const g = groups.get(key);
-		if (g) g.items.push(e);
-		else groups.set(key, { muscle: m, items: [e] });
+		if (g) {
+			g.items.push(e);
+			if (key === OTHER && g.muscle === 'Other' && m) g.muscle = m; // prefer a real spelling
+		} else groups.set(key, { muscle: m || 'Other', items: [e] });
 	}
+	const other = groups.get(OTHER);
+	groups.delete(OTHER);
 	const out = [...groups.values()].sort((a, b) => a.muscle.localeCompare(b.muscle));
-	if (other.length) out.push({ muscle: 'Other', items: other });
+	if (other) out.push(other);
 	return out;
 }
 

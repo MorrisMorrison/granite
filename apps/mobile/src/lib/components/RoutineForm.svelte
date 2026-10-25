@@ -191,7 +191,7 @@
 </script>
 
 <input
-	class="rf-title"
+	class="title-input"
 	placeholder="Routine title"
 	aria-label="Routine title"
 	bind:value={title}
@@ -242,7 +242,7 @@
 		</div>
 		{#each ex.sets as s, i (s.uid)}
 			{@const badge = setBadge(ex.sets, i)}
-			<div class="set-row" class:warmup={s.set_type === 'warmup'} data-testid="rf-set">
+			<div class="set-row" data-set-type={s.set_type} data-testid="rf-set">
 				<SetBadge
 					label={badge}
 					type={s.set_type}
@@ -349,22 +349,6 @@
 </div>
 
 <style>
-	/* The routine's name is the screen's heading, like the logger's workout title. */
-	.rf-title {
-		margin: 0.15rem 0 0;
-		padding: 0.2rem 0;
-		font-size: 1.6rem;
-		font-weight: 650;
-		letter-spacing: -0.02em;
-		background: transparent;
-		border: 1px solid transparent;
-		border-radius: var(--radius-sm);
-	}
-	.rf-title:focus {
-		padding: 0.2rem 0.5rem;
-		background: var(--elevated);
-		border-color: var(--accent);
-	}
 	.rf-meta {
 		margin: 0.75rem 0 1.25rem;
 	}

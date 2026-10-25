@@ -134,7 +134,6 @@
 		list-style: none;
 		margin: 1rem 0 0;
 		padding: 0;
-		background: var(--bg);
 	}
 	.warm {
 		padding: 0.45rem 0.9rem 0.45rem 0.6rem;

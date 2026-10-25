@@ -120,7 +120,7 @@ describe('RoutineForm exercise card', () => {
 		await fireEvent.click(badges[0]);
 		await fireEvent.click(getByTestId('set-type-warmup'));
 		expect(getAllByTestId('rf-set-label').map((b) => b.textContent)).toEqual(['W', '1']);
-		expect(getAllByTestId('rf-set')[0].classList.contains('warmup')).toBe(true);
+		expect(getAllByTestId('rf-set')[0].dataset.setType).toBe('warmup');
 		await fireEvent.click(getByTestId('btn-save-routine'));
 		expect(lastPayload(onsubmit).exercises[0].sets.map((x) => x.set_type)).toEqual(['warmup', 'normal']);
 	});

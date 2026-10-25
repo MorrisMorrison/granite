@@ -291,7 +291,7 @@
 				<label class="muted" for="pref-unit">Weight unit</label>
 				<select
 					id="pref-unit"
-					class="control"
+					class="setting-control"
 					value={prefs.current.weightUnit}
 					onchange={(e) => prefs.update({ weightUnit: e.currentTarget.value as 'kg' | 'lb' })}
 					data-testid="field-weight-unit"
@@ -304,7 +304,7 @@
 				<label class="muted" for="pref-rest">Default rest (seconds)</label>
 				<input
 					id="pref-rest"
-					class="control"
+					class="setting-control"
 					type="number"
 					inputmode="numeric"
 					min="0"
@@ -497,7 +497,7 @@
 		gap: 1rem;
 		padding: 0.35rem 0;
 	}
-	.control {
+	.setting-control {
 		width: 7rem;
 		text-align: right;
 	}

@@ -12,18 +12,41 @@
 
 	let dialogEl = $state<HTMLElement | undefined>();
 	let lastFocused: HTMLElement | null = null;
+	// The trigger's ancestors at open time: if the sheet's action removed the trigger (e.g.
+	// "Delete set"), focus falls back to the nearest one still on the page that can take
+	// focus, else <main>, instead of being dropped onto <body>.
+	let openAncestors: HTMLElement[] = [];
+
+	function restoreFocus(el: HTMLElement, ancestors: HTMLElement[]) {
+		if (el.isConnected) {
+			el.focus();
+			return;
+		}
+		const target = ancestors.find((a) => a.isConnected && a.matches(FOCUSABLE));
+		if (target) {
+			target.focus();
+			return;
+		}
+		const main = document.querySelector<HTMLElement>('main');
+		if (!main) return;
+		if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+		main.focus({ preventScroll: true });
+	}
 
 	// Move focus into the dialog on open; restore it to the trigger on close.
 	$effect(() => {
 		if (open) {
 			lastFocused = (document.activeElement as HTMLElement) ?? null;
+			openAncestors = [];
+			for (let a = lastFocused?.parentElement; a; a = a.parentElement) openAncestors.push(a);
 			// Prefer a child marked data-autofocus (e.g. a search field), else the dialog.
 			void tick().then(() =>
 				(dialogEl?.querySelector<HTMLElement>('[data-autofocus]') ?? dialogEl)?.focus()
 			);
 		} else if (lastFocused) {
-			lastFocused.focus();
+			restoreFocus(lastFocused, openAncestors);
 			lastFocused = null;
+			openAncestors = [];
 		}
 	});
 

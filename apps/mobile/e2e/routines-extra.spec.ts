@@ -34,7 +34,7 @@ test('auto-adds warm-up sets from the heaviest working set', async ({ page }) =>
 	await page.getByTestId('btn-ex-menu').click();
 	await page.getByTestId('btn-warmups').click();
 	// Warm-ups get prepended → the first row is now a warm-up, badged W (like the logger).
-	await expect(page.getByTestId('rf-set').first()).toHaveClass(/warmup/);
+	await expect(page.getByTestId('rf-set').first()).toHaveAttribute('data-set-type', 'warmup');
 	await expect(page.getByTestId('rf-set-label').first()).toHaveText('W');
 	expect(await page.getByTestId('rf-set').count()).toBeGreaterThan(1);
 });
