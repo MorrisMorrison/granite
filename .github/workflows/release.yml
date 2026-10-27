@@ -1,0 +1,25 @@
+name: Release
+
+# Pushing a version tag (v0.0.1) creates the GitHub release with notes generated from the merged PRs.
+# The versioned Docker image is published by docker-publish.yml on the same tag. 0.x releases are
+# marked as pre-releases until 1.0.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest   # PUBLIC repo → GitHub-hosted only (never self-hosted)
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          flags=""
+          case "$TAG" in v0.*) flags="--prerelease" ;; esac
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes \
+            --title "Granite ${TAG#v}" $flags

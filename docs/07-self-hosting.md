@@ -32,6 +32,11 @@ volumes:
   granite-data:
 ```
 
+**Image tags.** `:latest` follows `main` (every merged change). To stay on a release instead, pin its
+version, e.g. `ghcr.io/morrismorrison/granite:0.0.1` — see the
+[releases](https://github.com/MorrisMorrison/granite/releases). Granite is pre-1.0: releases are
+snapshots on the way to a stable 1.0, not long-term-supported versions.
+
 ### `.env`
 
 Copy `.env.example` to `.env` next to the compose file and fill it in:
