@@ -4,7 +4,7 @@
 
 - **Familiar concepts.** The entity set mirrors the concepts common to popular gym loggers (workouts,
   routines, routine folders, exercise templates, body measurements). This keeps the model intuitive and
-  makes **import/export with other trackers** straightforward later.
+  makes **import and export with other trackers** straightforward.
 - **One logical model, two stores.** The server holds it as a **SQLite schema**; the device holds the
   same entities in its local store. Sync reconciles them. (Note: the current web client stores records
   in **IndexedDB**, keyed by `entity:id`, rather than an on-device SQL schema — see

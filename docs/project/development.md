@@ -1,7 +1,6 @@
 # Development
 
-How to work on Granite locally. To just **run** a release, see
-[Run it yourself](../../README.md#run-it-yourself-self-hosting) instead.
+How to work on Granite locally. To run it on a server instead, see [Install](../self-hosting/install.md).
 
 ## Repo layout (monorepo)
 
@@ -9,7 +8,7 @@ How to work on Granite locally. To just **run** a release, see
 granite/
 ├─ apps/
 │  ├─ api/      # Go backend — REST API, sync engine, SQLite; embeds the web build
-│  ├─ mobile/   # SvelteKit app (static SPA / PWA); Capacitor wrappers planned for iOS/Android
+│  ├─ mobile/   # SvelteKit app (static SPA / PWA), plus the Capacitor Android app
 │  ├─ mcp/      # Model Context Protocol server (read + opt-in write tools)
 │  └─ docs/     # Astro Starlight documentation site (renders these docs + the OpenAPI reference)
 ├─ packages/

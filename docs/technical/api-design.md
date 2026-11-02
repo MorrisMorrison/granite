@@ -114,7 +114,7 @@ GET    /healthz       → liveness    |    GET /readyz → DB-ready
 GET    /openapi.yaml, /openapi.json → the spec    |    GET /docs → interactive reference
 ```
 
-## Auth model (MVP)
+## Auth model
 
 - Email + password, hashed with **argon2id**. JWT **access** token (short-lived) + **refresh** token
   (long-lived, rotating, revocable). See [ADR-0006](../decisions/0006-auth-email-password-jwt.md).
