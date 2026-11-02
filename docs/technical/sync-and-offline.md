@@ -1,7 +1,7 @@
-# Sync & offline
+# Sync and offline
 
-This is the architecturally hardest part, so it gets its own doc. The goal: **the app is fully usable
-offline, and data converges correctly across devices and the server.**
+The goal of sync: **the app is fully usable offline, and data converges correctly across devices and the
+server.**
 
 ## Principles
 
@@ -156,7 +156,7 @@ deliver via `server_seq`, but a cursor reset is the belt-and-suspenders path.)
 - Per-child-record sync. Aggregate granularity is the v1 unit (see [ADR-0008](../decisions/0008-sync-engine-v1.md));
   per-child sync remains a future option.
 - Real-time push (websockets), a periodic sync timer, or an online-event listener. Mount + after-write
-  triggers are enough for MVP; add more later if needed.
+  triggers are enough for now; add more if needed.
 - End-to-end encryption of synced data (the user owns the server, so it's their DB). Possible future.
 
 ## Testing strategy

@@ -56,7 +56,7 @@ If a pattern appears on two or more screens it becomes a global class (or a smal
   its own sticky footer (Cancel · sets done · Finish), with the rest timer as a floating card above it (`RestCard`: progress ring dead center, round −15/+15, Skip).
 
 ## `data-testid` convention
-Stable, semantic hooks for the upcoming UI e2e — never style/DOM-dependent. Pattern:
+Stable, semantic hooks for the e2e tests — never style/DOM-dependent. Pattern:
 `nav-tab-{name}`, `btn-{action}` (e.g. `btn-start-workout`, `btn-finish-workout`, `btn-cancel-workout`),
 `{entity}-row` (e.g. `routine-row`, `exercise-row`), `field-{name}` (e.g. `field-email`), `set-row`.
 

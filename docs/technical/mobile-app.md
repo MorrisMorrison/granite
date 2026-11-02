@@ -1,7 +1,7 @@
-# Mobile app (SvelteKit + Capacitor)
+# Mobile app
 
-> **Status:** the **Android app has shipped** — debug builds from CI today, signed releases on GitHub
-> Releases next. iOS comes later (it needs macOS CI). See [ADR-0012](../decisions/0012-android-app-capacitor.md).
+> **Status:** the Android app exists as debug builds from CI. Signed releases aren't available yet, and iOS
+> would need macOS CI. See [ADR-0012](../decisions/0012-android-app-capacitor.md).
 
 ## Shape
 
@@ -49,17 +49,20 @@ weaker than React Native (see ADR-0002).
 
 The app needs **Android System WebView 103 or newer** (`minWebViewVersion`).
 
-## Screens (MVP)
+## Screens
 
-- **Today / Home** — start a workout (from routine or empty), resume in-progress.
-- **Workout logger** — the hot path: exercises, sets (weight/reps/type/complete), "previous" values,
-  rest timer, notes, reorder, supersets. Must be fast and thumb-friendly.
-- **Routines** — list (in folders), create/edit a routine, reorder.
-- **Exercises** — searchable library, create/edit custom exercises.
-- **History** — past workouts; open one.
-- **Exercise detail / stats** — history + a simple progress chart + PRs.
-- **Settings** — account, **JSON export**, **personal API tokens** (read/write scopes, `gra_` prefix),
-  **Change server** (app only), logout. (Units / default-rest preferences planned.)
+The user-facing behaviour of each screen is covered in the [User guide](../user-guide/logging-a-workout.md).
+
+- **Today** — the next routine, this week's training, the last workout, and bodyweight.
+- **Workout logger** — the hot path: sets (weight, reps, type, done), previous values, rest timer, plates,
+  deload, and notes. It has to stay fast and thumb-friendly.
+- **Routines** — list in folders, create and edit, duplicate, and move.
+- **Exercises** — searchable library, custom exercises, and per-exercise progress.
+- **History** — month calendar and workout detail.
+- **Stats** — weekly volume, sets per muscle, top lifts, recent PRs, and all-time records.
+- **Bodyweight** and **Calculators**.
+- **Settings** — account, preferences, JSON export and import, CSV import, personal API tokens,
+  **Change server** (app only), and logout.
 
 ## Server connection
 

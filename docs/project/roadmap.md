@@ -1,16 +1,18 @@
 # Roadmap
 
-Phased so each step is usable on its own. Offline-first is built in from the start (retrofitting it
-later is painful), but **sync** is deferred until after a single-device app works.
+Granite is built in phases, and each one leaves something usable. It hasn't reached 1.0 yet. The latest
+release is on the [releases page](https://github.com/MorrisMorrison/granite/releases).
 
-> **Status (2026-10-25):** Phases 0–5 are done, and a good chunk of Phase 6 has shipped too — including
-> the **Android app** (Capacitor; debug builds from CI, signed releases next) —
-> bodyweight tracking, import from other trackers, and advanced analytics (the Stats hub) are all live,
-> alongside a stack of in-app enhancements: history calendar, Today + Stats screens, custom exercises, quick deload,
-> session notes, per-exercise notes, duplicate routine, auto cache-reset on a server reset, and a
-> full UI consistency pass (shared list rows, page headers, icon buttons). Remaining Phase 6: signed
-> Android releases, the iOS app, Apple Health / Google Fit (+ Watch/Wear OS), and OIDC / passkeys; plus optional
-> sync hardening. All under a unit + end-to-end test net in CI.
+## Up next
+
+- **Smarter training:** [progression targets](https://github.com/MorrisMorrison/granite/issues/242),
+  [effort per set](https://github.com/MorrisMorrison/granite/issues/243),
+  [supersets](https://github.com/MorrisMorrison/granite/issues/244), and a
+  [deload hint](https://github.com/MorrisMorrison/granite/issues/245).
+- **Reliability:** [finer-grained sync](https://github.com/MorrisMorrison/granite/issues/246),
+  [scheduled server backups](https://github.com/MorrisMorrison/granite/issues/247), and
+  [safer upgrades](https://github.com/MorrisMorrison/granite/issues/248).
+- **Platforms:** signed Android releases, then the rest of Phase 6 below.
 
 ## Phase 0 — Planning ✅
 - [x] Decisions locked (stack, sync model, license, name).

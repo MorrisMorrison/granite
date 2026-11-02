@@ -32,6 +32,7 @@ export default defineConfig({
 		mermaid({ autoTheme: true }),
 		starlight({
 			title: 'Granite',
+			logo: { src: './src/assets/hero.svg', alt: '' },
 			description:
 				'Open-source, self-hostable, offline-first workout tracker. Own your training data.',
 			favicon: '/favicon.svg',
@@ -84,7 +85,18 @@ export default defineConfig({
 					label: 'Integrations',
 					items: ['integrations/api-tokens', 'integrations/mcp-server', ...openAPISidebarGroups]
 				},
-				{ label: 'Project', items: ['project/roadmap', 'project/development'] },
+				{
+					label: 'Project',
+					items: [
+						'project/roadmap',
+						'project/development',
+						{
+							label: 'Contributing',
+							link: 'https://github.com/MorrisMorrison/granite/blob/main/CONTRIBUTING.md'
+						},
+						{ label: 'Releases', link: 'https://github.com/MorrisMorrison/granite/releases' }
+					]
+				},
 				// Deeper docs for contributors. ADRs (docs/decisions/) stay repo-only.
 				{
 					label: 'Technical docs',

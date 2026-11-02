@@ -8,13 +8,9 @@
 [![Docs](https://img.shields.io/badge/docs-live-2563eb)](https://morrismorrison.github.io/granite/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-2563eb.svg)](LICENSE)
 
-**Status:** 🟢 In active development, **in the open**. A full-featured offline-first PWA — the in-gym
-logger (rest timer, warm-ups, quick deload, notes), Routines (folders, duplicate), History (month
-calendar + workout detail), a custom Exercises library (progress charts + PRs), Bodyweight tracking,
-a Stats hub (top lifts, weekly volume, sets per muscle, all-time records), in-app calculators, and
-Settings — backed by a Go API with auth,
-sync, JSON + other-tracker (CSV) import, an MCP server, and personal API tokens. There's now an
-**Android app** too, with a rest-timer notification that fires with the screen locked, and keep-awake.
+**Status:** in active development, in the open, and not yet at 1.0. See the
+[roadmap](https://morrismorrison.github.io/granite/project/roadmap/) and the
+[releases](https://github.com/MorrisMorrison/granite/releases).
 
 ## What it is
 
@@ -50,8 +46,7 @@ The reasoning behind each major choice lives in the [Architecture Decision Recor
 
 ## Run it yourself (self-hosting)
 
-Granite is a single Go binary that serves the API **and** the web app from one SQLite file — so hosting
-it is one container behind a reverse proxy.
+Granite is one container that serves the API and the web app from a single SQLite file.
 
 ```sh
 cd deploy
@@ -60,18 +55,11 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open `GRANITE_BASE_URL` and **register** — the first account is always allowed, even with registration
-closed (leave `GRANITE_ALLOW_REGISTRATION=false` to keep further signups off). That's it.
+Open `GRANITE_BASE_URL` and register. The first account can always be created.
 
-- **Your data** is the single file in the `granite-data` volume (`/data/granite.db`). Back it up with
-  the container stopped (or via `sqlite3 granite.db .backup` — don't copy a live WAL database), or use
-  **Settings → Export** (restore via `POST /api/v1/import`). Migrations run on start.
-- **API reference:** every instance serves an interactive reference at **`/docs`** and the spec at
-  **`/openapi.yaml`**.
-- **Update:** `docker compose pull && docker compose up -d`.
-- **HTTPS:** terminate TLS at a reverse proxy (Caddy / Traefik / nginx) and point `GRANITE_BASE_URL` at it.
-
-Full reference: [Self-hosting](docs/self-hosting/install.md) and [`deploy/`](deploy/).
+The [quick start](https://morrismorrison.github.io/granite/getting-started/quick-start/) has the details, and
+the [self-hosting guide](https://morrismorrison.github.io/granite/self-hosting/install/) covers HTTPS, backups,
+and upgrades.
 
 ### Android app
 
@@ -83,10 +71,11 @@ for a plain-HTTP LAN server (HTTPS recommended). See [Mobile app](docs/technical
 
 ## Documentation
 
-📖 **Documentation site: <https://morrismorrison.github.io/granite/>** (generated from `docs/`), including the
-full **[REST API reference](https://morrismorrison.github.io/granite/api/)** (rendered from the OpenAPI spec).
-
-Or browse the source: design docs, architecture, and ADRs live in **[`docs/`](docs/README.md)**. 
+**<https://morrismorrison.github.io/granite/>** has the
+[user guide](https://morrismorrison.github.io/granite/user-guide/logging-a-workout/), the
+[self-hosting guide](https://morrismorrison.github.io/granite/self-hosting/install/), and the
+[REST API reference](https://morrismorrison.github.io/granite/api/). The site is generated from
+[`docs/`](docs/README.md), which also holds the Architecture Decision Records.
 
 ## Development
 
