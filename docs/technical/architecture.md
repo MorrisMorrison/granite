@@ -4,7 +4,7 @@
 
 ```mermaid
 graph TB
-    subgraph Device["📱 Device (phone / browser)"]
+    subgraph Device["Device (phone / browser)"]
         UI["SvelteKit UI (static SPA)"]
         LDB[("Local store: IndexedDB\n(source of truth on-device)")]
         SYNC["Sync client (TS)"]
@@ -12,7 +12,7 @@ graph TB
         SYNC <--> LDB
     end
 
-    subgraph Server["🖥️ Self-hosted server (one binary)"]
+    subgraph Server["Self-hosted server (one binary)"]
         API["Go API\n(REST + sync)\nembeds the web build"]
         SDB[("SQLite file")]
         API --> SDB

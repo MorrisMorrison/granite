@@ -14,12 +14,12 @@ release is on the [releases page](https://github.com/MorrisMorrison/granite/rele
   [safer upgrades](https://github.com/MorrisMorrison/granite/issues/248).
 - **Platforms:** signed Android releases, then the rest of Phase 6 below.
 
-## Phase 0 — Planning ✅
+## Phase 0 — Planning
 - [x] Decisions locked (stack, sync model, license, name).
 - [x] Design docs + ADRs.
 - [x] Scaffold the monorepo skeleton (`apps/`, `packages/`, tooling, CI).
 
-## Phase 1 — API + data foundation ✅
+## Phase 1 — API + data foundation
 - [x] Go service scaffold (HTTP, config, logging, typed error taxonomy).
 - [x] SQLite schema + migrations for the core entities (with sync metadata).
 - [x] Auth: register/login/refresh, JWTs, argon2id.
@@ -27,7 +27,7 @@ release is on the [releases page](https://github.com/MorrisMorrison/granite/rele
 - [x] Built-in exercise seed data.
 - [x] `export` / `import`.
 
-## Phase 2 — Mobile MVP, single-device (offline-first) ✅ *(core)*
+## Phase 2 — Mobile MVP, single-device (offline-first) *(core)*
 - [x] SvelteKit app scaffold (`adapter-static`); local data layer (IndexedDB, [ADR-0010](../decisions/0010-web-local-store-indexeddb.md)).
 - [x] Exercises (library + built-ins), Routines (+ folders).
 - [x] **Workout logger** hot path: sets, rest timer.
@@ -37,9 +37,9 @@ release is on the [releases page](https://github.com/MorrisMorrison/granite/rele
 - [x] Settings (account, JSON export, API tokens).
   - [x] Units, default rest, and other preferences; exercise search; JSON import.
 - [x] Runs as an installable **PWA** (service worker, offline shell).
-- 🎯 *Milestone met: log a full real session offline, no account/server needed.*
+- *Milestone met: log a full real session offline, no account/server needed.*
 
-## Phase 3 — Sync ✅
+## Phase 3 — Sync
 - [x] Server sync endpoints (`POST /api/v1/sync/{pull,push}`), LWW + tombstones — see [ADR-0008](../decisions/0008-sync-engine-v1.md).
 - [x] Convergence tests (server-side: nested round-trip, incremental cursor, LWW, idempotency, isolation).
 - [x] Sync client (pull/push, pending outbox, LWW, tombstones) in `packages/shared`.
@@ -48,9 +48,9 @@ release is on the [releases page](https://github.com/MorrisMorrison/granite/rele
 - [x] *(Hardening)* per-user `server_seq` pull cursor — monotonic, clock-independent, assigned by DB
       triggers on every write so backdated/imported records aren't skipped (migration `00009`).
 - [ ] *(Hardening, later)* consider per-child-record sync (currently aggregate granularity).
-- 🎯 *Milestone met: usable as a daily workout logger.*
+- *Milestone met: usable as a daily workout logger.*
 
-## Phase 4 — Self-hosting polish ✅
+## Phase 4 — Self-hosting polish
 - [x] Multi-stage Docker image (Go binary + embedded web build + SQLite).
 - [x] `docker-compose.yml`, `.env.example`, setup docs.
 - [x] GitHub Actions: build/test (+ image build on every PR); publish on main.
