@@ -1,6 +1,6 @@
 // Shared TypeScript for the Granite clients.
 // The generated API client (from the server's OpenAPI spec), shared domain types,
-// and the offline-first sync engine will live here — see docs/05-sync-and-offline.md.
+// and the offline-first sync engine will live here — see docs/technical/sync-and-offline.md.
 
 // The generated, fully-typed API client (from the server's OpenAPI spec).
 export * from './api/client';

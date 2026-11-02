@@ -1,4 +1,4 @@
-# 03 — Data model
+# Data model
 
 ## Design notes
 
@@ -8,7 +8,7 @@
 - **One logical model, two stores.** The server holds it as a **SQLite schema**; the device holds the
   same entities in its local store. Sync reconciles them. (Note: the current web client stores records
   in **IndexedDB**, keyed by `entity:id`, rather than an on-device SQL schema — see
-  [ADR-0010](decisions/0010-web-local-store-indexeddb.md). The logical model and the sync metadata below
+  [ADR-0010](../decisions/0010-web-local-store-indexeddb.md). The logical model and the sync metadata below
   are identical regardless of the on-device engine.)
 - **Every syncable row carries sync metadata** (see below). This is what makes offline-first work.
 

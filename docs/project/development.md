@@ -1,7 +1,7 @@
 # Development
 
 How to work on Granite locally. To just **run** a release, see
-[Run it yourself](../README.md#run-it-yourself-self-hosting) instead.
+[Run it yourself](../../README.md#run-it-yourself-self-hosting) instead.
 
 ## Repo layout (monorepo)
 
@@ -76,7 +76,7 @@ targets. JS deps run through `corepack pnpm`.
   MCP tools.
 - **End-to-end — Playwright, against the real binary.** `corepack pnpm --filter mobile e2e` builds the
   SPA, embeds it into the Go binary, and runs that binary against a throwaway SQLite DB — the same
-  artifact that ships, no mocks or Docker. Specs in [`apps/mobile/e2e/`](../apps/mobile/e2e/) cover
+  artifact that ships, no mocks or Docker. Specs in [`apps/mobile/e2e/`](../../apps/mobile/e2e/) cover
   register/login, logging a workout into history, routines + folders, and API tokens. See the harness
   in `apps/mobile/e2e/serve.mjs` and `apps/mobile/playwright.config.ts`. Env knobs: `E2E_SKIP_BUILD=1`
   (reuse the previous build), `E2E_PORT`, `GO_BIN`.

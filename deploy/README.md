@@ -30,4 +30,4 @@ registration closed. Leave `GRANITE_ALLOW_REGISTRATION=false` to keep further si
 - **TLS:** terminate HTTPS at a reverse proxy (Caddy / Traefik / nginx) in front of the container and
   point `GRANITE_BASE_URL` at the public URL.
 
-See [docs/07 — Self-hosting](../docs/07-self-hosting.md) for the full picture and the config reference.
+See [Self-hosting](../docs/self-hosting/install.md) for the full picture and the config reference.

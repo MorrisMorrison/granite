@@ -1,4 +1,4 @@
-# 04 — API design
+# API design
 
 The API serves three consumers with the same surface: the **Granite app** (mobile + web), **sync**,
 and **third parties / MCP**. It is REST + JSON, described by an **OpenAPI 3.1** spec that generates the
@@ -13,8 +13,8 @@ Every instance serves its own, always-up-to-date API reference (no hosting neede
 | `/docs` | Interactive API reference (browse + try endpoints) |
 | `/openapi.yaml`, `/openapi.json` | The machine-readable OpenAPI 3.1 spec |
 
-These are generated from the Go code (code-first, via [huma](decisions/0007-huma-openapi.md)), so they
-never drift from the implementation. The committed [`apps/api/openapi.yaml`](../apps/api/openapi.yaml)
+These are generated from the Go code (code-first, via [huma](../decisions/0007-huma-openapi.md)), so they
+never drift from the implementation. The committed [`apps/api/openapi.yaml`](../../apps/api/openapi.yaml)
 is the same spec that drives the generated TypeScript client.
 
 ## Conventions
@@ -26,7 +26,7 @@ is the same spec that drives the generated TypeScript client.
   offline).
 - Auth: `Authorization: Bearer <jwt>` on everything except auth + health. A personal API token
   (`Bearer <token>`) is accepted on the same endpoints for programmatic/MCP access — see
-  [ADR-0009](decisions/0009-personal-api-tokens.md).
+  [ADR-0009](../decisions/0009-personal-api-tokens.md).
 - **No pagination.** List endpoints return the whole collection (`{ "<entity>": [...] }`). The data is
   small — a single user's workout history — and every client keeps a full local copy anyway, so there
   is no cursor/limit convention. Filtering/aggregation happens client-side.
@@ -55,7 +55,7 @@ custom `{error, code, details}` envelope and no `conflicts[]`.
 ## The surface
 
 The whole API is ~33 JSON operations plus health/spec endpoints. This is the real, generated surface;
-the [OpenAPI file](../apps/api/openapi.yaml) is the source of truth.
+the [OpenAPI file](../../apps/api/openapi.yaml) is the source of truth.
 
 ### Auth
 ```
@@ -71,7 +71,7 @@ GET    /api/v1/me                                               → {user, setti
 PATCH  /api/v1/me                 {display_name?, settings?}     // partial: only provided fields change
 ```
 
-### Sync (the primary data path — see [05](05-sync-and-offline.md))
+### Sync (the primary data path — see [Sync and offline](sync-and-offline.md))
 ```
 POST   /api/v1/sync/push          {changes[]}                   → {applied[], cursor}
 POST   /api/v1/sync/pull          {since}                       → {changes[], cursor}
@@ -106,7 +106,7 @@ GET                      /api/v1/server-info                     → {instance_i
 - There is **no `GET /exercises/{id}/history` and no `GET /stats/prs`.** History and personal records
   (estimated 1RM via Epley, best set, volume) are **computed client-side** from the workout data each
   client already holds locally (`apps/mobile/src/lib/stats.ts`). The server stores; the client
-  analyzes — consistent with [ADR-0004](decisions/0004-sqlite-everywhere.md).
+  analyzes — consistent with [ADR-0004](../decisions/0004-sqlite-everywhere.md).
 
 ### Ops
 ```
@@ -117,11 +117,11 @@ GET    /openapi.yaml, /openapi.json → the spec    |    GET /docs → interacti
 ## Auth model (MVP)
 
 - Email + password, hashed with **argon2id**. JWT **access** token (short-lived) + **refresh** token
-  (long-lived, rotating, revocable). See [ADR-0006](decisions/0006-auth-email-password-jwt.md).
+  (long-lived, rotating, revocable). See [ADR-0006](../decisions/0006-auth-email-password-jwt.md).
 - Designed multi-user from day one (each row scoped by `user_id`), but a single instance is typically
   one person or a household. Registration can be gated (env flag / an injected `AccountGate` — see
-  [ADR-0011](decisions/0011-account-gate-extension-point.md)).
-- **Personal API tokens** ([ADR-0009](decisions/0009-personal-api-tokens.md)) provide programmatic
+  [ADR-0011](../decisions/0011-account-gate-extension-point.md)).
+- **Personal API tokens** ([ADR-0009](../decisions/0009-personal-api-tokens.md)) provide programmatic
   access with an optional write scope, used by scripts and the MCP server.
 - Future: OIDC and passkeys.
 

@@ -1,6 +1,6 @@
 // Core types for the offline-first sync client. The engine is store- and
 // transport-agnostic: it talks to a `SyncApi` (the server) and a `SyncStore`
-// (the device-local data). See docs/05-sync-and-offline.md and ADR-0008.
+// (the device-local data). See docs/technical/sync-and-offline.md and ADR-0008.
 
 /** One record's state in the sync stream (mirrors the server's change shape). */
 export interface Change {

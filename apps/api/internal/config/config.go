@@ -38,7 +38,7 @@ type Config struct {
 	APIRateLimit int
 	LogLevel      string
 	// Env is "prod" (default) or "dev". In dev the server auto-seeds the demo
-	// account on startup; see GRANITE_ENV in docs/DEVELOPMENT.md.
+	// account on startup; see GRANITE_ENV in docs/project/development.md.
 	Env string
 }
 

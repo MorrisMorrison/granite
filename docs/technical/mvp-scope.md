@@ -1,11 +1,11 @@
-# 01 — MVP scope
+# MVP scope
 
 The MVP is the smallest thing that's **good enough to be someone's daily workout logger**, self-hosted.
 Everything is judged against that.
 
 ## In scope (MVP)
 
-> **Status:** the MVP cut below has **shipped** (roadmap Phases 1–5 — see [08-roadmap](08-roadmap.md)).
+> **Status:** the MVP cut below has **shipped** (roadmap Phases 1–5 — see [08-roadmap](../project/roadmap.md)).
 > The boxes are checked to reflect that; the list is kept as the record of what "MVP" meant.
 
 ### Exercises
@@ -34,7 +34,7 @@ Everything is judged against that.
 ### Sync & accounts
 - [x] Single-server **account** (email + password) — see ADR-0006.
 - [x] **Offline-first sync**: the device-local store is the source of truth on-device (SQLite on the
-      server, IndexedDB in the web/PWA client — see [ADR-0010](decisions/0010-web-local-store-indexeddb.md));
+      server, IndexedDB in the web/PWA client — see [ADR-0010](../decisions/0010-web-local-store-indexeddb.md));
       changes sync to the server and pull down on other devices. Conflict policy = last-write-wins per record.
 - [x] Data **export** (JSON) — no lock-in, on day one.
 

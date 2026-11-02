@@ -71,7 +71,7 @@ closed (leave `GRANITE_ALLOW_REGISTRATION=false` to keep further signups off). T
 - **Update:** `docker compose pull && docker compose up -d`.
 - **HTTPS:** terminate TLS at a reverse proxy (Caddy / Traefik / nginx) and point `GRANITE_BASE_URL` at it.
 
-Full reference: [docs/07 — Self-hosting](docs/07-self-hosting.md) and [`deploy/`](deploy/).
+Full reference: [Self-hosting](docs/self-hosting/install.md) and [`deploy/`](deploy/).
 
 ### Android app
 
@@ -79,7 +79,7 @@ The same app as a native Android build, with a rest-timer notification that work
 For now, install a test build: download the `granite-debug-apk` artifact from the latest
 [Android CI run](https://github.com/MorrisMorrison/granite/actions/workflows/android.yml) on a PR (needs a
 GitHub login; artifacts expire after 14 days). Signed APKs on GitHub Releases are coming. On first launch the app asks for your server address — use `http://`
-for a plain-HTTP LAN server (HTTPS recommended). See [docs/06 — Mobile app](docs/06-mobile-app.md).
+for a plain-HTTP LAN server (HTTPS recommended). See [Mobile app](docs/technical/mobile-app.md).
 
 ## Documentation
 
@@ -91,7 +91,7 @@ Or browse the source: design docs, architecture, and ADRs live in **[`docs/`](do
 ## Development
 
 Building Granite locally — repo layout, dev servers, build & test, the e2e harness — is documented in
-**[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**.
+**[docs/project/development.md](docs/project/development.md)**.
 
 ## Contributing
 

@@ -1,4 +1,4 @@
-# 08 — Roadmap
+# Roadmap
 
 Phased so each step is usable on its own. Offline-first is built in from the start (retrofitting it
 later is painful), but **sync** is deferred until after a single-device app works.
@@ -26,7 +26,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 - [x] `export` / `import`.
 
 ## Phase 2 — Mobile MVP, single-device (offline-first) ✅ *(core)*
-- [x] SvelteKit app scaffold (`adapter-static`); local data layer (IndexedDB, [ADR-0010](decisions/0010-web-local-store-indexeddb.md)).
+- [x] SvelteKit app scaffold (`adapter-static`); local data layer (IndexedDB, [ADR-0010](../decisions/0010-web-local-store-indexeddb.md)).
 - [x] Exercises (library + built-ins), Routines (+ folders).
 - [x] **Workout logger** hot path: sets, rest timer.
   - [x] "previous" set values; rest-timer notification (vibrate + beep).
@@ -38,7 +38,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 - 🎯 *Milestone met: log a full real session offline, no account/server needed.*
 
 ## Phase 3 — Sync ✅
-- [x] Server sync endpoints (`POST /api/v1/sync/{pull,push}`), LWW + tombstones — see [ADR-0008](decisions/0008-sync-engine-v1.md).
+- [x] Server sync endpoints (`POST /api/v1/sync/{pull,push}`), LWW + tombstones — see [ADR-0008](../decisions/0008-sync-engine-v1.md).
 - [x] Convergence tests (server-side: nested round-trip, incremental cursor, LWW, idempotency, isolation).
 - [x] Sync client (pull/push, pending outbox, LWW, tombstones) in `packages/shared`.
 - [x] Device-local store + app swapped to local-first.
@@ -62,7 +62,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 
 ## Phase 6 — Native & nice-to-haves
 - [x] Android app (Capacitor) — rest-timer notification with the screen locked, keep-awake, server
-      connect step; debug APKs from CI ([ADR-0012](decisions/0012-android-app-capacitor.md)).
+      connect step; debug APKs from CI ([ADR-0012](../decisions/0012-android-app-capacitor.md)).
 - [ ] Signed Android release APKs on GitHub Releases (per `v*` tag).
 - [ ] iOS app (needs macOS CI).
 - [x] Bodyweight tracking — standalone synced weigh-in log (weight only; trend chart + shown on each
@@ -77,7 +77,7 @@ later is painful), but **sync** is deferred until after a single-device app work
 
 ## Cross-cutting
 - [x] **UI modernization & polish** — dark, deep-blue, shadcn-inspired component library + design
-  system ([docs/09](09-ui-design-system.md)); every screen rebuilt on it.
+  system ([UI design system](../technical/ui-design-system.md)); every screen rebuilt on it.
 - [x] **Test safety net** — unit tests (vitest: sync engine, IndexedDB store, UI components) plus a
   Playwright **end-to-end** suite against the real binary, all green in CI.
 
