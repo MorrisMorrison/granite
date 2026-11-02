@@ -101,6 +101,14 @@ Forbidden→403, …). No string-matching on error messages for status mapping; 
 errors to clients. Clients branch on `code`/HTTP status, not message strings. Genuine internal failures
 return a generic 500 (cause logged server-side, not returned).
 
+## Deployment
+
+- **One image.** The Go binary embeds the SvelteKit static build, so there's no separate web container and no Node at runtime. A pure-Go SQLite driver keeps the binary CGO-free and easy to cross-compile.
+- **Docker build.** A multi-stage build compiles the web app, then the Go binary with the web assets embedded, into a small Alpine image. GitHub Actions publishes it to GHCR for `linux/amd64` and `linux/arm64`.
+- **Startup.** The container starts as root only long enough to make the data folder writable, then drops to the non-root `granite` user.
+- **Shutdown.** On `SIGINT` or `SIGTERM` the server stops accepting connections, drains in-flight requests for up to 15 seconds, then closes SQLite cleanly, so restarts don't corrupt the database or drop a request mid-write.
+- **Footprint.** The heavy read and stats work happens on the client, because each device keeps a full local copy. The server stays light even with a long history.
+
 ## Why this shape
 
 - **Offline-first** demands a local DB + sync; everything above follows from that.

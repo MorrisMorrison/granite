@@ -38,5 +38,5 @@ That's it. You can start logging workouts.
 
 To use Granite from your phone at the gym, the server has to be reachable from outside this machine, ideally over HTTPS.
 
-- [Self-hosting](../self-hosting/install.md): the full setup, configuration, and backups.
+- [Self-hosting](../self-hosting/install.md): the full setup, reverse proxy, and backups.
 - [Install on your phone](install-on-your-phone.md): add Granite to your home screen.
