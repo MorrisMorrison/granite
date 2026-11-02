@@ -1,141 +1,72 @@
-# Self-hosting
+# Install
 
-Self-hosting is a first-class goal, not an afterthought. The bar: **`docker-compose up` and one config
-file** (or just run the binary). Granite is a **single container** — one Go binary that serves the
-REST/sync API **and** the embedded web app, and stores everything in a SQLite file on a mounted volume.
-There's no separate database process to run, tune, or back up.
+Granite runs as a single container that serves both the app and the API, and stores everything in one SQLite file. There's no separate database to run. This page covers a setup you can reach from your phone. To try Granite on your own machine first, see the [quick start](../getting-started/quick-start.md).
 
-## Quickstart (Docker Compose)
+## What you need
 
-A ready-to-use [`deploy/docker-compose.yml`](../../deploy/docker-compose.yml) +
-[`deploy/.env.example`](../../deploy/.env.example) ship in the repo — see [`deploy/`](../../deploy/).
+- A machine that stays on, with Docker and Docker Compose. A Raspberry Pi, a NAS, or a small VPS is plenty.
+- A domain name pointing at that machine, for HTTPS. Browsers only let you install Granite on your phone from a secure address.
+
+Images are published for `linux/amd64` and `linux/arm64`.
+
+## Set up the server
+
+1. Create a folder and download the Compose file and the example config:
+
+   ```sh
+   mkdir granite && cd granite
+   curl -fsSLO https://raw.githubusercontent.com/MorrisMorrison/granite/main/deploy/docker-compose.yml
+   curl -fsSL -o .env https://raw.githubusercontent.com/MorrisMorrison/granite/main/deploy/.env.example
+   ```
+
+2. Generate a signing secret:
+
+   ```sh
+   openssl rand -base64 48
+   ```
+
+3. Edit `.env`. Paste the secret after `GRANITE_JWT_SECRET=`, and set `GRANITE_BASE_URL` to the address you'll use:
+
+   ```sh
+   GRANITE_JWT_SECRET=your-generated-secret
+   GRANITE_BASE_URL=https://granite.example.com
+   ```
+
+4. Start Granite:
+
+   ```sh
+   docker compose up -d
+   ```
+
+5. Put it behind a [reverse proxy](reverse-proxy.md) for HTTPS, then open your address and register. The first account can always be created. After that, registration stays closed unless you [turn it on](configuration.md#accounts).
+
+## Choose an image tag
+
+The Compose file uses `:latest`, which follows the `main` branch and changes with every merged update. To stay on a release, pin its version:
 
 ```yaml
-services:
-  granite:
-    image: ghcr.io/morrismorrison/granite:latest
-    # build: ..   # ...or build from source instead of pulling the image
-    ports:
-      - "${GRANITE_PORT:-8080}:8080"
-    environment:
-      PORT: "8080"
-      GRANITE_DB_PATH: /data/granite.db
-      GRANITE_BASE_URL: ${GRANITE_BASE_URL:-http://localhost:8080}
-      GRANITE_ALLOW_REGISTRATION: ${GRANITE_ALLOW_REGISTRATION:-false}
-      GRANITE_LOG_LEVEL: ${GRANITE_LOG_LEVEL:-info}
-      GRANITE_JWT_SECRET: ${GRANITE_JWT_SECRET:?set GRANITE_JWT_SECRET in your .env}
-    volumes:
-      - granite-data:/data
-    restart: unless-stopped
+image: ghcr.io/morrismorrison/granite:0.0.1
+```
 
+See the [releases](https://github.com/MorrisMorrison/granite/releases) for what's available. Granite hasn't reached 1.0 yet: releases are snapshots on the way there, not long-term-supported versions.
+
+## Store data in a host folder
+
+The Compose file keeps your data in a named Docker volume. To use a folder on the host instead, replace the volume in `docker-compose.yml`:
+
+```yaml
 volumes:
-  granite-data:
+  - /opt/granite/data:/data
 ```
 
-**Image tags.** `:latest` follows `main` (every merged change). To stay on a release instead, pin its
-version, e.g. `ghcr.io/morrismorrison/granite:0.0.1` — see the
-[releases](https://github.com/MorrisMorrison/granite/releases). Granite is pre-1.0: releases are
-snapshots on the way to a stable 1.0, not long-term-supported versions.
+Create the folder with `sudo mkdir -p /opt/granite/data`. The container fixes the folder's ownership when it starts, so you don't need to `chown` it yourself.
 
-### `.env`
+## Build from source
 
-Copy `.env.example` to `.env` next to the compose file and fill it in:
+To build the image yourself, clone the repository and replace the `image:` line in `deploy/docker-compose.yml` with `build: ..`. See [Development](../project/development.md) for working on Granite locally.
 
-```sh
-# REQUIRED — signing secret for auth tokens (min 32 bytes):
-#   openssl rand -base64 48
-GRANITE_JWT_SECRET=
+## Next steps
 
-# Public URL your instance is reached at (no trailing slash). Behind a proxy, your https:// domain.
-GRANITE_BASE_URL=http://localhost:8080
-
-# Leave false for a personal instance — the FIRST account can always be created.
-GRANITE_ALLOW_REGISTRATION=false
-
-# Host port to expose (maps to the container's PORT).
-GRANITE_PORT=8080
-
-# debug | info | warn | error
-GRANITE_LOG_LEVEL=info
-```
-
-Then `docker compose up -d` and open `GRANITE_BASE_URL`. Put it behind a reverse proxy (Caddy / Traefik /
-nginx) for TLS. The optional [MCP server](../../apps/mcp/) runs as a separate stdio process alongside the
-container, not part of it.
-
-If you run behind a proxy that **replaces** `X-Forwarded-For` (not appends to it), set
-`GRANITE_TRUSTED_PROXY=true` so the rate limiter keys on the real client IP; leave it `false` (the
-default) if the port is exposed directly, otherwise a client could spoof the header to bypass the
-per-IP brute-force limits.
-
-## Configuration (env vars)
-
-| Var | Purpose |
-|---|---|
-| `GRANITE_DB_PATH` | Path to the SQLite file (on a mounted volume). |
-| `GRANITE_JWT_SECRET` | Signing secret for JWTs. |
-| `GRANITE_BASE_URL` | Public URL (links, CORS, etc.). |
-| `GRANITE_ALLOW_REGISTRATION` | `true`/`false` or invite-gated — lock down a personal instance. |
-| `GRANITE_TRUSTED_PROXY` | `true` only behind a proxy that replaces `X-Forwarded-For` (default `false`). |
-| `GRANITE_LOG_LEVEL` | `debug`/`info`/`warn`/`error` (default `info`). |
-| `PORT` | Listen port (default 8080). |
-
-`GRANITE_JWT_SECRET` is **required** and must be ≥ 32 bytes (the server refuses to start otherwise) —
-generate one with `openssl rand -base64 48`. Registration defaults **closed**, but the **first account
-can always be created**, so a personal instance needs no extra steps to bootstrap.
-
-## Storage & backups
-
-- **Bind mounts just work.** The compose above uses a named Docker volume, which Docker chowns to the
-  container automatically. If you prefer a host directory instead (`-v /opt/granite/data:/data`), it'll
-  typically be root-owned and unwritable by the non-root app — so the image **chowns the data dir to its
-  app user on startup**. A plain `sudo mkdir -p /opt/granite/data` + bind mount is enough; no manual
-  `chown` needed. (Running with `--user` skips this and just uses the uid you provide.)
-- **Backups** are trivial: it's a **single SQLite file**. Back it up with the container **stopped**, or
-  take a hot copy with `sqlite3 granite.db .backup backup.db` — don't just `cp` a live database, since
-  WAL mode keeps recent writes in a side file and a raw copy can be inconsistent. For continuous,
-  always-safe replication use a tool like Litestream. No DB dump tooling required.
-- **In-app export**: `GET /api/v1/export` (Settings → Export) returns a complete JSON of your data —
-  true "own your data," independent of file-level backups.
-- **Restore**: either replace the SQLite file from a backup, or `POST /api/v1/import` an export JSON
-  (upsert by id, idempotent) into a fresh or existing account.
-
-## Using the Android app
-
-The [Android app](../technical/mobile-app.md) works with any up-to-date server — no configuration, because the
-native origins are allowed in CORS automatically. On first launch, enter your `GRANITE_BASE_URL`.
-
-- **HTTPS is recommended.** A plain-HTTP server (e.g. on a home LAN) works if you type `http://`
-  (otherwise `https://` is assumed), but passwords and tokens then travel unencrypted — trusted networks only.
-- The app checks `GET /api/v1/info` and says the server **needs an update** if it is older than the app.
-
-## Graceful lifecycle
-
-The server installs HTTP timeouts (slow-client protection) and shuts down gracefully on `SIGINT`/`SIGTERM`:
-it stops accepting connections, drains in-flight requests (up to 15s), then closes SQLite cleanly — so
-`docker compose stop`/restarts and host reboots won't corrupt the database or drop a request mid-write.
-
-## Security notes
-
-- argon2id password hashing; rotating refresh tokens.
-- An instance is single-person/household; registration gated by default on self-hosts.
-- Put it behind a reverse proxy with TLS; optionally behind an external identity provider once OIDC lands.
-- CORS always allows the Android app's origins (`https://localhost`, `capacitor://localhost`) in addition
-  to `GRANITE_BASE_URL` — safe because auth is bearer tokens, not cookies.
-- No telemetry, ever.
-
-## Minimal footprint
-
-A single Go binary + a SQLite file comfortably runs on a Raspberry Pi, a NAS, or a small VPS/LXC. The
-heavy read/stat work happens on the **client** (each device keeps a full local copy in IndexedDB), so the server
-stays light even with the whole history synced.
-
-## Image & build
-
-- The Go binary **embeds the SvelteKit static build**, so the image is self-contained — no separate
-  web container, no Node at runtime.
-- A pure-Go SQLite driver keeps the binary **CGO-free** and easy to cross-compile to a small static image.
-- Multi-stage Docker build: build web (pnpm) → build Go (with embedded assets) → tiny final image
-  (distroless/alpine).
-- Built and published by **GitHub Actions** (public repo → free CI). Images published to a registry
-  (e.g. GHCR) so self-hosters can `docker pull`, or build from source.
+- [Configuration](configuration.md): every setting.
+- [Backups and restore](backups.md): do this before you log your first real workout.
+- [Upgrading](upgrading.md): moving to a new version.

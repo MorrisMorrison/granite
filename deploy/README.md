@@ -20,14 +20,12 @@ registration closed. Leave `GRANITE_ALLOW_REGISTRATION=false` to keep further si
 
 ## Operating it
 
-- **Data** lives in the `granite-data` volume at `/data/granite.db`. Back it up by copying that single
-  file (stop the container, or take a hot copy with `sqlite3 .backup`), or use the in-app **JSON export**
-  (Settings → Export, or `GET /api/v1/export`).
+- **Data** lives in the `granite-data` volume at `/data/granite.db`. See
+  [Backups and restore](../docs/self-hosting/backups.md).
 - **Bind mounts** are fine too: swap the named volume for a host dir (`-v /opt/granite/data:/data`) and
   the image fixes the directory's ownership on startup, so a plain `mkdir` works — no manual `chown`.
 - **Update:** `docker compose pull && docker compose up -d`. Schema migrations run automatically on start.
 - **Health:** the image ships a `HEALTHCHECK` hitting `/healthz`; `docker compose ps` shows status.
-- **TLS:** terminate HTTPS at a reverse proxy (Caddy / Traefik / nginx) in front of the container and
-  point `GRANITE_BASE_URL` at the public URL.
+- **TLS:** see [Reverse proxy](../docs/self-hosting/reverse-proxy.md).
 
 See [Self-hosting](../docs/self-hosting/install.md) for the full picture and the config reference.
