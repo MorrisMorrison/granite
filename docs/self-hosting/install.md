@@ -45,7 +45,7 @@ Images are published for `linux/amd64` and `linux/arm64`.
 The Compose file uses `:latest`, which follows the `main` branch and changes with every merged update. To stay on a release, pin its version:
 
 ```yaml
-image: ghcr.io/morrismorrison/granite:0.0.1
+image: ghcr.io/morrismorrison/granite:0.0.2
 ```
 
 See the [releases](https://github.com/MorrisMorrison/granite/releases) for what's available. Granite hasn't reached 1.0 yet: releases are snapshots on the way there, not long-term-supported versions.
