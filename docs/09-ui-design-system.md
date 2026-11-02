@@ -53,7 +53,7 @@ If a pattern appears on two or more screens it becomes a global class (or a smal
 - **Slim top app bar** — Granite mark (links to Today) + icon actions: Add to Home Screen (only when offered),
   exercise library, calculators, settings, log out. Each is a 36px icon link/button with an `aria-label`.
 - **Focused flows hide the chrome** — the workout logger (`/log`) is full-screen (no tab bar / app bar) with
-  its own sticky footer (Cancel · status/rest-timer · Finish).
+  its own sticky footer (Cancel · sets done · Finish), with the rest timer as a floating card above it (`RestCard`: progress ring dead center, round −15/+15, Skip).
 
 ## `data-testid` convention
 Stable, semantic hooks for the upcoming UI e2e — never style/DOM-dependent. Pattern:
