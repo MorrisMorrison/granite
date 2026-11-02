@@ -6,7 +6,9 @@ folder is a section of the site.
 | Folder | Section | For |
 |---|---|---|
 | [`getting-started/`](getting-started/) | Getting started | Everyone new to Granite |
+| [`user-guide/`](user-guide/) | User guide | People using the app |
 | [`self-hosting/`](self-hosting/) | Self-hosting | People running a Granite server |
+| [`integrations/`](integrations/) | Integrations | People scripting their own data |
 | [`project/`](project/) | Project | Roadmap and how to develop Granite |
 | [`technical/`](technical/) | Technical docs | Contributors: vision, architecture, data model, sync, API design, mobile app, UI design system |
 | [`decisions/`](decisions/) | Repo only | Architecture Decision Records: the reasoning behind each locked choice |

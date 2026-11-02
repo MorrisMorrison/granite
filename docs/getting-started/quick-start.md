@@ -40,3 +40,4 @@ To use Granite from your phone at the gym, the server has to be reachable from o
 
 - [Self-hosting](../self-hosting/install.md): the full setup, reverse proxy, and backups.
 - [Install on your phone](install-on-your-phone.md): add Granite to your home screen.
+- [Logging a workout](../user-guide/logging-a-workout.md): your first session.
