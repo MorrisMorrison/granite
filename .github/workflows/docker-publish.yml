@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]   # publish :latest on every main commit (self-hosted deployers can auto-pull)
     tags: ['v*']       # a release tag (v0.0.1) also publishes the pinned :0.0.1 image
+    paths-ignore:      # docs don't change the image (tag pushes ignore this filter)
+      - 'docs/**'
+      - 'apps/docs/**'
+      - '**.md'
   workflow_dispatch:
     inputs:
       tag:
