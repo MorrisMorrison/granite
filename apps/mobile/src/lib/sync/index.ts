@@ -62,6 +62,12 @@ export function syncNow(): Promise<SyncResult> {
 	return running;
 }
 
+/** Wait out a sync in flight. It saves the cursor it pulled up to when it finishes, which
+ *  would undo a wipe or cursor reset made in the meantime and make later pulls skip data. */
+async function syncSettled(): Promise<void> {
+	await running?.catch(() => {});
+}
+
 /**
  * Reset the pull cursor, then sync — so the next pull replays the full history.
  * Needed after a server-side import: imported records keep their original
@@ -69,6 +75,7 @@ export function syncNow(): Promise<SyncResult> {
  * pull would skip them.
  */
 export async function resync(): Promise<SyncResult> {
+	await syncSettled();
 	await localStore.setCursor(0);
 	return syncNow();
 }
@@ -79,6 +86,7 @@ export async function resync(): Promise<SyncResult> {
  * it with syncNow() to immediately repopulate from the server.
  */
 export async function resetLocalData(): Promise<void> {
+	await syncSettled();
 	await localStore.clear();
 }
 
