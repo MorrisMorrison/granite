@@ -8,6 +8,12 @@ on:
       - 'apps/docs/**'
       - 'apps/api/openapi.yaml'
       - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'apps/docs/**'
+      - 'apps/api/openapi.yaml'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 # Allow the workflow to publish to GitHub Pages.
@@ -16,9 +22,9 @@ permissions:
   pages: write
   id-token: write
 
-# One deploy at a time; let a newer run supersede an in-flight one.
+# One run per ref; a newer run supersedes an in-flight one. PRs only build.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -40,6 +46,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
