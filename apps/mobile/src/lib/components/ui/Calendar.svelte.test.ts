@@ -48,4 +48,11 @@ describe('Calendar', () => {
 		await fireEvent.click(getAllByTestId('cal-day-marked')[0]);
 		expect(onselect).toHaveBeenCalledWith(null);
 	});
+
+	it('opens on the bound month and follows the arrows', async () => {
+		const { getByTestId } = render(Calendar, { props: { dates: [], year: 2026, month: 0 } });
+		expect(getByTestId('cal-title').textContent).toMatch(/January 2026/);
+		await fireEvent.click(getByTestId('cal-prev'));
+		expect(getByTestId('cal-title').textContent).toMatch(/December 2025/);
+	});
 });

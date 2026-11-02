@@ -14,10 +14,17 @@ test('history calendar marks workout days and filters the list on tap', async ({
 	await expect(page.getByTestId('clear-day')).toBeVisible();
 	await expect(page.getByTestId('workout-row')).toHaveCount(1);
 
-	// Clear → back to the full list.
+	// Clear → back to the whole month.
 	await page.getByTestId('clear-day').click();
 	await expect(page.getByTestId('clear-day')).toHaveCount(0);
 
 	// No future browsing — the next arrow is disabled on the current month.
 	await expect(page.getByTestId('cal-next')).toBeDisabled();
+
+	// The list follows the month on the calendar.
+	await page.getByTestId('cal-prev').click();
+	await expect(page.getByTestId('workout-row')).toHaveCount(0);
+	await expect(page.getByTestId('month-empty')).toBeVisible();
+	await page.getByTestId('cal-next').click();
+	await expect(page.getByTestId('workout-row')).toHaveCount(1);
 });

@@ -13,36 +13,38 @@
 		dates = [],
 		selected = null,
 		onselect,
-		itemNoun = 'workout'
+		itemNoun = 'workout',
+		year = $bindable(new Date().getFullYear()),
+		month = $bindable(new Date().getMonth())
 	}: {
 		dates?: number[];
 		selected?: number | null;
 		onselect?: (dayMs: number | null) => void;
 		itemNoun?: string;
+		year?: number; // the month on view; bind to follow it or to open on another month
+		month?: number; // 0-based
 	} = $props();
 
 	const now = Date.now();
 	const today = startOfDay(now);
 	const start = new Date(now);
-	let viewYear = $state(start.getFullYear());
-	let viewMonth = $state(start.getMonth());
 
-	const grid = $derived(monthGrid(viewYear, viewMonth));
-	const marks = $derived(markedDays(dates, viewYear, viewMonth));
-	const count = $derived(countInMonth(dates, viewYear, viewMonth));
+	const grid = $derived(monthGrid(year, month));
+	const marks = $derived(markedDays(dates, year, month));
+	const count = $derived(countInMonth(dates, year, month));
 	// No future browsing: the next arrow is disabled once we're on the current month.
-	const canNext = $derived(!isAfterMonth(viewYear, viewMonth, now) && !sameMonthAsNow());
+	const canNext = $derived(!isAfterMonth(year, month, now) && !sameMonthAsNow());
 
 	const DOW = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 	function sameMonthAsNow(): boolean {
-		return viewYear === start.getFullYear() && viewMonth === start.getMonth();
+		return year === start.getFullYear() && month === start.getMonth();
 	}
 	function prev() {
-		({ year: viewYear, month: viewMonth } = addMonth(viewYear, viewMonth, -1));
+		({ year: year, month: month } = addMonth(year, month, -1));
 	}
 	function next() {
-		if (canNext) ({ year: viewYear, month: viewMonth } = addMonth(viewYear, viewMonth, 1));
+		if (canNext) ({ year: year, month: month } = addMonth(year, month, 1));
 	}
 	function pick(ms: number) {
 		onselect?.(selected != null && startOfDay(selected) === ms ? null : ms);
@@ -55,7 +57,7 @@
 			<span aria-hidden="true">‹</span>
 		</button>
 		<div class="cal-title" data-testid="cal-title">
-			{monthLabel(viewYear, viewMonth)} · {count} {itemNoun}{count === 1 ? '' : 's'}
+			{monthLabel(year, month)} · {count} {itemNoun}{count === 1 ? '' : 's'}
 		</div>
 		<button
 			class="nav"
