@@ -278,6 +278,21 @@ button.group-row:hover:not(:disabled) {
 	white-space: nowrap;
 }
 
+/* Logger set table columns: badge · previous · weight · reps · done. The header row and the
+   set rows share this so they stay aligned; small phones trade input width for a readable
+   "previous" column. */
+.set-grid {
+	display: grid;
+	grid-template-columns: 2rem minmax(0, 1fr) 4.4rem 4.4rem 2rem;
+	gap: 0.4rem;
+}
+@media (max-width: 379px) {
+	.set-grid {
+		grid-template-columns: 2rem minmax(0, 1fr) 3.2rem 3.2rem 2rem;
+		gap: 0.25rem;
+	}
+}
+
 /* Large heading-style text input (logger workout title, routine title). Padded in both
    states with the padding pulled into the gutter, so the text doesn't shift on focus. */
 .title-input {

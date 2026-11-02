@@ -80,7 +80,7 @@
 
 	{#if ex.notes}<p class="note">{ex.notes}</p>{/if}
 
-	<div class="cols table-head">
+	<div class="cols set-grid table-head">
 		<span>Set</span><span>Previous</span><span>{unit}</span><span>Reps</span><span>✓</span>
 	</div>
 	{#each ex.sets as s, i (s.uid)}
@@ -206,9 +206,6 @@
 		white-space: pre-wrap;
 	}
 	.cols {
-		display: grid;
-		grid-template-columns: 2rem minmax(0, 1fr) 4.4rem 4.4rem 2rem;
-		gap: 0.4rem;
 		margin: 0.5rem 0 0.35rem;
 	}
 </style>
