@@ -37,6 +37,9 @@ export default defineConfig({
 				'Open-source, self-hostable, offline-first workout tracker. Own your training data.',
 			favicon: '/favicon.svg',
 			customCss: ['./src/styles/custom.css'],
+			head: [
+				{ tag: 'script', attrs: { src: `${base}/screenshot-zoom.js`, type: 'module' } }
+			],
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/MorrisMorrison/granite' }
 			],

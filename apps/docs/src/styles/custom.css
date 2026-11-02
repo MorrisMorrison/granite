@@ -48,11 +48,59 @@
 	}
 }
 
-/* App screenshots in the guides stay phone-sized. */
-.sl-markdown-content img[src*='/screenshots/'] {
+/* App screenshots in the guides: a small preview beside the text, full size on click
+   (public/screenshot-zoom.js). */
+.sl-markdown-content p > img[src*='/screenshots/'],
+.sl-markdown-content p > .shot-zoom {
+	float: inline-end;
+	width: 10rem;
+	margin: 0 0 1rem 1.5rem;
+}
+.shot-zoom {
 	display: block;
-	width: min(20rem, 100%);
-	margin-inline: auto;
+	width: 100%;
+	padding: 0;
+	background: none;
+	border: none;
+	cursor: zoom-in;
+}
+.shot-zoom img {
+	display: block;
+	width: 100%;
 	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+}
+.shot-zoom:focus-visible {
+	outline: 2px solid var(--sl-color-accent);
+	outline-offset: 2px;
+	border-radius: 0.75rem;
+}
+.sl-markdown-content h2 {
+	clear: inline-end;
+}
+@media (max-width: 34rem) {
+	.sl-markdown-content p > img[src*='/screenshots/'],
+	.sl-markdown-content p > .shot-zoom {
+		float: none;
+		margin: 1rem auto;
+	}
+}
+
+.shot-dialog {
+	margin: auto;
+	max-width: 95vw;
+	max-height: 95vh;
+	padding: 0;
+	background: none;
+	border: none;
+	cursor: zoom-out;
+}
+.shot-dialog::backdrop {
+	background: rgb(0 0 0 / 0.8);
+}
+.shot-dialog img {
+	display: block;
+	max-width: 95vw;
+	max-height: 95vh;
 	border-radius: 1rem;
 }
