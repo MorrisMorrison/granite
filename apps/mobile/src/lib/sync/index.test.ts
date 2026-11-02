@@ -19,7 +19,7 @@ vi.mock('#lib/local/store.ts', () => ({
 	localStore: { setCursor, getServerId, setServerId, clear, hasPending }
 }));
 
-import { resync, syncNow } from './index';
+import { resetLocalData, resync, syncNow } from './index';
 
 beforeEach(() => {
 	syncFn.mockReset();
@@ -137,5 +137,61 @@ describe('resync', () => {
 
 		expect(setCursor).toHaveBeenCalledWith(0);
 		expect(syncFn).toHaveBeenCalledOnce();
+	});
+});
+
+// A sync reads the cursor, pulls, then saves the cursor. If the local copy is wiped or
+// the cursor reset in between, that save brings the old cursor back and later pulls skip
+// everything, so these must wait for the sync in flight.
+describe('with a sync in flight', () => {
+	function syncInFlight() {
+		let finish = () => {};
+		syncFn.mockReturnValue(
+			new Promise((resolve) => {
+				finish = () => resolve({ pushed: 0, pulled: 0 });
+			})
+		);
+		const started = syncNow();
+		return { started, finish: () => finish() };
+	}
+	const flush = () => new Promise((r) => setTimeout(r));
+
+	it('resetLocalData wipes only after that sync has finished', async () => {
+		const { started, finish } = syncInFlight();
+		await flush();
+
+		const reset = resetLocalData();
+		await flush();
+		expect(clear).not.toHaveBeenCalled();
+
+		finish();
+		await Promise.all([started, reset]);
+		expect(clear).toHaveBeenCalledOnce();
+	});
+
+	it('resetLocalData still wipes if that sync fails', async () => {
+		syncFn.mockRejectedValue(new Error('offline'));
+		const started = syncNow().catch(() => {});
+
+		await resetLocalData();
+		await started;
+
+		expect(clear).toHaveBeenCalledOnce();
+	});
+
+	it('resync resets the cursor only after that sync has finished', async () => {
+		const { started, finish } = syncInFlight();
+		await flush();
+
+		const again = resync();
+		await flush();
+		expect(setCursor).not.toHaveBeenCalled();
+
+		finish();
+		await started;
+		syncFn.mockResolvedValue({ pushed: 0, pulled: 0 });
+		await again;
+		expect(setCursor).toHaveBeenCalledWith(0);
+		expect(syncFn).toHaveBeenCalledTimes(2);
 	});
 });
