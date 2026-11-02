@@ -20,7 +20,7 @@
 	import ExercisePicker from '#lib/components/ExercisePicker.svelte';
 	import WorkoutHeader from '#lib/components/logger/WorkoutHeader.svelte';
 	import ExerciseCard from '#lib/components/logger/ExerciseCard.svelte';
-	import RestPill from '#lib/components/logger/RestPill.svelte';
+	import RestCard from '#lib/components/logger/RestCard.svelte';
 	import type { DraftSet, LoggerExercise } from '#lib/components/logger/types.ts';
 
 	// LoggerExercise: `notes` is a routine cue, `rest_seconds` the routine's per-exercise rest
@@ -146,6 +146,8 @@
 	const timer = createRestTimer();
 	let restRemaining = $state(0);
 	let restActive = $state(false);
+	// The running rest's full length, adjusted by −15/+15: the ring's 100%.
+	let restTotal = $state(0);
 	let restInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Mirror the timer's state into the reactive vars the UI reads.
@@ -176,6 +178,7 @@
 	function startRest(seconds: number) {
 		restGen++;
 		timer.start(seconds);
+		restTotal = seconds;
 		if (!restInterval) restInterval = setInterval(refresh, 1000);
 		sync();
 		const gen = restGen;
@@ -186,6 +189,7 @@
 	function bumpRest(delta: number) {
 		timer.bump(delta);
 		sync();
+		restTotal = Math.max(restTotal + delta, restRemaining);
 		const at = timer.endsAt();
 		const gen = restGen;
 		if (at)
@@ -349,7 +353,7 @@
 
 <svelte:head><title>Log workout · Granite</title></svelte:head>
 
-<main class="container" style="padding-bottom: 9rem;">
+<main class="container" style:padding-bottom={restActive ? '14rem' : '9rem'}>
 	<WorkoutHeader
 		{elapsed}
 		{routineName}
@@ -400,11 +404,13 @@
 </main>
 
 <div class="footer">
-	<div class="container footer-inner">
-		{#if restActive}
-			<RestPill remaining={restRemaining} onbump={bumpRest} onskip={stopRest} />
-		{/if}
-		<div class="footer-row">
+	{#if restActive}
+		<div class="container rest-slot">
+			<RestCard remaining={restRemaining} total={restTotal} onbump={bumpRest} onskip={stopRest} />
+		</div>
+	{/if}
+	<div class="footer-bar">
+		<div class="container footer-inner">
 			<Button variant="ghost" size="sm" onclick={cancel} testid="btn-cancel-workout">Cancel</Button>
 			<span class="count">{completedCount} set{completedCount === 1 ? '' : 's'} done</span>
 			<Button size="sm" onclick={finish} disabled={saving} testid="btn-finish-workout">
@@ -424,21 +430,25 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
+		/* The rest card floats over the page: only the card and the bar take taps. */
+		pointer-events: none;
+	}
+	.rest-slot {
+		padding: 0 0.75rem 0.6rem;
+		pointer-events: auto;
+	}
+	.footer-bar {
 		background: var(--surface);
 		border-top: 1px solid var(--border);
+		pointer-events: auto;
 	}
 	.footer-inner {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		/* Tighter side padding than the page container so the bar fits on small phones. */
-		padding: 0.6rem 0.75rem;
-	}
-	.footer-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
+		/* Tighter side padding than the page container so the bar fits on small phones. */
+		padding: 0.6rem 0.75rem;
 	}
 	.count {
 		font-size: 0.8rem;
