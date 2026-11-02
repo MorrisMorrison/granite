@@ -12,7 +12,7 @@ Write the backend in **Go**.
 ## Alternatives considered
 - **TypeScript (Node).** Tempting because the frontend is TS — one language, shared types for free.
   But it's heavier to self-host (runtime + node_modules), and we recover most of the type-safety
-  benefit via OpenAPI codegen (see [02 — Architecture](../02-architecture.md)).
+  benefit via OpenAPI codegen (see [02 — Architecture](../technical/architecture.md)).
 - **Python.** Best if we wanted heavy stats/ML server-side — but the stats run on the *client* (full
   local SQLite), and Python is the heaviest to self-host.
 

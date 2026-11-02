@@ -1,4 +1,4 @@
-# 07 — Self-hosting
+# Self-hosting
 
 Self-hosting is a first-class goal, not an afterthought. The bar: **`docker-compose up` and one config
 file** (or just run the binary). Granite is a **single container** — one Go binary that serves the
@@ -7,8 +7,8 @@ There's no separate database process to run, tune, or back up.
 
 ## Quickstart (Docker Compose)
 
-A ready-to-use [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) +
-[`deploy/.env.example`](../deploy/.env.example) ship in the repo — see [`deploy/`](../deploy/).
+A ready-to-use [`deploy/docker-compose.yml`](../../deploy/docker-compose.yml) +
+[`deploy/.env.example`](../../deploy/.env.example) ship in the repo — see [`deploy/`](../../deploy/).
 
 ```yaml
 services:
@@ -60,7 +60,7 @@ GRANITE_LOG_LEVEL=info
 ```
 
 Then `docker compose up -d` and open `GRANITE_BASE_URL`. Put it behind a reverse proxy (Caddy / Traefik /
-nginx) for TLS. The optional [MCP server](../apps/mcp/) runs as a separate stdio process alongside the
+nginx) for TLS. The optional [MCP server](../../apps/mcp/) runs as a separate stdio process alongside the
 container, not part of it.
 
 If you run behind a proxy that **replaces** `X-Forwarded-For` (not appends to it), set
@@ -102,7 +102,7 @@ can always be created**, so a personal instance needs no extra steps to bootstra
 
 ## Using the Android app
 
-The [Android app](06-mobile-app.md) works with any up-to-date server — no configuration, because the
+The [Android app](../technical/mobile-app.md) works with any up-to-date server — no configuration, because the
 native origins are allowed in CORS automatically. On first launch, enter your `GRANITE_BASE_URL`.
 
 - **HTTPS is recommended.** A plain-HTTP server (e.g. on a home LAN) works if you type `http://`

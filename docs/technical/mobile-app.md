@@ -1,7 +1,7 @@
-# 06 — Mobile app (SvelteKit + Capacitor)
+# Mobile app (SvelteKit + Capacitor)
 
 > **Status:** the **Android app has shipped** — debug builds from CI today, signed releases on GitHub
-> Releases next. iOS comes later (it needs macOS CI). See [ADR-0012](decisions/0012-android-app-capacitor.md).
+> Releases next. iOS comes later (it needs macOS CI). See [ADR-0012](../decisions/0012-android-app-capacitor.md).
 
 ## Shape
 
@@ -26,11 +26,11 @@ no-ops, so there is no separate UI codebase for web versus mobile.
 
 - **On-device store behind a `SyncStore`/repository seam**, so app code is platform-agnostic.
 - **Web/PWA and Android: IndexedDB** via `idb` (inside the WebView on Android) — see
-  [ADR-0010](decisions/0010-web-local-store-indexeddb.md). Granite's data is small and aggregate-shaped
+  [ADR-0010](../decisions/0010-web-local-store-indexeddb.md). Granite's data is small and aggregate-shaped
   (a routine/workout is one record with its children), so rich on-device SQL isn't needed.
 - **Native SQLite** (`@capacitor-community/sqlite`) is only a possible later step — a separate
   `SyncStore` implementation against the same interface.
-- All reads/writes hit the local store; the [sync client](05-sync-and-offline.md) reconciles with the server.
+- All reads/writes hit the local store; the [sync client](sync-and-offline.md) reconciles with the server.
 - Android cloud backup and device-to-device transfer are disabled (WebView storage holds the refresh
   token); a new device gets its data back by syncing.
 
@@ -81,7 +81,7 @@ already knows its own origin, so this applies to the native app only.
 
 ## Build & release
 
-- **CI:** [`android.yml`](../.github/workflows/android.yml) builds a **debug APK** on PRs touching the app
+- **CI:** [`android.yml`](../../.github/workflows/android.yml) builds a **debug APK** on PRs touching the app
   and uploads it as the `granite-debug-apk` artifact (14-day retention) — installable for testing.
 - **Next:** signed release APKs on GitHub Releases, one per `v*` tag. iOS later (needs macOS CI).
 - **Build locally** (JDK 21 + Android SDK): `pnpm --filter mobile run cap:sync`, then open

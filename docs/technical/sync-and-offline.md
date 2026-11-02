@@ -1,4 +1,4 @@
-# 05 — Sync & offline
+# Sync & offline
 
 This is the architecturally hardest part, so it gets its own doc. The goal: **the app is fully usable
 offline, and data converges correctly across devices and the server.**
@@ -22,7 +22,7 @@ realistic conflict is "I edited a routine on my phone and tablet while both were
 per-record `updated_at` resolves that deterministically with a fraction of the complexity. We can
 revisit field-level merge later if it ever bites. **Don't over-engineer the backbone.**
 
-## Data requirements (recap from [03](03-data-model.md))
+## Data requirements (recap from the [data model](data-model.md))
 
 Every syncable row has: `id` (client-generated **UUIDv4**, via `crypto.randomUUID()`), `user_id`,
 `created_at`, `updated_at`, `deleted_at?`, and a server-assigned `server_seq` (the pull cursor — see
@@ -153,7 +153,7 @@ deliver via `server_seq`, but a cursor reset is the belt-and-suspenders path.)
 ## What we are explicitly NOT doing (yet)
 
 - Field-level merge / CRDTs.
-- Per-child-record sync. Aggregate granularity is the v1 unit (see [ADR-0008](decisions/0008-sync-engine-v1.md));
+- Per-child-record sync. Aggregate granularity is the v1 unit (see [ADR-0008](../decisions/0008-sync-engine-v1.md));
   per-child sync remains a future option.
 - Real-time push (websockets), a periodic sync timer, or an online-event listener. Mount + after-write
   triggers are enough for MVP; add more later if needed.

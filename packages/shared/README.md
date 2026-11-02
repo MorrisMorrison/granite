@@ -19,4 +19,4 @@ and of any particular on-device store.
 pnpm test     # vitest — engine convergence + the SyncStore contract (memory store)
 ```
 
-See [docs/05 — Sync & offline](../../docs/05-sync-and-offline.md) for the protocol.
+See [Sync and offline](../../docs/technical/sync-and-offline.md) for the protocol.

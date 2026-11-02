@@ -6,7 +6,7 @@ welcome.
 ## Ground rules
 
 - **Scope.** Granite is a focused, offline-first gym logger you self-host. It deliberately has **no
-  social features, nutrition, or cardio/GPS** (see [Vision · non-goals](docs/00-vision.md)). Features
+  social features, nutrition, or cardio/GPS** (see [Vision · non-goals](docs/technical/vision.md)). Features
   that fit the in-gym logging + own-your-data mission are in scope; please open an issue to discuss
   larger changes before building.
 - **Offline-first is the backbone.** Every core action must work with the network off. Sync is
@@ -22,7 +22,7 @@ licensing options open.
 
 ## Getting started
 
-Local setup, the repo layout, and how to build/test are in **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**.
+Local setup, the repo layout, and how to build/test are in **[docs/project/development.md](docs/project/development.md)**.
 The design docs live in **[docs/](docs/README.md)**.
 
 ## Workflow

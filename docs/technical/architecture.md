@@ -1,4 +1,4 @@
-# 02 — Architecture
+# Architecture
 
 ## Big picture
 
@@ -34,11 +34,11 @@ path. It talks to local SQLite. Sync is a separate, retryable concern.
 
 ### `apps/api` — Go service
 - **REST API** for sync + direct CRUD (also what the web/mobile client and third parties use).
-- **Sync engine** — the push/pull endpoint and conflict resolution (see [05](05-sync-and-offline.md)).
+- **Sync engine** — the push/pull endpoint and conflict resolution (see [Sync and offline](sync-and-offline.md)).
 - **MCP server** — exposes read (and selected write) tools over the same domain (later phase).
 - **Embeds the web build** via Go `embed`, so a self-hoster runs a single binary that serves both the
   API and the web app.
-- **Storage:** a **SQLite** file (see [ADR-0004](decisions/0004-sqlite-everywhere.md)).
+- **Storage:** a **SQLite** file (see [ADR-0004](../decisions/0004-sqlite-everywhere.md)).
 - **Auth** — issues/validates JWTs (see ADR-0006).
 
 ### `apps/mobile` — SvelteKit + Capacitor
@@ -47,7 +47,7 @@ path. It talks to local SQLite. Sync is a separate, retryable concern.
   1. **Capacitor** wraps it into iOS/Android apps (with native SQLite + notifications plugins).
   2. The **Go binary embeds it** to serve the self-hosted web app / PWA.
 - On-device storage sits behind a `SyncStore`/repository seam: the **web/PWA client uses IndexedDB**
-  (see [ADR-0010](decisions/0010-web-local-store-indexeddb.md)); native (Capacitor, later) will use
+  (see [ADR-0010](../decisions/0010-web-local-store-indexeddb.md)); native (Capacitor, later) will use
   **SQLite**. Same logical model, swappable engine.
 
 ### `packages/shared` — TypeScript
@@ -70,10 +70,10 @@ Go handlers + annotations  ──►  OpenAPI spec (checked into repo)  ──�
 ## Same database engine on both sides
 
 The **server** runs **SQLite**, keeping it tiny (no separate database process). See
-[ADR-0004](decisions/0004-sqlite-everywhere.md) for why, and how Postgres can be slotted in later as an
+[ADR-0004](../decisions/0004-sqlite-everywhere.md) for why, and how Postgres can be slotted in later as an
 optional backend. On the device the sync engine is **store-agnostic** (it talks to a `SyncStore` over
 opaque `entity:id` records), so the on-device engine doesn't have to match the server's: the web client
-uses IndexedDB today ([ADR-0010](decisions/0010-web-local-store-indexeddb.md)), with native SQLite a
+uses IndexedDB today ([ADR-0010](../decisions/0010-web-local-store-indexeddb.md)), with native SQLite a
 later, drop-in `SyncStore`.
 
 ## Tech stack
@@ -108,4 +108,4 @@ return a generic 500 (cause logged server-side, not returned).
 - **Single Go binary + a SQLite file** is the smallest thing a self-hoster can operate.
 - **OpenAPI** keeps the Go/TS split honest.
 
-See the [decision records](decisions/) for the trade-offs behind each pillar.
+See the [decision records](../decisions/) for the trade-offs behind each pillar.

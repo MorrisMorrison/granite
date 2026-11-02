@@ -1,4 +1,4 @@
-# 00 — Vision
+# Vision
 
 ## One line
 

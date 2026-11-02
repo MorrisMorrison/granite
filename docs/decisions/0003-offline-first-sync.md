@@ -11,7 +11,7 @@ research project.
 **Offline-first**: device-local SQLite is the source of truth on-device; a background sync client
 reconciles with the server via a **pull/push** protocol. Conflicts resolved by **last-write-wins per
 record** using `updated_at`; deletes are **tombstones**; records use **client-generated UUIDv7**; the
-pull cursor is a per-user monotonic **`server_seq`**. Full design in [05](../05-sync-and-offline.md).
+pull cursor is a per-user monotonic **`server_seq`**. Full design in [05](../technical/sync-and-offline.md).
 
 ## Alternatives considered
 - **Online-first + cache.** Simpler, but risks dropped logs on bad gym wifi — unacceptable for the

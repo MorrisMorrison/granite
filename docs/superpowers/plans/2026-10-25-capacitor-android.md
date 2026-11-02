@@ -1355,7 +1355,7 @@ Guard `debug-apk` with `if: github.event_name == 'pull_request'` and add:
 
 **Files:**
 - Create: `docs/decisions/0012-android-app-capacitor.md`; Modify: `docs/decisions/README.md` (index row)
-- Modify: `docs/06-mobile-app.md` (status: Android shipped; IndexedDB kept; connect step; CORS origins), `docs/07-self-hosting.md` (the app works with any current server; plain-HTTP LAN servers work but send passwords unencrypted — prefer HTTPS), `README.md` (Android download link: Releases)
+- Modify: `docs/technical/mobile-app.md` (status: Android shipped; IndexedDB kept; connect step; CORS origins), `docs/self-hosting/install.md` (the app works with any current server; plain-HTTP LAN servers work but send passwords unencrypted — prefer HTTPS), `README.md` (Android download link: Releases)
 
 - [ ] **Step 1: ADR-0012** — context (PWA limits on locked-screen alerts), decision (Android via Capacitor 8; IndexedDB kept; native origins always in CORS; `/api/v1/info` with `api_version`; signed APK on GitHub Releases), consequences (iOS later on macOS CI; keystore must never change; bump `api_version` when the app needs newer server behaviour).
 - [ ] **Step 2:** update the three docs + README as listed. Scrub for personal infrastructure terms before committing.
