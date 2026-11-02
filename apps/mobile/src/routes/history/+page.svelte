@@ -2,7 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { listWorkouts, type WorkoutSummary } from '#lib/repo/workouts.ts';
 	import { syncNow } from '#lib/sync/index.ts';
-	import { groupByMonth, startOfDay } from '#lib/calendar.ts';
+	import { inMonth, monthLabel, startOfDay } from '#lib/calendar.ts';
 	import { workoutMinutes } from '#lib/duration.ts';
 	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 	import EmptyState from '#lib/components/ui/EmptyState.svelte';
@@ -13,6 +13,9 @@
 	let workouts = $state<WorkoutSummary[]>([]);
 	let loading = $state(true);
 	let selectedDay = $state<number | null>(null);
+	// The month on the calendar; the list below shows the same month.
+	let viewYear = $state(new Date().getFullYear());
+	let viewMonth = $state(new Date().getMonth());
 	let listEl = $state<HTMLElement | null>(null);
 
 	// The Clear button disappears with the filter, so hand focus to the (now full) list.
@@ -23,18 +26,32 @@
 	}
 
 	const dates = $derived(workouts.map((w) => w.start_time));
-	const shown = $derived(
-		selectedDay == null
-			? workouts
-			: workouts.filter((w) => startOfDay(w.start_time) === selectedDay)
+	// A day picked in another month doesn't apply to the month on view.
+	const activeDay = $derived(
+		selectedDay != null && inMonth(selectedDay, viewYear, viewMonth) ? selectedDay : null
 	);
-	const months = $derived(groupByMonth(shown));
+	const shown = $derived(
+		workouts.filter((w) =>
+			activeDay == null
+				? inMonth(w.start_time, viewYear, viewMonth)
+				: startOfDay(w.start_time) === activeDay
+		)
+	);
 	const eyebrow = $derived(
 		workouts.length ? `${workouts.length} workout${workouts.length === 1 ? '' : 's'}` : undefined
 	);
 
+	// Open on the latest workout's month so History isn't empty early in a new month.
+	function openOnLatest() {
+		if (!workouts.length) return;
+		const latest = new Date(Math.max(...workouts.map((w) => w.start_time)));
+		viewYear = latest.getFullYear();
+		viewMonth = latest.getMonth();
+	}
+
 	onMount(async () => {
 		workouts = await listWorkouts();
+		openOnLatest();
 		loading = false;
 		try {
 			await syncNow();
@@ -79,32 +96,39 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<Calendar {dates} selected={selectedDay} onselect={(d) => (selectedDay = d)} />
+		<Calendar
+			{dates}
+			selected={selectedDay}
+			onselect={(d) => (selectedDay = d)}
+			bind:year={viewYear}
+			bind:month={viewMonth}
+		/>
 
-		{#if selectedDay != null}
+		{#if activeDay != null}
 			<div class="filterbar">
-				<span>Showing {fmtDay(selectedDay)}</span>
+				<span>Showing {fmtDay(activeDay)}</span>
 				<button class="clear" onclick={clearDay} data-testid="clear-day">Clear</button>
 			</div>
 		{/if}
 
-		<div class="months" bind:this={listEl} tabindex="-1" role="region" aria-label="Workouts">
-			{#each months as g (g.key)}
-				<section class="month">
-					<h2 class="eyebrow month-label">{g.label}</h2>
-					<div class="group">
-						{#each g.items as w (w.id)}
-							<a class="group-row" href={`/history/${w.id}`} data-testid="workout-row">
-								<span class="group-row-body">
-									<span class="group-row-title">{w.title || 'Workout'}</span>
-									<span class="group-row-sub">{meta(w)}</span>
-								</span>
-								<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
-							</a>
-						{/each}
-					</div>
-				</section>
-			{/each}
+		<div class="list" bind:this={listEl} tabindex="-1" role="region" aria-label="Workouts">
+			{#if shown.length === 0}
+				<p class="none" data-testid="month-empty">
+					No workouts in {monthLabel(viewYear, viewMonth)}.
+				</p>
+			{:else}
+				<div class="group">
+					{#each shown as w (w.id)}
+						<a class="group-row" href={`/history/${w.id}`} data-testid="workout-row">
+							<span class="group-row-body">
+								<span class="group-row-title">{w.title || 'Workout'}</span>
+								<span class="group-row-sub">{meta(w)}</span>
+							</span>
+							<span class="group-row-chev"><Icon name="chevron-right" size={18} /></span>
+						</a>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </main>
@@ -135,16 +159,17 @@
 		color: var(--text);
 		background: var(--elevated);
 	}
-	.month {
-		margin-top: 1.25rem;
+	.none {
+		margin: 0;
+		padding: 1.25rem 0;
+		text-align: center;
+		font-size: 0.9rem;
+		color: var(--muted);
 	}
-	.month-label {
-		margin: 0 0 0.4rem;
-	}
-	.months:focus {
+	.list:focus {
 		outline: none;
 	}
-	.months:focus-visible {
+	.list:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 4px;
 		border-radius: var(--radius-lg);

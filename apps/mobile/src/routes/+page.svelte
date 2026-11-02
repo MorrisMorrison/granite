@@ -107,7 +107,9 @@
 			<Button href={`/log?routine=${next.id}`} icon="play" block testid="today-start-routine">
 				Start {next.title}
 			</Button>
-			<a class="empty-link" href="/log" data-testid="btn-start-workout">or start an empty workout</a>
+			<div class="empty-cta">
+				<Button variant="outline" href="/log" block testid="btn-start-workout">Start empty workout</Button>
+			</div>
 		</section>
 	{:else}
 		<Button href="/log" icon="play" block testid="btn-start-workout">Start workout</Button>
@@ -204,17 +206,8 @@
 		font-size: 0.85rem;
 		color: var(--muted);
 	}
-	.empty-link {
-		display: block;
-		margin: 0.35rem 0 -0.4rem;
-		padding: 0.4rem;
-		text-align: center;
-		font-size: 0.85rem;
-		color: var(--muted);
-		text-decoration: none;
-	}
-	.empty-link:hover {
-		color: var(--text);
+	.empty-cta {
+		margin-top: 0.5rem;
 	}
 	.week {
 		display: flex;
