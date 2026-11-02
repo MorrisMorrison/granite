@@ -1,15 +1,15 @@
 ---
 title: Granite
-description: Open-source, self-hostable, offline-first workout tracker. Own your training data.
+description: An open-source workout tracker you run yourself. Fast logging, works offline, and your training data stays yours.
 template: splash
 hero:
-  tagline: A clean gym logger you run yourself — offline-first and open source. Your training data stays yours.
+  title: Your training log, on your own server
+  tagline: Granite is an open-source workout tracker for lifters. Log fast, train offline, and keep your data on hardware you control.
   image:
-    file: ../../assets/hero.svg
-    alt: Granite
+    html: '<img class="hero-phone" src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/today.png" alt="The Today screen, showing the next routine and the current week" />'
   actions:
-    - text: Self-host it
-      link: /granite/self-hosting/install/
+    - text: Get started
+      link: /granite/getting-started/quick-start/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/MorrisMorrison/granite
@@ -20,22 +20,60 @@ hero:
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid>
-	<Card title="Offline-first">
-		Every core action works with no signal; changes sync to your server when you're back online.
+	<Card title="Built for the gym floor" icon="rocket">
+		See what you lifted last time, tick off sets, and let the rest timer run. Logging never gets in the way of your workout.
 	</Card>
-	<Card title="Yours to host">
-		One Go binary + a SQLite file behind a reverse proxy. JSON export/import — no lock-in.
+	<Card title="Works without signal" icon="approve-check">
+		Every core action works offline. Your changes sync as soon as you're back online.
 	</Card>
-	<Card title="Just training">
-		Routines, the in-gym logger, history, and progress charts with personal records — a focused tool that does lifting well.
+	<Card title="See your progress" icon="star">
+		Personal records, estimated 1RM trends, weekly volume, and sets per muscle, all from your own history.
 	</Card>
-	<Card title="Open & scriptable">
-		AGPL-3.0, a typed REST API with an interactive reference, and an MCP server for AI tooling.
+	<Card title="Your data stays yours" icon="seti:lock">
+		Run it on a Raspberry Pi, a NAS, or a small VPS. Export everything as JSON at any time.
 	</Card>
 </CardGrid>
 
-## Get started
+## See it in action
 
-- **[Run it yourself](/granite/self-hosting/install/)** — `docker compose up` and you're logging.
-- **[Develop locally](/granite/project/development/)** — build Granite from source.
-- **[Architecture](/granite/technical/architecture/)** — how it's built (with [decision records](https://github.com/MorrisMorrison/granite/tree/main/docs/decisions) on GitHub for the why).
+<div class="shots">
+	<figure>
+		<img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/workout-log.png" alt="Logging sets during a workout" loading="lazy" />
+		<figcaption>Log your sets</figcaption>
+	</figure>
+	<figure>
+		<img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/routines.png" alt="Routines grouped in folders" loading="lazy" />
+		<figcaption>Plan your routines</figcaption>
+	</figure>
+	<figure>
+		<img src="https://raw.githubusercontent.com/MorrisMorrison/granite/screenshots/stats.png" alt="Stats with weekly volume and sets per muscle" loading="lazy" />
+		<figcaption>Follow your progress</figcaption>
+	</figure>
+</div>
+
+## Up and running in minutes
+
+Granite is a single container with one data file, so there's no separate database to run.
+
+```sh
+docker compose up -d
+```
+
+The [quick start](/granite/getting-started/quick-start/) walks you through it, including the two files you need. Then [add Granite to your phone](/granite/getting-started/install-on-your-phone/) and you're ready for your next session.
+
+## Learn more
+
+<CardGrid>
+	<Card title="Self-hosting" icon="setting">
+		Configuration, backups, and running Granite on your own server. [Read the guide](/granite/self-hosting/install/)
+	</Card>
+	<Card title="API reference" icon="puzzle">
+		Script your own data with the REST API. [Browse the API](/granite/api/)
+	</Card>
+	<Card title="Roadmap" icon="list-format">
+		What's shipped and what's coming next. [See the roadmap](/granite/project/roadmap/)
+	</Card>
+	<Card title="Technical docs" icon="open-book">
+		Architecture, sync, and the data model. [Explore the internals](/granite/technical/architecture/)
+	</Card>
+</CardGrid>

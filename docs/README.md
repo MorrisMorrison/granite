@@ -5,6 +5,7 @@ folder is a section of the site.
 
 | Folder | Section | For |
 |---|---|---|
+| [`getting-started/`](getting-started/) | Getting started | Everyone new to Granite |
 | [`self-hosting/`](self-hosting/) | Self-hosting | People running a Granite server |
 | [`project/`](project/) | Project | Roadmap and how to develop Granite |
 | [`technical/`](technical/) | Technical docs | Contributors: vision, architecture, data model, sync, API design, mobile app, UI design system |
