@@ -44,7 +44,7 @@ If a pattern appears on two or more screens it becomes a global class (or a smal
   a control; a sibling of the `<label>` in a `div.field`, linked via `aria-describedby`) · `.check-row` /
   `.check-row-text` (checkbox left, label + optional hint right) · `.title-input` (large heading input). Bare `input`/`select`/`textarea` only inherit font and
   colour; every field uses one of these classes.
-- **Set tables** — `.table-head` (column headings) · `.set-input` (compact filled number cell) ·
+- **Set tables** — `.table-head` (column headings) · `.set-grid` (logger columns, narrower inputs on small phones) · `.set-input` (compact filled number cell) ·
   `.add-row` (quiet "+ Add set" row).
 - **Sheets** — `.menu` / `.menu-item` (`.danger` red, `.on`, `:disabled`), `.menu-tick`, `.menu-hint`.
 

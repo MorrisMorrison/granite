@@ -23,7 +23,7 @@
 	} = $props();
 </script>
 
-<div class="row" class:done={set.is_completed} data-testid="set-row">
+<div class="row set-grid" class:done={set.is_completed} data-testid="set-row">
 	<SetBadge
 		label={badge}
 		type={set.set_type}
@@ -65,9 +65,6 @@
 
 <style>
 	.row {
-		display: grid;
-		grid-template-columns: 2rem minmax(0, 1fr) 4.4rem 4.4rem 2rem;
-		gap: 0.4rem;
 		align-items: center;
 		padding: 0.2rem 0.3rem;
 		margin: 0 -0.3rem 0.15rem;
